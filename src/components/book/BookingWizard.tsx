@@ -264,7 +264,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
               <span className="text-[length:1rem] text-ink-soft">.</span>
             </h2>
             <span className="text-sm text-ink-soft">
-              {selectedService.durationMin} min · +30 min buffer
+              {selectedService.durationMin} min
             </span>
           </div>
 
