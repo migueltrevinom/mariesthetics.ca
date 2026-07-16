@@ -209,7 +209,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
                 setServiceId(service._id);
                 setStep("slot");
               }}
-              className="flex w-full items-start justify-between border border-[var(--line)] bg-white/60 p-5 text-left transition hover:border-leaf"
+              className="flex w-full items-start justify-between border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] p-5 text-left transition hover:border-leaf"
             >
               <span>
                 <span className="block font-[family-name:var(--font-display)] text-2xl">
@@ -241,7 +241,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
           <label className="mt-6 block text-sm text-ink-soft">
             Date
             <select
-              className="mt-2 w-full border border-[var(--line)] bg-white px-3 py-3"
+              className="mt-2 w-full border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] px-3 py-3"
               value={date}
               onChange={(e) => setDate(e.target.value)}
             >
@@ -267,7 +267,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
                 className={`border px-2 py-3 text-sm ${
                   selectedStart === slot.start
                     ? "border-leaf bg-leaf text-white"
-                    : "border-[var(--line)] bg-white hover:border-leaf"
+                    : "border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-leaf"
                 }`}
               >
                 {format(new Date(slot.start), "h:mm a")}
@@ -302,7 +302,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
           <input
             required
             placeholder="Full name"
-            className="w-full border border-[var(--line)] bg-white px-3 py-3"
+            className="w-full border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] px-3 py-3"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
@@ -310,19 +310,19 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
             required
             type="email"
             placeholder="Email"
-            className="w-full border border-[var(--line)] bg-white px-3 py-3"
+            className="w-full border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] px-3 py-3"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
           <input
             placeholder="Phone"
-            className="w-full border border-[var(--line)] bg-white px-3 py-3"
+            className="w-full border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] px-3 py-3"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
           <input
             placeholder="Coupon code (optional)"
-            className="w-full border border-[var(--line)] bg-white px-3 py-3"
+            className="w-full border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] px-3 py-3"
             value={couponCode}
             onChange={(e) => setCouponCode(e.target.value)}
           />
@@ -367,7 +367,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
             </p>
           )}
           <textarea
-            className="min-h-28 w-full border border-[var(--line)] bg-white px-3 py-3"
+            className="min-h-28 w-full border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] px-3 py-3"
             placeholder="Interac reference / confirmation details"
             value={proofNote}
             onChange={(e) => setProofNote(e.target.value)}
@@ -392,7 +392,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
             Booking ID: <span className="text-ink">{bookingId}</span>
           </p>
           {encourageAccount && (
-            <div className="border border-[var(--line)] bg-white/70 p-5">
+            <div className="border border-[var(--line)] bg-[var(--card-bg)] p-5">
               <p className="font-medium">Save your booking history?</p>
               <p className="mt-1 text-sm text-ink-soft">
                 Create a client account with an email code — no password needed.

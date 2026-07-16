@@ -30,7 +30,7 @@ export default async function PublicLayout({
   const navServices = await getNavServices();
 
   return (
-    <div className="min-h-screen bg-night">
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-200">
       <SiteHeader navServices={navServices} />
       <main id="main">{children}</main>
       <SiteFooter />

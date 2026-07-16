@@ -20,7 +20,7 @@ export default async function BookPage({
     <div className="aurora grain relative min-h-screen overflow-hidden pt-40 pb-24 md:pt-48">
       <div className="relative mx-auto max-w-3xl px-6 md:px-10">
         <p className="eyebrow">Book</p>
-        <h1 className="display mt-5 text-5xl text-ivory md:text-7xl">
+        <h1 className="display mt-5 text-5xl text-[var(--ink)] md:text-7xl">
           Reserve your time.
         </h1>
         <p className="mt-6 max-w-xl text-ink-soft leading-relaxed">

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { whatsappUrl } from "@/lib/config";
 import { business } from "@/lib/seo";
 import { Logo } from "@/components/public/Logo";
+import { ThemeToggle } from "@/components/admin/ThemeToggle";
 
 const nav = [
   { href: "/services", label: "Services" },
@@ -12,7 +13,7 @@ const nav = [
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden border-t border-[var(--line)] bg-[var(--night-2)]">
+    <footer className="relative overflow-hidden border-t border-[var(--border-color)] bg-[var(--mist)] text-[var(--ink)] transition-colors duration-200">
       <div className="aurora-soft pointer-events-none absolute inset-0 opacity-70" />
       <div className="relative mx-auto max-w-6xl px-6 py-16 md:px-10">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
@@ -43,6 +44,9 @@ export function SiteFooter() {
           <div>
             <p className="eyebrow">Visit &amp; hours</p>
             <ul className="mt-4 space-y-3 text-sm text-ink-soft">
+              {nav.map((item) => (
+                <li key={item.label} className="pt-0">{item.label === "Book an appointment" ? null : null}</li>
+              ))}
               <li>Tuesday – Saturday</li>
               <li>9:00 am – 6:00 pm</li>
               <li className="pt-2">
@@ -60,9 +64,15 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-start justify-between gap-4 border-t border-[var(--line-soft)] pt-6 text-xs text-[var(--ivory-faint)] sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} {business.name}. Edmonton, Alberta.</p>
-          <p>Personalized skin care · By appointment</p>
+        <div className="mt-14 flex flex-col items-start justify-between gap-6 border-t border-[var(--border-color)] pt-6 text-xs text-[var(--ink-soft)] sm:flex-row sm:items-center">
+          <div>
+            <p>© {new Date().getFullYear()} {business.name}. Edmonton, Alberta.</p>
+            <p className="mt-1 text-[var(--ink-soft)]/70">Personalized skin care · By appointment</p>
+          </div>
+          
+          <div className="w-full sm:w-48 shrink-0">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
     </footer>
