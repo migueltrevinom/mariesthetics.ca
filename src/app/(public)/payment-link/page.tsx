@@ -353,19 +353,19 @@ function PaymentLinkContent() {
 								<div className="h-4 select-none mb-3 print:hidden" aria-hidden="true" />
 								<div className="space-y-2">
 									<div className="flex justify-between sm:justify-end gap-12">
-										<span className="text-[var(--ink-soft)]">Subtotal</span>
+										<span className="text-[var(--ink-soft)] whitespace-nowrap">Subtotal</span>
 										<span className="font-mono font-medium text-[var(--ink)] print:text-black">
 											{formatCad(data.receipt.amountCents)}
 										</span>
 									</div>
 									<div className="flex justify-between sm:justify-end gap-12 border-t border-[var(--border-color)]/30 pt-1.5">
-										<span className="text-[var(--ink-soft)]">Tax / GST (5%)</span>
+										<span className="text-[var(--ink-soft)] whitespace-nowrap">Tax / GST (5%)</span>
 										<span className="font-mono font-medium text-[var(--ink)] print:text-black">
 											{formatCad(0)}
 										</span>
 									</div>
 									<div className="flex justify-between sm:justify-end gap-12 text-sm font-semibold border-t border-[var(--border-color)] pt-3 text-[var(--ink)] print:text-black">
-										<span>Total Paid</span>
+										<span className="whitespace-nowrap">Total Paid</span>
 										<span className="font-mono text-base text-gold print:text-black">
 											{formatCad(data.receipt.amountCents)}
 										</span>
