@@ -30,3 +30,7 @@ export function withValidation<T>(
 		}
 	};
 }
+
+export const syncPaymentLinkSchema = z.object({
+	stripeSessionId: z.string().min(1, "Stripe Session ID is required"),
+});

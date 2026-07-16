@@ -20,6 +20,7 @@ interface StripePaymentLinkItem {
 	kind: string;
 	description: string;
 	stripePaymentLinkUrl: string;
+	stripeSessionId: string;
 	status: string;
 	clientEmail: string;
 	booking?: {
@@ -70,6 +71,8 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 	const [generatedUrl, setGeneratedUrl] = useState("");
 	const [copied, setCopied] = useState(false);
 	const [copiedLinkId, setCopiedLinkId] = useState("");
+	const [syncingLinkId, setSyncingLinkId] = useState("");
+	const [syncedLinkId, setSyncedLinkId] = useState("");
 
 	// Client Search & Bookings load
 	const [searchQuery, setSearchQuery] = useState("");
@@ -260,6 +263,7 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 					kind: data.link.kind,
 					description: data.link.description,
 					stripePaymentLinkUrl: data.link.stripePaymentLinkUrl,
+					stripeSessionId: data.link.stripeSessionId,
 					status: data.link.status,
 					clientEmail: data.link.clientEmail || "",
 					booking: data.link.bookingId
@@ -289,6 +293,32 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 		void navigator.clipboard.writeText(url);
 		setCopiedLinkId(id);
 		setTimeout(() => setCopiedLinkId(""), 2000);
+	};
+
+	const handleSync = async (linkId: string, sessionId: string) => {
+		setSyncingLinkId(linkId);
+		try {
+			const res = await fetch("/api/admin/payments/sync-link", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ stripeSessionId: sessionId }),
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				throw new Error(data.error || "Failed to sync status");
+			}
+
+			// Update the link's status in the local state table!
+			setPaymentLinks((prev) =>
+				prev.map((l) => (l._id === linkId ? { ...l, status: data.status } : l))
+			);
+			setSyncedLinkId(linkId);
+			setTimeout(() => setSyncedLinkId(""), 2000);
+		} catch (err: any) {
+			alert(err.message || "An error occurred during synchronization");
+		} finally {
+			setSyncingLinkId("");
+		}
 	};
 
 	return (
@@ -467,6 +497,26 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 												>
 													{copiedLinkId === link._id ? "Copied!" : "Copy"}
 												</button>
+												{link.status === "pending" && (
+													<button
+														type="button"
+														disabled={syncingLinkId === link._id}
+														onClick={() => handleSync(link._id, link.stripeSessionId)}
+														className={`px-2.5 py-1.5 border rounded-lg text-xs font-medium cursor-pointer transition-all ${
+															syncingLinkId === link._id
+																? "bg-[var(--card-bg)] text-[var(--ink-soft)] border-[var(--border-color)] opacity-60"
+																: syncedLinkId === link._id
+																	? "bg-leaf/10 text-leaf border-leaf/20"
+																	: "bg-[var(--card-bg)] text-[var(--ink)] border-[var(--border-color)] hover:border-gold"
+														}`}
+													>
+														{syncingLinkId === link._id
+															? "Syncing..."
+															: syncedLinkId === link._id
+																? "Synced!"
+																: "Sync"}
+													</button>
+												)}
 											</div>
 										</td>
 									</tr>

@@ -36,6 +36,7 @@ export default async function AdminPaymentsPage() {
 			kind: String(l.kind),
 			description: String(l.description),
 			stripePaymentLinkUrl: String(l.stripePaymentLinkUrl),
+			stripeSessionId: String(l.stripeSessionId),
 			status: String(l.status),
 			clientEmail: String(l.clientEmail || ""),
 			booking: l.bookingId ? {

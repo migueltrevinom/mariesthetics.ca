@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createStripePaymentLink, getStripePaymentLinks } from "../modules/stripePaymentLink.module";
+import { createStripePaymentLink, getStripePaymentLinks, syncStripePaymentLink } from "../modules/stripePaymentLink.module";
 
 export async function handleCreatePaymentLink(req: Request, validatedData: any): Promise<NextResponse> {
 	try {
@@ -30,5 +30,20 @@ export async function handleGetPaymentLinks(req: Request): Promise<NextResponse>
 	} catch (err: any) {
 		console.error("[StripePaymentLink Controller GET Error]:", err.message);
 		return NextResponse.json({ error: "Failed to load payment links" }, { status: 500 });
+	}
+}
+
+export async function handleSyncPaymentLink(req: Request, validatedData: any): Promise<NextResponse> {
+	try {
+		const { stripeSessionId } = validatedData;
+		const result = await syncStripePaymentLink(stripeSessionId);
+
+		return NextResponse.json({ success: true, status: result.status, link: result.link });
+	} catch (err: any) {
+		console.error("[StripePaymentLink Controller Sync Error]:", err.message);
+		return NextResponse.json(
+			{ error: err.message || "Failed to synchronize Stripe payment link status" },
+			{ status: 500 }
+		);
 	}
 }

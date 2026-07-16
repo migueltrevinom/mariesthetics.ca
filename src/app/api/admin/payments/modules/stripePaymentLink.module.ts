@@ -1,5 +1,6 @@
 import { StripePaymentLinkRepository } from "../repositories/stripePaymentLink.repository";
 import { getStripe } from "@/lib/payments/stripe";
+import { Booking, Payment } from "@/lib/db/models";
 
 export async function getStripePaymentLinks(params: { page: number; limit: number }) {
 	const skip = (params.page - 1) * params.limit;
@@ -46,8 +47,8 @@ export async function createStripePaymentLink(params: {
 			description: params.description,
 			isCustomPaymentLink: "true",
 		},
-		success_url: `${baseUrl}/admin/payments?success=true&session_id={CHECKOUT_SESSION_ID}`,
-		cancel_url: `${baseUrl}/admin/payments?cancelled=true`,
+		success_url: `${baseUrl}/payment-link?success=true&session_id={CHECKOUT_SESSION_ID}`,
+		cancel_url: `${baseUrl}/payment-link?cancelled=true`,
 	});
 
 	if (!session.url) {
@@ -70,4 +71,74 @@ export async function createStripePaymentLink(params: {
 		url: session.url,
 		record: linkRecord,
 	};
+}
+
+export async function syncStripePaymentLink(stripeSessionId: string) {
+	const link = await StripePaymentLinkRepository.findBySessionId(stripeSessionId);
+	if (!link) {
+		throw new Error("Stripe payment link not found in database.");
+	}
+
+	const stripe = getStripe();
+	const session = await stripe.checkout.sessions.retrieve(stripeSessionId);
+
+	if (session.payment_status === "paid") {
+		// Update StripePaymentLink status to paid
+		link.status = "paid";
+		link.paidAt = new Date();
+		await link.save();
+
+		// Check if Payment record already exists
+		const stripePaymentIntentId = String(session.payment_intent || "");
+		let payment = await Payment.findOne({ stripePaymentIntentId });
+
+		if (!payment) {
+			// Create the Payment transaction record
+			payment = await Payment.create({
+				bookingId: link.bookingId || null,
+				kind: link.kind === "custom" ? "adjustment" : link.kind,
+				method: "stripe",
+				amountCents: link.amountCents,
+				status: "succeeded",
+				stripePaymentIntentId,
+				note: `Stripe Checkout Session ${session.id} manually synced`,
+			});
+
+			// If associated with a booking, confirm and update summary
+			if (link.bookingId) {
+				const booking = await Booking.findById(link.bookingId);
+				if (booking) {
+					if (booking.status === "held") {
+						booking.status = "confirmed";
+						booking.holdExpiresAt = null;
+					}
+
+					const summary = booking.paymentSummary ?? {
+						totalCents: 0,
+						depositCents: 0,
+						paidCents: 0,
+						tipCents: 0,
+						discountCents: 0,
+						balanceDueCents: 0,
+					};
+
+					summary.paidCents = (summary.paidCents ?? 0) + link.amountCents;
+					summary.balanceDueCents = Math.max(
+						0,
+						(summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents
+					);
+					booking.paymentSummary = summary;
+					await booking.save();
+				}
+			}
+		}
+
+		return { status: "paid", link, payment };
+	} else if (session.status === "expired") {
+		link.status = "expired";
+		await link.save();
+		return { status: "expired", link };
+	}
+
+	return { status: link.status, link };
 }
