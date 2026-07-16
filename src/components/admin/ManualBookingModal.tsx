@@ -27,6 +27,25 @@ interface ManualBookingModalProps {
   clients: ClientOption[];
 }
 
+// Generate half-hour time slots from 8am–9pm
+function generateSlots(): string[] {
+  const slots: string[] = [];
+  for (let h = 8; h <= 21; h++) {
+    slots.push(`${String(h).padStart(2, "0")}:00`);
+    if (h < 21) slots.push(`${String(h).padStart(2, "0")}:30`);
+  }
+  return slots;
+}
+
+const ALL_SLOTS = generateSlots();
+
+function formatSlotLabel(slot: string) {
+  const [h, m] = slot.split(":").map(Number);
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m === 0 ? "00" : m} ${ampm}`;
+}
+
 export function ManualBookingModal({
   isOpen,
   onClose,
@@ -40,17 +59,58 @@ export function ManualBookingModal({
 
   const [bookingType, setBookingType] = useState<"existing" | "guest">("existing");
   const [selectedClientId, setSelectedClientId] = useState("");
-  
+
   const [localClients, setLocalClients] = useState<ClientOption[]>(clients);
   const [searchQuery, setSearchQuery] = useState("");
   const [searching, setSearching] = useState(false);
 
-  // Sync prop clients if they update
+  // Guest fields
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+
+  // Booking fields
+  const [selectedServiceId, setSelectedServiceId] = useState(services[0]?.id || "");
+  const [dateStr, setDateStr] = useState(
+    defaultDate ? format(defaultDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd")
+  );
+  const [timeStr, setTimeStr] = useState(
+    defaultDate
+      ? (() => {
+          const h = defaultDate.getHours();
+          // Only use hours 8–20; otherwise default to 09:00
+          if (h >= 8 && h <= 20) return format(defaultDate, "HH:00");
+          return "09:00";
+        })()
+      : "09:00"
+  );
+  const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState<"confirmed" | "held">("confirmed");
+  const [depositMethod, setDepositMethod] = useState<"cash" | "etransfer" | "stripe">("cash");
+
+  // Booked slots for the selected date
+  const [bookedTimes, setBookedTimes] = useState<Set<string>>(new Set());
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Sync prop clients
   useEffect(() => {
     setLocalClients(clients);
   }, [clients]);
 
-  // Reset form states on close/open
+  // Sync defaultDate → form fields whenever the modal opens or defaultDate changes
+  useEffect(() => {
+    if (isOpen && defaultDate) {
+      setDateStr(format(defaultDate, "yyyy-MM-dd"));
+      const h = defaultDate.getHours();
+      if (h >= 8 && h <= 20) {
+        setTimeStr(format(defaultDate, "HH:00"));
+      } else {
+        setTimeStr("09:00");
+      }
+    }
+  }, [isOpen, defaultDate]);
+
+  // Reset all form state on close
   useEffect(() => {
     if (!isOpen) {
       setSearchQuery("");
@@ -59,8 +119,54 @@ export function ManualBookingModal({
       setGuestEmail("");
       setGuestPhone("");
       setNotes("");
+      setError("");
+      setBookedTimes(new Set());
     }
   }, [isOpen]);
+
+  // Fetch booked slots whenever the selected date changes
+  useEffect(() => {
+    if (!isOpen || !dateStr) return;
+
+    const fetchBooked = async () => {
+      setLoadingSlots(true);
+      try {
+        const from = new Date(`${dateStr}T00:00:00`);
+        const to = new Date(`${dateStr}T23:59:59`);
+        const res = await fetch(
+          `/api/bookings?scope=admin&start=${from.toISOString()}&end=${to.toISOString()}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const booked = new Set<string>();
+        for (const b of data.bookings || []) {
+          // Block all 30-min slots covered by this booking
+          const start = new Date(b.start);
+          const end = new Date(b.end);
+          const cursor = new Date(start);
+          while (cursor < end) {
+            booked.add(format(cursor, "HH:mm"));
+            cursor.setMinutes(cursor.getMinutes() + 30);
+          }
+        }
+        setBookedTimes(booked);
+      } catch (e) {
+        console.error("Failed to load booked slots", e);
+      } finally {
+        setLoadingSlots(false);
+      }
+    };
+
+    void fetchBooked();
+  }, [isOpen, dateStr]);
+
+  // Auto-advance timeStr to next available slot when bookedTimes changes
+  useEffect(() => {
+    if (bookedTimes.size === 0) return;
+    if (!bookedTimes.has(timeStr)) return;
+    const next = ALL_SLOTS.find((s) => !bookedTimes.has(s));
+    if (next) setTimeStr(next);
+  }, [bookedTimes]);
 
   // Debounced live search
   useEffect(() => {
@@ -68,11 +174,12 @@ export function ManualBookingModal({
       setLocalClients(clients);
       return;
     }
-
     const delayDebounce = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await fetch(`/api/clients?search=${encodeURIComponent(searchQuery)}&limit=20&page=1`);
+        const res = await fetch(
+          `/api/clients?search=${encodeURIComponent(searchQuery)}&limit=20&page=1`
+        );
         if (res.ok) {
           const data = await res.json();
           const formatted = (data.clients || []).map((c: any) => ({
@@ -89,34 +196,23 @@ export function ManualBookingModal({
         setSearching(false);
       }
     }, 300);
-
     return () => clearTimeout(delayDebounce);
   }, [searchQuery, clients]);
-  
-  // Guest fields
-  const [guestName, setGuestName] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
-  const [guestPhone, setGuestPhone] = useState("");
-
-  // Booking fields
-  const [selectedServiceId, setSelectedServiceId] = useState(services[0]?.id || "");
-  const [dateStr, setDateStr] = useState(defaultDate ? format(defaultDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"));
-  const [timeStr, setTimeStr] = useState(defaultDate ? format(defaultDate, "HH:mm") : "10:00");
-  const [notes, setNotes] = useState("");
-  const [status, setStatus] = useState<"confirmed" | "held">("confirmed");
-  const [depositMethod, setDepositMethod] = useState<"cash" | "etransfer" | "stripe">("cash");
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (bookedTimes.has(timeStr)) {
+      setError("That time slot is already booked. Please choose a different time.");
+      return;
+    }
     setLoading(true);
     setError("");
 
     try {
-      // Create datetime in ISO format: YYYY-MM-DDTHH:mm:00Z
       const startDateTime = new Date(`${dateStr}T${timeStr}:00`);
-      
+
       const payload: any = {
         serviceId: selectedServiceId,
         start: startDateTime.toISOString(),
@@ -126,19 +222,11 @@ export function ManualBookingModal({
       };
 
       if (bookingType === "existing") {
-        if (!selectedClientId) {
-          throw new Error("Please select a client");
-        }
+        if (!selectedClientId) throw new Error("Please select a client");
         payload.clientId = selectedClientId;
       } else {
-        if (!guestName || !guestEmail) {
-          throw new Error("Guest name and email are required");
-        }
-        payload.guest = {
-          name: guestName,
-          email: guestEmail,
-          phone: guestPhone,
-        };
+        if (!guestName || !guestEmail) throw new Error("Guest name and email are required");
+        payload.guest = { name: guestName, email: guestEmail, phone: guestPhone };
       }
 
       const res = await fetch("/api/bookings", {
@@ -148,9 +236,7 @@ export function ManualBookingModal({
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to create booking");
-      }
+      if (!res.ok) throw new Error(data.error || "Failed to create booking");
 
       onSuccess();
       onClose();
@@ -160,6 +246,10 @@ export function ManualBookingModal({
       setLoading(false);
     }
   };
+
+  // Split slots into morning (8am–11:30) and afternoon (12pm–9pm)
+  const morningSlots = ALL_SLOTS.filter((s) => parseInt(s) < 12);
+  const afternoonSlots = ALL_SLOTS.filter((s) => parseInt(s) >= 12);
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -253,9 +343,7 @@ export function ManualBookingModal({
           ) : (
             <div className="space-y-3 p-3 bg-white/[0.02] border border-[var(--border-color)] rounded-xl">
               <div>
-                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                  Name *
-                </label>
+                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Name *</label>
                 <input
                   type="text"
                   placeholder="Guest Full Name"
@@ -265,9 +353,7 @@ export function ManualBookingModal({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                  Email *
-                </label>
+                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Email *</label>
                 <input
                   type="email"
                   placeholder="guest@example.com"
@@ -277,9 +363,7 @@ export function ManualBookingModal({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                  Phone (optional)
-                </label>
+                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Phone (optional)</label>
                 <input
                   type="tel"
                   placeholder="+1 555 5555"
@@ -293,9 +377,7 @@ export function ManualBookingModal({
 
           {/* Service Dropdown */}
           <div>
-            <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-              Service
-            </label>
+            <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Service</label>
             <select
               className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
               value={selectedServiceId}
@@ -309,38 +391,102 @@ export function ManualBookingModal({
             </select>
           </div>
 
-          {/* Date & Time */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Date
-              </label>
-              <input
-                type="date"
-                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                value={dateStr}
-                onChange={(e) => setDateStr(e.target.value)}
-              />
+          {/* Date */}
+          <div>
+            <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Date</label>
+            <input
+              type="date"
+              className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+              value={dateStr}
+              onChange={(e) => setDateStr(e.target.value)}
+            />
+          </div>
+
+          {/* Time Slot Picker */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-medium text-[var(--ink-soft)]">Time</label>
+              {loadingSlots ? (
+                <span className="text-[10px] text-[var(--ink-soft)] animate-pulse">Loading availability…</span>
+              ) : bookedTimes.size > 0 ? (
+                <span className="text-[10px] text-[var(--ink-soft)]">
+                  <span className="inline-block w-2 h-2 rounded-sm bg-blush/40 mr-1 align-middle" />
+                  Already booked
+                </span>
+              ) : null}
             </div>
-            <div>
-              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Time
-              </label>
-              <input
-                type="time"
-                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                value={timeStr}
-                onChange={(e) => setTimeStr(e.target.value)}
-              />
+
+            {/* Morning row */}
+            <div className="mb-2">
+              <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] mb-1.5">Morning</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {morningSlots.map((slot) => {
+                  const booked = bookedTimes.has(slot);
+                  const selected = timeStr === slot;
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      disabled={booked}
+                      onClick={() => setTimeStr(slot)}
+                      className={`py-1.5 px-1 text-[11px] rounded-lg border font-medium transition-all duration-150 cursor-pointer disabled:cursor-not-allowed
+                        ${
+                          booked
+                            ? "bg-blush/5 border-blush/15 text-blush/40 line-through"
+                            : selected
+                            ? "bg-[#c8a86b] border-[#c8a86b] text-[#24180a] font-semibold shadow-sm"
+                            : "border-[var(--border-color)] text-[var(--ink-soft)] hover:border-[#c8a86b] hover:text-[var(--ink)] bg-[var(--card-bg)]"
+                        }`}
+                    >
+                      {formatSlotLabel(slot)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+
+            {/* Afternoon row */}
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] mb-1.5">Afternoon / Evening</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {afternoonSlots.map((slot) => {
+                  const booked = bookedTimes.has(slot);
+                  const selected = timeStr === slot;
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      disabled={booked}
+                      onClick={() => setTimeStr(slot)}
+                      className={`py-1.5 px-1 text-[11px] rounded-lg border font-medium transition-all duration-150 cursor-pointer disabled:cursor-not-allowed
+                        ${
+                          booked
+                            ? "bg-blush/5 border-blush/15 text-blush/40 line-through"
+                            : selected
+                            ? "bg-[#c8a86b] border-[#c8a86b] text-[#24180a] font-semibold shadow-sm"
+                            : "border-[var(--border-color)] text-[var(--ink-soft)] hover:border-[#c8a86b] hover:text-[var(--ink)] bg-[var(--card-bg)]"
+                        }`}
+                    >
+                      {formatSlotLabel(slot)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Selected time display */}
+            <p className="mt-2 text-[11px] text-[var(--ink-soft)]">
+              Selected:{" "}
+              <span className="font-semibold text-[var(--ink)]">
+                {formatSlotLabel(timeStr)} on {dateStr}
+              </span>
+            </p>
           </div>
 
           {/* Status & Method */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Status
-              </label>
+              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Status</label>
               <select
                 className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={status}
@@ -351,9 +497,7 @@ export function ManualBookingModal({
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Deposit Method
-              </label>
+              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Deposit Method</label>
               <select
                 className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={depositMethod}
@@ -368,9 +512,7 @@ export function ManualBookingModal({
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-              Notes (optional)
-            </label>
+            <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">Notes (optional)</label>
             <textarea
               placeholder="Add details, walk-in comments, adjustments..."
               className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] min-h-[60px]"
@@ -383,7 +525,7 @@ export function ManualBookingModal({
           <div className="pt-2">
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || bookedTimes.has(timeStr)}
               className="w-full bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] hover:from-[#e2c78c] hover:to-[#c8a86b] text-[#24180a] font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed text-center shadow-md hover:shadow-lg"
             >
               {loading ? "Creating..." : "Save Booking"}
