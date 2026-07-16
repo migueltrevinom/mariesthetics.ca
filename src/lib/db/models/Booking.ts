@@ -42,7 +42,7 @@ const BookingSchema = new Schema(
     holdExpiresAt: { type: Date, default: null, index: true },
     depositMethod: {
       type: String,
-      enum: ["stripe", "etransfer"],
+      enum: ["stripe", "etransfer", "cash", "other"],
       default: undefined,
     },
     couponId: { type: Schema.Types.ObjectId, ref: "Coupon", default: null },
