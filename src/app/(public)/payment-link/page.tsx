@@ -327,42 +327,50 @@ function PaymentLinkContent() {
 					</div>
 
 					{/* Totals & Payments Details */}
-					<div className="pt-8 flex flex-col sm:flex-row sm:justify-between items-start gap-6 print:flex-row print:justify-between print:pt-8">
-						{/* Payment details */}
-						<div className="text-[10px] text-[var(--ink-soft)] space-y-1.5 order-2 sm:order-1">
-							<p className="font-bold uppercase tracking-wider text-[var(--ink-soft)] mb-2">
-								Transaction Info
-							</p>
-							<p>
-								Payment Method: <span className="font-medium text-[var(--ink)] print:text-black">{data.paymentMethod}</span>
-							</p>
-							<p>
-								Stripe Session: <span className="font-mono text-[var(--ink)] print:text-black text-[9px]">{sessionId}</span>
-							</p>
-							<p>
-								Status: <span className="font-semibold text-leaf tracking-wide uppercase">{data.paymentStatus}</span>
-							</p>
-						</div>
+					<div className="pt-8 border-t border-[var(--border-color)]/30 print:pt-8">
+						<div className="flex flex-col sm:flex-row sm:justify-between items-start gap-8">
+							{/* Payment details */}
+							<div className="text-[10px] text-[var(--ink-soft)] space-y-1.5 order-2 sm:order-1 sm:max-w-[60%]">
+								<p className="font-bold uppercase tracking-wider text-[var(--ink-soft)] mb-3">
+									Transaction Info
+								</p>
+								<div className="space-y-1.5">
+									<p>
+										Payment Method: <span className="font-medium text-[var(--ink)] print:text-black">{data.paymentMethod}</span>
+									</p>
+									<p className="break-all">
+										Stripe Session: <span className="font-mono text-[var(--ink)] print:text-black text-[9px]">{sessionId}</span>
+									</p>
+									<p>
+										Status: <span className="font-semibold text-leaf tracking-wide uppercase">{data.paymentStatus}</span>
+									</p>
+								</div>
+							</div>
 
-						{/* Totals */}
-						<div className="w-full sm:w-auto text-right space-y-1.5 order-1 sm:order-2 self-stretch sm:self-auto">
-							<div className="flex justify-between sm:justify-end gap-12 text-xs">
-								<span className="text-[var(--ink-soft)]">Subtotal</span>
-								<span className="font-mono font-medium text-[var(--ink)] print:text-black">
-									{formatCad(data.receipt.amountCents)}
-								</span>
-							</div>
-							<div className="flex justify-between sm:justify-end gap-12 text-xs border-t border-[var(--border-color)]/30 pt-1.5">
-								<span className="text-[var(--ink-soft)]">Tax / GST (5%)</span>
-								<span className="font-mono font-medium text-[var(--ink)] print:text-black">
-									{formatCad(0)} {/* GST included in price */}
-								</span>
-							</div>
-							<div className="flex justify-between sm:justify-end gap-12 text-sm font-semibold border-t border-[var(--border-color)] pt-3 text-[var(--ink)] print:text-black">
-								<span>Total Paid</span>
-								<span className="font-mono text-base text-gold print:text-black">
-									{formatCad(data.receipt.amountCents)}
-								</span>
+							{/* Totals */}
+							<div className="w-full sm:w-auto text-right space-y-2 order-1 sm:order-2 self-stretch sm:self-auto text-xs">
+								{/* Symmetrical header placeholder to align right values with left labels */}
+								<div className="h-4 select-none mb-3 print:hidden" aria-hidden="true" />
+								<div className="space-y-2">
+									<div className="flex justify-between sm:justify-end gap-12">
+										<span className="text-[var(--ink-soft)]">Subtotal</span>
+										<span className="font-mono font-medium text-[var(--ink)] print:text-black">
+											{formatCad(data.receipt.amountCents)}
+										</span>
+									</div>
+									<div className="flex justify-between sm:justify-end gap-12 border-t border-[var(--border-color)]/30 pt-1.5">
+										<span className="text-[var(--ink-soft)]">Tax / GST (5%)</span>
+										<span className="font-mono font-medium text-[var(--ink)] print:text-black">
+											{formatCad(0)}
+										</span>
+									</div>
+									<div className="flex justify-between sm:justify-end gap-12 text-sm font-semibold border-t border-[var(--border-color)] pt-3 text-[var(--ink)] print:text-black">
+										<span>Total Paid</span>
+										<span className="font-mono text-base text-gold print:text-black">
+											{formatCad(data.receipt.amountCents)}
+										</span>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
