@@ -11,3 +11,4 @@ export { SubscriptionPlan } from "./SubscriptionPlan";
 export { ClientSubscription } from "./ClientSubscription";
 export { Booking } from "./Booking";
 export { Payment } from "./Payment";
+export { ServiceImage } from "./ServiceImage";

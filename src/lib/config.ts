@@ -18,6 +18,9 @@ export const config = {
   twilioAccountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN ?? "",
   twilioFromNumber: process.env.TWILIO_FROM_NUMBER ?? "",
+  mailgunApiKey: process.env.MAILGUN_API_KEY ?? "",
+  mailgunDomain: process.env.MAILGUN_DOMAIN ?? "mg.mariesthetics.ca",
+  mailgunFromEmail: process.env.MAILGUN_FROM_EMAIL ?? "Mari Esthetics <bookings@mariesthetics.ca>",
   otpDefaultChannel: (process.env.OTP_DEFAULT_CHANNEL ?? "email") as
     | "email"
     | "sms",

@@ -20,15 +20,15 @@ export default async function AdminPaymentsPage() {
 
   return (
     <AdminShell>
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-white">
+      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
         Payments
       </h1>
-      <p className="mt-2 text-sm text-white/50">
+      <p className="mt-2 text-sm text-[var(--ink-soft)]">
         Deposits, balances, tips, and manual adjustments.
       </p>
       <div className="mt-8 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-white/40">
+        <table className="w-full text-left text-sm text-[var(--ink)]">
+          <thead className="text-[var(--ink-soft)]/75">
             <tr>
               <th className="py-2 pr-4 font-normal">When</th>
               <th className="py-2 pr-4 font-normal">Kind</th>
@@ -39,20 +39,20 @@ export default async function AdminPaymentsPage() {
           </thead>
           <tbody>
             {payments.map((p) => (
-              <tr key={String(p._id)} className="border-t border-white/10">
-                <td className="py-3 pr-4 text-white/60">
+              <tr key={String(p._id)} className="border-t border-[var(--border-color)]">
+                <td className="py-3 pr-4 text-[var(--ink-soft)]">
                   {format(new Date(p.createdAt as string), "PP p")}
                 </td>
-                <td className="py-3 pr-4">{String(p.kind)}</td>
+                <td className="py-3 pr-4 font-medium">{String(p.kind)}</td>
                 <td className="py-3 pr-4">{String(p.method)}</td>
-                <td className="py-3 pr-4">{formatCad(Number(p.amountCents))}</td>
-                <td className="py-3">{String(p.status)}</td>
+                <td className="py-3 pr-4 font-medium">{formatCad(Number(p.amountCents))}</td>
+                <td className="py-3 uppercase text-xs tracking-wider font-semibold">{String(p.status)}</td>
               </tr>
             ))}
           </tbody>
         </table>
         {payments.length === 0 && (
-          <p className="mt-6 text-sm text-white/50">No payments yet.</p>
+          <p className="mt-6 text-sm text-[var(--ink-soft)]">No payments yet.</p>
         )}
       </div>
     </AdminShell>

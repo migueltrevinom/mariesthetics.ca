@@ -114,8 +114,8 @@ export default function ClientLoginPage() {
               />
               <button
                 type="button"
-                className="btn-primary w-full"
-                disabled={loading || !code}
+                className="btn-primary w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                disabled={loading || code.trim().length !== 6}
                 onClick={() => void verify()}
               >
                 Verify & continue

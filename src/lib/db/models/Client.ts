@@ -14,12 +14,18 @@ const ClientSchema = new Schema(
       default: null,
     },
     stripeCustomerId: { type: String, default: "" },
+    active: { type: Boolean, default: true },
+    banned: { type: Boolean, default: false },
+    photoUrl: { type: String, default: "" },
   },
   { timestamps: true },
 );
 
 export type ClientDoc = InferSchemaType<typeof ClientSchema> & {
   _id: Types.ObjectId;
+  active: boolean;
+  banned: boolean;
+  photoUrl: string;
 };
 
 export const Client = models.Client || model("Client", ClientSchema);

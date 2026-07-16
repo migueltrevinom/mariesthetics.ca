@@ -8,10 +8,12 @@ export function BookingActions({
   bookingId,
   status,
   balanceDueCents,
+  onUpdate,
 }: {
   bookingId: string;
   status: string;
   balanceDueCents: number;
+  onUpdate?: () => void;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,7 @@ export function BookingActions({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       router.refresh();
+      onUpdate?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -57,6 +60,7 @@ export function BookingActions({
         throw new Error(data.error || "Failed");
       }
       router.refresh();
+      onUpdate?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -102,6 +106,7 @@ export function BookingActions({
       if (!res.ok) throw new Error(data.error || "Failed");
       setAdjustAmount("");
       router.refresh();
+      onUpdate?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -122,7 +127,7 @@ export function BookingActions({
           <button
             type="button"
             disabled={loading}
-            className="bg-[#2f5d4a] px-3 py-2 text-white"
+            className="bg-[#2f5d4a] hover:bg-[#3b725b] active:bg-[#214335] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-white transition-all duration-200 cursor-pointer font-medium"
             onClick={() => void confirmEtransfer(true)}
           >
             Confirm e-Transfer
@@ -130,7 +135,7 @@ export function BookingActions({
           <button
             type="button"
             disabled={loading}
-            className="border border-white/20 px-3 py-2 text-white/80"
+            className="border border-white/20 hover:border-white/40 hover:text-white hover:bg-white/5 active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-white/80 transition-all duration-200 cursor-pointer"
             onClick={() => void confirmEtransfer(false)}
           >
             Reject / release
@@ -141,7 +146,7 @@ export function BookingActions({
         <button
           type="button"
           disabled={loading}
-          className="bg-[#2f5d4a] px-3 py-2 text-white"
+          className="bg-[#2f5d4a] hover:bg-[#3b725b] active:bg-[#214335] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-white transition-all duration-200 cursor-pointer font-medium"
           onClick={() => void setStatus("completed")}
         >
           Mark completed
@@ -151,7 +156,7 @@ export function BookingActions({
         <button
           type="button"
           disabled={loading}
-          className="border border-white/20 px-3 py-2 text-white/80"
+          className="border border-white/20 hover:border-white/40 hover:text-white hover:bg-white/5 active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-2 text-white/80 transition-all duration-200 cursor-pointer"
           onClick={() => void sendBalanceLink()}
         >
           Copy Stripe balance link ({formatCad(balanceDueCents)})
@@ -178,7 +183,7 @@ export function BookingActions({
         <button
           type="button"
           disabled={loading || !adjustAmount}
-          className="border border-white/20 px-2 text-white/80"
+          className="border border-white/20 hover:border-white/40 hover:text-white hover:bg-white/5 active:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed px-2 text-white/80 transition-all duration-200 cursor-pointer"
           onClick={() => void recordAdjustment()}
         >
           Add

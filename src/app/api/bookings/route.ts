@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { addHours } from "date-fns";
 import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
-import { Booking, Coupon, Payment, Service } from "@/lib/db/models";
+import { Booking, Client, Coupon, Payment, Service } from "@/lib/db/models";
 import { assertSlotFree } from "@/lib/booking/availability";
 import { expireStaleHolds } from "@/lib/booking/holds";
 import { applyDiscount } from "@/lib/money";
@@ -13,7 +13,8 @@ import { AuthError, requireManager } from "@/lib/auth/jwt";
 const createSchema = z.object({
   serviceId: z.string().min(1),
   start: z.string().datetime(),
-  depositMethod: z.enum(["stripe", "etransfer"]),
+  depositMethod: z.enum(["stripe", "etransfer", "cash", "other"]).optional(),
+  status: z.enum(["held", "confirmed", "completed", "cancelled"]).optional(),
   guest: z
     .object({
       name: z.string().min(1),
@@ -24,6 +25,7 @@ const createSchema = z.object({
   couponCode: z.string().optional(),
   referralCode: z.string().optional(),
   notes: z.string().optional(),
+  clientId: z.string().optional(),
 });
 
 export async function GET(req: Request) {
@@ -35,10 +37,23 @@ export async function GET(req: Request) {
 
     if (scope === "admin") {
       await requireManager();
-      const bookings = await Booking.find()
-        .sort({ start: -1 })
-        .limit(100)
-        .populate("serviceId");
+      const startParam = searchParams.get("start");
+      const endParam = searchParams.get("end");
+
+      const query: any = {};
+      if (startParam || endParam) {
+        query.start = {};
+        if (startParam) query.start.$gte = new Date(startParam);
+        if (endParam) query.start.$lte = new Date(endParam);
+      }
+
+      let q = Booking.find(query).populate("serviceId");
+      if (startParam || endParam) {
+        q = q.sort({ start: 1 });
+      } else {
+        q = q.sort({ start: -1 }).limit(100);
+      }
+      const bookings = await q;
       return NextResponse.json({ bookings });
     }
 
@@ -73,11 +88,15 @@ export async function POST(req: Request) {
 
     const start = new Date(body.start);
     const end = new Date(start.getTime() + service.durationMin * 60_000);
+    
+    // Assert slot is free. Managers can override/book conflicts if needed, but standard is slot free.
     await assertSlotFree(start, end);
 
     const session = await getSession();
+    const isManager = session?.role === "manager";
+
     let guest = body.guest ?? null;
-    let clientId = null;
+    let clientId = body.clientId ?? null;
 
     if (session?.role === "client") {
       clientId = session.sub;
@@ -90,12 +109,36 @@ export async function POST(req: Request) {
       }
     }
 
+    if (!guest && !clientId) {
+      if (isManager && body.clientId) {
+        const client = await Client.findById(body.clientId);
+        if (client) {
+          guest = {
+            name: client.name,
+            email: client.email,
+            phone: client.phone || "",
+          };
+        }
+      }
+    }
+
     if (!guest) {
       return NextResponse.json(
-        { error: "Guest details are required when not logged in" },
+        { error: "Guest details are required" },
         { status: 400 },
       );
     }
+
+    if (!isManager && !body.depositMethod) {
+      return NextResponse.json(
+        { error: "Deposit method is required" },
+        { status: 400 },
+      );
+    }
+
+    const status = isManager ? (body.status ?? "confirmed") : "held";
+    const depositMethod = body.depositMethod ?? (isManager ? "cash" : "etransfer");
+    const isStripe = depositMethod === "stripe";
 
     let priceCents = service.priceCents;
     let discountCents = 0;
@@ -120,7 +163,16 @@ export async function POST(req: Request) {
     }
 
     const depositCents = Math.min(service.depositCents, priceCents);
-    const isStripe = body.depositMethod === "stripe";
+    
+    // If the booking is manually confirmed by a manager, count deposit as paid immediately
+    const isConfirmed = status === "confirmed" || status === "completed";
+    const paidCents = isConfirmed ? depositCents : 0;
+    const balanceDueCents = priceCents - paidCents;
+
+    let holdExpiresAt = null;
+    if (status === "held" && depositMethod === "etransfer") {
+      holdExpiresAt = addHours(new Date(), config.holdExpiryHours);
+    }
 
     const booking = await Booking.create({
       clientId,
@@ -128,23 +180,32 @@ export async function POST(req: Request) {
       serviceId: service._id,
       start,
       end,
-      status: isStripe ? "held" : "held",
-      holdExpiresAt: isStripe ? null : addHours(new Date(), config.holdExpiryHours),
-      depositMethod: body.depositMethod,
+      status,
+      holdExpiresAt,
+      depositMethod,
       couponId,
       referralCode: body.referralCode ?? "",
       notes: body.notes ?? "",
       paymentSummary: {
         totalCents: service.priceCents,
         depositCents,
-        paidCents: 0,
+        paidCents,
         tipCents: 0,
         discountCents,
-        balanceDueCents: priceCents,
+        balanceDueCents,
       },
     });
 
-    if (!isStripe) {
+    if (isConfirmed && depositCents > 0) {
+      await Payment.create({
+        bookingId: booking._id,
+        kind: "deposit",
+        method: depositMethod,
+        amountCents: depositCents,
+        status: "completed",
+        note: `Manual booking created by manager ${session?.name || ""}`,
+      });
+    } else if (status === "held" && depositMethod === "etransfer") {
       await Payment.create({
         bookingId: booking._id,
         kind: "deposit",
@@ -157,15 +218,16 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       booking,
-      next:
-        body.depositMethod === "stripe"
-          ? { action: "pay_stripe_deposit" }
-          : {
-              action: "upload_etransfer_proof",
-              holdExpiresAt: booking.holdExpiresAt,
-              message:
-                "Send Interac e-Transfer for the deposit, then upload proof. Your slot is held for 2 hours.",
-            },
+      next: isConfirmed
+        ? { action: "none", message: "Booking confirmed successfully" }
+        : isStripe
+        ? { action: "pay_stripe_deposit" }
+        : {
+            action: "upload_etransfer_proof",
+            holdExpiresAt: booking.holdExpiresAt,
+            message:
+              "Send Interac e-Transfer for the deposit, then upload proof. Your slot is held for 2 hours.",
+          },
     });
   } catch (err) {
     if (err instanceof z.ZodError) {

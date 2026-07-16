@@ -10,12 +10,24 @@ const ServiceSchema = new Schema(
     active: { type: Boolean, default: true },
     sortOrder: { type: Number, default: 0 },
     category: { type: String, default: "general" },
+    photos: { type: [String], default: [] },
   },
-  { timestamps: true },
+  { 
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+  },
 );
+
+ServiceSchema.virtual("images", {
+  ref: "ServiceImage",
+  localField: "_id",
+  foreignField: "serviceId",
+});
 
 export type ServiceDoc = InferSchemaType<typeof ServiceSchema> & {
   _id: Types.ObjectId;
+  images?: any[];
 };
 
 export const Service = models.Service || model("Service", ServiceSchema);

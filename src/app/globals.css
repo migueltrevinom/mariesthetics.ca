@@ -17,6 +17,7 @@
   /* Semantic aliases used across pages */
   --ink: var(--ivory);
   --ink-soft: var(--ivory-soft);
+  --ink-faint: var(--ivory-faint);
   --mist: #16221b;
   --foam: var(--night);
   --leaf: var(--emerald-bright);
@@ -28,6 +29,54 @@
 
   --background: var(--night);
   --foreground: var(--ivory);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --sidebar-bg: var(--night);
+  --card-bg: rgba(255, 255, 255, 0.02);
+}
+
+/* Light Mode Overrides */
+.light {
+  --background: #fdfaf5;
+  --foreground: #12241c;
+  
+  --ink: #12241c;
+  --ink-soft: rgba(18, 36, 28, 0.65);
+  --ink-faint: rgba(18, 36, 28, 0.4);
+  
+  --mist: #f4eee2;
+  --foam: #fdfaf5;
+  --leaf: #1f4d3a;
+  --leaf-deep: #12241c;
+  --line: rgba(200, 168, 107, 0.35);
+  --line-soft: rgba(18, 36, 28, 0.1);
+  --line-strong: rgba(200, 168, 107, 0.6);
+  --shadow: 0 15px 40px rgba(18, 36, 28, 0.08);
+  --border-color: rgba(18, 36, 28, 0.08);
+  --sidebar-bg: var(--mist);
+  --card-bg: #ffffff;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not(.dark) {
+    --background: #fdfaf5;
+    --foreground: #12241c;
+    
+    --ink: #12241c;
+    --ink-soft: rgba(18, 36, 28, 0.65);
+    --ink-faint: rgba(18, 36, 28, 0.4);
+    
+    --mist: #f4eee2;
+    --foam: #fdfaf5;
+    --leaf: #1f4d3a;
+    --leaf-deep: #12241c;
+    --line: rgba(200, 168, 107, 0.35);
+    --line-soft: rgba(18, 36, 28, 0.1);
+    --line-strong: rgba(200, 168, 107, 0.6);
+    --shadow: 0 15px 40px rgba(18, 36, 28, 0.08);
+    --border-color: rgba(18, 36, 28, 0.08);
+    --sidebar-bg: var(--mist);
+    --card-bg: #ffffff;
+  }
 }
 
 @theme inline {
@@ -35,6 +84,8 @@
   --color-foreground: var(--foreground);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-card-bg: var(--card-bg);
   --color-mist: var(--mist);
   --color-foam: var(--foam);
   --color-night: var(--night);
@@ -360,9 +411,21 @@ a {
   }
 }
 
-/* Admin (kept independent, dark) */
+/* Admin */
 .admin-shell {
-  background: #0f1714;
-  color: #e8efe9;
+  background: var(--background);
+  color: var(--foreground);
   min-height: 100vh;
 }
+
+/* Custom Web3 Autofill Styles for Premium Dark Mode */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #f3efe6 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #0b100d inset !important;
+  box-shadow: 0 0 0px 1000px #0b100d inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+

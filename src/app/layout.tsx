@@ -62,7 +62,36 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-CA">
+    <html lang="en-CA" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme') || 'auto';
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                  } else if (theme === 'light') {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                  } else {
+                    var matches = window.matchMedia('(prefers-color-scheme: light)').matches;
+                    if (matches) {
+                      document.documentElement.classList.add('light');
+                      document.documentElement.classList.remove('dark');
+                    } else {
+                      document.documentElement.classList.add('dark');
+                      document.documentElement.classList.remove('light');
+                    }
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${display.variable} ${body.variable} antialiased`}>
         <a href="#main" className="skip-link">
           Skip to content

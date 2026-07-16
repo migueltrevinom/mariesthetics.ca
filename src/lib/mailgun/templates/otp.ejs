@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Access Code</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b100d; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f3efe6; -webkit-font-smoothing: antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0b100d; min-height: 100vh; padding: 40px 20px;">
+    <tr>
+      <td align="center" valign="top">
+        <!-- Main Card Container -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 500px; background-color: #0f1712; border: 1px solid rgba(200, 168, 107, 0.18); border-radius: 12px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);">
+          
+          <!-- Top Border Accent Line -->
+          <tr>
+            <td height="4" style="background-color: #c8a86b;"></td>
+          </tr>
+
+          <!-- Header / Brand -->
+          <tr>
+            <td align="center" style="padding: 40px 40px 20px 40px;">
+              <h1 style="margin: 0; font-family: Georgia, serif; font-size: 28px; font-weight: 400; letter-spacing: 0.05em; color: #f3efe6; text-transform: uppercase;">
+                Mari Esthetics
+              </h1>
+              <div style="height: 1px; width: 60px; background-color: #c8a86b; margin-top: 15px; opacity: 0.6;"></div>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 20px 40px; font-size: 15px; line-height: 1.6; color: rgba(243, 239, 230, 0.85); font-weight: 300;">
+              <p style="margin: 0 0 20px 0; text-align: center; font-size: 16px; color: #f3efe6;">
+                Hello, <%= name || "Manager" %>
+              </p>
+              <p style="margin: 0 0 30px 0; text-align: center;">
+                Use the verification code below to securely access your Mari Esthetics management portal.
+              </p>
+
+              <!-- OTP Code Display Box -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #12241c; border: 1px solid rgba(200, 168, 107, 0.1); border-radius: 8px; margin-bottom: 30px;">
+                <tr>
+                  <td align="center" style="padding: 24px;">
+                    <div style="font-family: 'Courier New', Courier, monospace, monospace; font-size: 36px; font-weight: bold; letter-spacing: 10px; color: #c8a86b; line-height: 1; padding-left: 10px;">
+                      <%= code %>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Expiry warning -->
+              <p style="margin: 0 0 20px 0; font-size: 13px; text-align: center; color: rgba(243, 239, 230, 0.66); font-style: italic;">
+                This single-use code is valid for <strong><%= expiryMinutes %> minutes</strong>. If you did not request this code, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding: 0 40px;">
+              <div style="height: 1px; background-color: rgba(243, 239, 230, 0.1);"></div>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 30px 40px 40px 40px; font-size: 12px; line-height: 1.5; color: rgba(243, 239, 230, 0.4);">
+              <p style="margin: 0 0 10px 0;">
+                &copy; <%= new Date().getFullYear() %> Mari Esthetics. All rights reserved.
+              </p>
+              <p style="margin: 0;">
+                Edmonton, AB &bull; <a href="https://mariesthetics.ca" style="color: #c8a86b; text-decoration: none;">mariesthetics.ca</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

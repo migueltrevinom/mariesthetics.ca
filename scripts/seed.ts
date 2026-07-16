@@ -70,7 +70,7 @@ async function seed() {
       priceCents: 12000,
       depositCents: 3000,
       sortOrder: 1,
-      category: "facial",
+      category: "facials",
     },
     {
       name: "Brow Shape & Tint",
@@ -79,7 +79,7 @@ async function seed() {
       priceCents: 6500,
       depositCents: 2000,
       sortOrder: 2,
-      category: "brows",
+      category: "permanentMakeUp",
     },
     {
       name: "Classic Lash Lift",
@@ -107,7 +107,7 @@ async function seed() {
       priceCents: 11000,
       depositCents: 3000,
       sortOrder: 5,
-      category: "facial",
+      category: "facials",
     },
   ];
 

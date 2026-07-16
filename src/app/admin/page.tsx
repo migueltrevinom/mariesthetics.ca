@@ -23,10 +23,10 @@ export default async function AdminHomePage() {
 
   return (
     <AdminShell>
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-white">
+      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
         Overview
       </h1>
-      <p className="mt-2 text-sm text-white/50">
+      <p className="mt-2 text-sm text-[var(--ink-soft)]">
         Hidden management dashboard — JWT + email OTP.
       </p>
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -40,12 +40,12 @@ export default async function AdminHomePage() {
           <Link
             key={String(label)}
             href={String(href)}
-            className="border border-white/10 bg-white/5 p-5 transition hover:border-white/25"
+            className="border border-[var(--border-color)] bg-[var(--card-bg)] p-5 transition-all duration-300 hover:border-[var(--line)] rounded-2xl shadow-sm"
           >
-            <p className="text-xs uppercase tracking-wider text-white/40">
+            <p className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
               {label}
             </p>
-            <p className="mt-3 font-[family-name:var(--font-display)] text-4xl">
+            <p className="mt-3 font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
               {value}
             </p>
           </Link>
