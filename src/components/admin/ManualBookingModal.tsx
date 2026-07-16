@@ -111,8 +111,8 @@ export function ManualBookingModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md border border-white/[0.08] bg-[#0c120e] p-6 rounded-2xl shadow-2xl text-left max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+      <div className="w-full max-w-md border border-[var(--border-color)] bg-[var(--background)] p-6 rounded-2xl shadow-2xl text-left max-h-[90vh] overflow-y-auto transition-colors duration-200">
+        <div className="flex items-center justify-between pb-4 border-b border-[var(--border-color)]">
           <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
             Create Booking
           </h2>
@@ -170,13 +170,13 @@ export function ManualBookingModal({
                 Select Client
               </label>
               <select
-                className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={selectedClientId}
                 onChange={(e) => setSelectedClientId(e.target.value)}
               >
                 <option value="" disabled>-- Choose Client --</option>
                 {clients.map((c) => (
-                  <option key={c.id} value={c.id} className="bg-[#0c120e]">
+                  <option key={c.id} value={c.id} className="bg-[var(--background)]">
                     {c.name} ({c.email})
                   </option>
                 ))}
@@ -191,7 +191,7 @@ export function ManualBookingModal({
                 <input
                   type="text"
                   placeholder="Guest Full Name"
-                  className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2 rounded-lg text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                 />
@@ -203,7 +203,7 @@ export function ManualBookingModal({
                 <input
                   type="email"
                   placeholder="guest@example.com"
-                  className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2 rounded-lg text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                   value={guestEmail}
                   onChange={(e) => setGuestEmail(e.target.value)}
                 />
@@ -215,7 +215,7 @@ export function ManualBookingModal({
                 <input
                   type="tel"
                   placeholder="+1 555 5555"
-                  className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2 rounded-lg text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                   value={guestPhone}
                   onChange={(e) => setGuestPhone(e.target.value)}
                 />
@@ -229,12 +229,12 @@ export function ManualBookingModal({
               Service
             </label>
             <select
-              className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+              className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
               value={selectedServiceId}
               onChange={(e) => setSelectedServiceId(e.target.value)}
             >
               {services.map((s) => (
-                <option key={s.id} value={s.id} className="bg-[#0c120e]">
+                <option key={s.id} value={s.id} className="bg-[var(--background)]">
                   {s.name} ({s.durationMin} min - ${(s.priceCents / 100).toFixed(2)})
                 </option>
               ))}
@@ -249,7 +249,7 @@ export function ManualBookingModal({
               </label>
               <input
                 type="date"
-                className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={dateStr}
                 onChange={(e) => setDateStr(e.target.value)}
               />
@@ -260,7 +260,7 @@ export function ManualBookingModal({
               </label>
               <input
                 type="time"
-                className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={timeStr}
                 onChange={(e) => setTimeStr(e.target.value)}
               />
@@ -274,12 +274,12 @@ export function ManualBookingModal({
                 Status
               </label>
               <select
-                className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
               >
-                <option value="confirmed" className="bg-[#0c120e]">Confirmed</option>
-                <option value="held" className="bg-[#0c120e]">Held (Draft)</option>
+                <option value="confirmed" className="bg-[var(--background)]">Confirmed</option>
+                <option value="held" className="bg-[var(--background)]">Held (Draft)</option>
               </select>
             </div>
             <div>
@@ -287,13 +287,13 @@ export function ManualBookingModal({
                 Deposit Method
               </label>
               <select
-                className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={depositMethod}
                 onChange={(e) => setDepositMethod(e.target.value as any)}
               >
-                <option value="cash" className="bg-[#0c120e]">Cash</option>
-                <option value="etransfer" className="bg-[#0c120e]">E-Transfer</option>
-                <option value="stripe" className="bg-[#0c120e]">Stripe</option>
+                <option value="cash" className="bg-[var(--background)]">Cash</option>
+                <option value="etransfer" className="bg-[var(--background)]">E-Transfer</option>
+                <option value="stripe" className="bg-[var(--background)]">Stripe</option>
               </select>
             </div>
           </div>
@@ -305,7 +305,7 @@ export function ManualBookingModal({
             </label>
             <textarea
               placeholder="Add details, walk-in comments, adjustments..."
-              className="w-full border border-[var(--border-color)] bg-black/40 px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] min-h-[60px]"
+              className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] min-h-[60px]"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
