@@ -109,16 +109,15 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!guest && !clientId) {
-      if (isManager && body.clientId) {
-        const client = await Client.findById(body.clientId);
-        if (client) {
-          guest = {
-            name: client.name,
-            email: client.email,
-            phone: client.phone || "",
-          };
-        }
+    if (!guest && body.clientId) {
+      const client = await Client.findById(body.clientId);
+      if (client) {
+        guest = {
+          name: client.name,
+          email: client.email,
+          phone: client.phone || "",
+        };
+        clientId = String(client._id);
       }
     }
 
