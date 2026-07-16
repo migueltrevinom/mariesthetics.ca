@@ -26,8 +26,8 @@ export default async function AdminBookingsPage() {
       depositCents: s.depositCents,
     }));
 
-    // 2. Fetch clients for autocomplete selection
-    const dbClients = await Client.find().sort({ name: 1 });
+    // 2. Fetch last 20 clients for initial selection
+    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20);
     formattedClients = dbClients.map((c) => ({
       id: String(c._id),
       name: c.name,

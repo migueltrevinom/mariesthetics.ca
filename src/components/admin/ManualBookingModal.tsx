@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 
 export interface ServiceOption {
@@ -40,6 +40,58 @@ export function ManualBookingModal({
 
   const [bookingType, setBookingType] = useState<"existing" | "guest">("existing");
   const [selectedClientId, setSelectedClientId] = useState("");
+  
+  const [localClients, setLocalClients] = useState<ClientOption[]>(clients);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+
+  // Sync prop clients if they update
+  useEffect(() => {
+    setLocalClients(clients);
+  }, [clients]);
+
+  // Reset form states on close/open
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery("");
+      setSelectedClientId("");
+      setGuestName("");
+      setGuestEmail("");
+      setGuestPhone("");
+      setNotes("");
+    }
+  }, [isOpen]);
+
+  // Debounced live search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setLocalClients(clients);
+      return;
+    }
+
+    const delayDebounce = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/clients?search=${encodeURIComponent(searchQuery)}&limit=20&page=1`);
+        if (res.ok) {
+          const data = await res.json();
+          const formatted = (data.clients || []).map((c: any) => ({
+            id: String(c._id),
+            name: c.name,
+            email: c.email,
+            phone: c.phone || "",
+          }));
+          setLocalClients(formatted);
+        }
+      } catch (err) {
+        console.error("Failed to search clients", err);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery, clients]);
   
   // Guest fields
   const [guestName, setGuestName] = useState("");
@@ -165,22 +217,38 @@ export function ManualBookingModal({
 
           {/* Client select or Guest input */}
           {bookingType === "existing" ? (
-            <div>
-              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Select Client
-              </label>
-              <select
-                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                value={selectedClientId}
-                onChange={(e) => setSelectedClientId(e.target.value)}
-              >
-                <option value="" disabled>-- Choose Client --</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id} className="bg-[var(--background)]">
-                    {c.name} ({c.email})
+            <div className="space-y-2">
+              <div>
+                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+                  Search Client (Name, Email, or Phone)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Type to search..."
+                  className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+                  Select Client
+                </label>
+                <select
+                  className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  value={selectedClientId}
+                  onChange={(e) => setSelectedClientId(e.target.value)}
+                >
+                  <option value="" disabled>
+                    {searching ? "Searching..." : "-- Choose Client --"}
                   </option>
-                ))}
-              </select>
+                  {localClients.map((c) => (
+                    <option key={c.id} value={c.id} className="bg-[var(--background)]">
+                      {c.name} ({c.email}) {c.phone ? `· ${c.phone}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           ) : (
             <div className="space-y-3 p-3 bg-white/[0.02] border border-[var(--border-color)] rounded-xl">
