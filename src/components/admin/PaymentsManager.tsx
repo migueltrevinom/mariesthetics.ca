@@ -497,12 +497,16 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 										<td className="py-3 text-right">
 											<div className="flex justify-end gap-2">
 												<a
-													href={link.stripePaymentLinkUrl}
+													href={
+														link.status === "paid"
+															? `/payment-link?success=true&session_id=${link.stripeSessionId}`
+															: link.stripePaymentLinkUrl
+													}
 													target="_blank"
 													rel="noreferrer"
 													className="px-2.5 py-1.5 border border-[var(--border-color)] hover:border-gold rounded-lg text-xs font-medium text-[var(--ink)] cursor-pointer"
 												>
-													Open
+													{link.status === "paid" ? "Receipt" : "Open"}
 												</a>
 												<button
 													type="button"

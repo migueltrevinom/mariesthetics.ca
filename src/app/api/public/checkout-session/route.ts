@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDb } from "@/lib/db/connect";
 import { StripePaymentLink } from "@/lib/db/models/StripePaymentLink";
 import { getStripe } from "@/lib/payments/stripe";
-import "@/lib/db/models/Booking"; // Ensure schema registration
+import { Booking, Payment } from "@/lib/db/models";
 import "@/lib/db/models/Service"; // Ensure schema registration
 
 export const dynamic = "force-dynamic";
@@ -33,13 +33,56 @@ export async function GET(req: Request) {
 		const stripe = getStripe();
 		const session = await stripe.checkout.sessions.retrieve(sessionId);
 
-		// If paid, let's sync status in DB just in case!
+		// If paid and not yet recorded, sync status + create Payment record
 		if (session.payment_status === "paid" && link.status !== "paid") {
 			await StripePaymentLink.findOneAndUpdate(
 				{ stripeSessionId: sessionId },
 				{ $set: { status: "paid", paidAt: new Date() } }
 			);
 			link.status = "paid";
+
+			// Create Payment transaction record if it doesn't already exist
+			const stripePaymentIntentId = String(session.payment_intent || "");
+			const existingPayment = await Payment.findOne({ stripePaymentIntentId });
+
+			if (!existingPayment && stripePaymentIntentId) {
+				const payment = await Payment.create({
+					bookingId: link.bookingId ? (link.bookingId as any)._id ?? link.bookingId : null,
+					kind: link.kind === "custom" ? "adjustment" : link.kind,
+					method: "stripe",
+					amountCents: link.amountCents,
+					status: "succeeded",
+					stripePaymentIntentId,
+					note: `Stripe Checkout Session ${session.id} — auto-confirmed on redirect`,
+				});
+
+				// Update booking paymentSummary if linked
+				const bookingId = link.bookingId ? (link.bookingId as any)._id ?? link.bookingId : null;
+				if (bookingId) {
+					const booking = await Booking.findById(bookingId);
+					if (booking) {
+						if (booking.status === "held") {
+							booking.status = "confirmed";
+							booking.holdExpiresAt = null;
+						}
+						const summary = booking.paymentSummary ?? {
+							totalCents: 0,
+							depositCents: 0,
+							paidCents: 0,
+							tipCents: 0,
+							discountCents: 0,
+							balanceDueCents: 0,
+						};
+						summary.paidCents = (summary.paidCents ?? 0) + link.amountCents;
+						summary.balanceDueCents = Math.max(
+							0,
+							(summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents
+						);
+						booking.paymentSummary = summary;
+						await booking.save();
+					}
+				}
+			}
 		}
 
 		// Retrieve card/method details from payment intent if available
@@ -79,7 +122,7 @@ export async function GET(req: Request) {
 				businessName: "Mari Esthetics",
 				address: "1211 Gillespie Crescent NW",
 				email: "mari@mariesthetics.ca",
-				phone: "+1 (780) 555-0199", // Canadian business display number
+				phone: "+1 (780) 555-0199",
 			},
 		});
 	} catch (err: any) {
@@ -90,3 +133,4 @@ export async function GET(req: Request) {
 		);
 	}
 }
+
