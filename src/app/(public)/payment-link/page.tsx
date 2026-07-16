@@ -186,7 +186,7 @@ function PaymentLinkContent() {
 	const formattedDate = format(new Date(data.receipt.createdAt), "PPpp");
 
 	return (
-		<div className="min-h-screen bg-[var(--background)] px-4 py-8 md:py-16 relative overflow-hidden print:bg-white print:p-0">
+		<div className="min-h-screen bg-[var(--background)] px-4 pt-16 pb-8 md:pt-24 md:pb-16 relative overflow-hidden print:bg-white print:p-0">
 			<div className="aurora pointer-events-none print:hidden" />
 			{isPaid && <ConfettiEffect />}
 
