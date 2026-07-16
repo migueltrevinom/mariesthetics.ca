@@ -15,13 +15,13 @@ export function MembershipBand({ plans }: { plans: Plan[] }) {
   if (plans.length === 0) return null;
 
   return (
-    <section className="relative bg-night py-24 md:py-32">
+    <section className="relative bg-[var(--background)] text-[var(--foreground)] py-24 md:py-32 transition-colors duration-200">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <div className="grid items-center gap-14 md:grid-cols-[0.9fr_1.1fr]">
           <Reveal>
             <div>
               <p className="eyebrow">Memberships</p>
-              <h2 className="display mt-4 text-4xl text-ivory md:text-5xl">
+              <h2 className="display mt-4 text-4xl text-[var(--ink)] md:text-5xl">
                 Keep the glow, all year.
               </h2>
               <p className="mt-6 max-w-md text-ink-soft leading-relaxed">
@@ -38,7 +38,7 @@ export function MembershipBand({ plans }: { plans: Plan[] }) {
             {plans.slice(0, 2).map((plan, i) => (
               <Reveal key={plan._id} delay={i * 120}>
                 <div className="card h-full p-7">
-                  <h3 className="display text-2xl text-ivory">{plan.name}</h3>
+                  <h3 className="display text-2xl text-[var(--ink)]">{plan.name}</h3>
                   <p className="mt-3 gold-text text-3xl font-semibold">
                     {formatCad(plan.priceCents)}
                     <span className="text-sm font-normal text-ink-soft">

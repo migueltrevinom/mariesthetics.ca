@@ -20,7 +20,7 @@ export function ServicesPreview({ services }: { services: PreviewService[] }) {
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Reveal>
             <p className="eyebrow">The menu</p>
-            <h2 className="display mt-4 max-w-xl text-4xl text-ivory md:text-5xl">
+            <h2 className="display mt-4 max-w-xl text-4xl text-[var(--ink)] md:text-5xl">
               Treatments crafted for your skin.
             </h2>
           </Reveal>
@@ -39,7 +39,7 @@ export function ServicesPreview({ services }: { services: PreviewService[] }) {
                 className="card group flex h-full flex-col p-8"
               >
                 <div className="flex items-baseline justify-between gap-4">
-                  <h3 className="display text-2xl text-ivory">{service.name}</h3>
+                  <h3 className="display text-2xl text-[var(--ink)]">{service.name}</h3>
                   <span className="gold-text text-lg font-semibold">
                     {formatCad(service.priceCents)}
                   </span>
@@ -47,7 +47,7 @@ export function ServicesPreview({ services }: { services: PreviewService[] }) {
                 <p className="mt-4 flex-1 text-sm leading-relaxed text-ink-soft">
                   {service.description}
                 </p>
-                <div className="mt-6 flex items-center justify-between text-xs uppercase tracking-wider text-[var(--ivory-faint)]">
+                <div className="mt-6 flex items-center justify-between text-xs uppercase tracking-wider text-[var(--ink-faint)]">
                   <span>{service.durationMin} min</span>
                   <span className="text-gold transition-transform duration-300 group-hover:translate-x-1">
                     Book →

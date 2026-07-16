@@ -20,11 +20,11 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section className="relative bg-night py-24 md:py-32">
+    <section className="relative bg-[var(--background)] text-[var(--foreground)] py-24 md:py-32 transition-colors duration-200">
       <div className="mx-auto max-w-6xl px-6 md:px-10">
         <Reveal>
           <p className="eyebrow">How booking works</p>
-          <h2 className="display mt-4 max-w-2xl text-4xl text-ivory md:text-5xl">
+          <h2 className="display mt-4 max-w-2xl text-4xl text-[var(--ink)] md:text-5xl">
             Effortless from first tap to afterglow.
           </h2>
         </Reveal>
@@ -33,7 +33,7 @@ export function HowItWorks() {
             <Reveal key={step.n} delay={i * 120}>
               <div className="card h-full p-8">
                 <p className="display text-5xl gold-text">{step.n}</p>
-                <h3 className="mt-6 text-xl font-semibold text-ivory">
+                <h3 className="mt-6 text-xl font-semibold text-[var(--ink)]">
                   {step.title}
                 </h3>
                 <p className="mt-3 text-sm leading-relaxed text-ink-soft">

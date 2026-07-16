@@ -7,10 +7,10 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section className="relative bg-night py-24 md:py-32">
+    <section className="relative bg-[var(--background)] text-[var(--foreground)] py-24 md:py-32 transition-colors duration-200">
       <div className="mx-auto max-w-3xl px-6 md:px-10">
         <p className="eyebrow">Questions</p>
-        <h2 className="display mt-4 text-4xl text-ivory md:text-5xl">
+        <h2 className="display mt-4 text-4xl text-[var(--ink)] md:text-5xl">
           Good to know.
         </h2>
         <div className="mt-12 divide-y divide-[var(--line-soft)] border-y border-[var(--line-soft)]">
@@ -24,7 +24,7 @@ export function Faq() {
                   aria-expanded={isOpen}
                   onClick={() => setOpen(isOpen ? null : i)}
                 >
-                  <span className="text-lg text-ivory">{item.q}</span>
+                  <span className="text-lg text-[var(--ink)]">{item.q}</span>
                   <span
                     className={`shrink-0 text-2xl text-gold transition-transform duration-300 ${
                       isOpen ? "rotate-45" : ""

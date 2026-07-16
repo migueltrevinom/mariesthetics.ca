@@ -31,7 +31,7 @@ export function Testimonials() {
       <div className="relative mx-auto max-w-6xl px-6 md:px-10">
         <Reveal>
           <p className="eyebrow">Kind words</p>
-          <h2 className="display mt-4 max-w-2xl text-4xl text-ivory md:text-5xl">
+          <h2 className="display mt-4 max-w-2xl text-4xl text-[var(--ink)] md:text-5xl">
             Loved by clients across Edmonton.
           </h2>
         </Reveal>
@@ -40,7 +40,7 @@ export function Testimonials() {
             <Reveal key={q.name} delay={i * 120}>
               <figure className="card h-full p-8">
                 <span className="display text-6xl leading-none gold-text">“</span>
-                <blockquote className="mt-2 text-lg leading-relaxed text-ivory">
+                <blockquote className="mt-2 text-lg leading-relaxed text-[var(--ink)]">
                   {q.quote}
                 </blockquote>
                 <figcaption className="mt-6 text-sm text-ink-soft">

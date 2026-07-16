@@ -9,7 +9,7 @@ export function CtaBand() {
       <div className="relative mx-auto max-w-3xl px-6 text-center md:px-10">
         <Reveal>
           <p className="eyebrow">Your appointment awaits</p>
-          <h2 className="display mt-5 text-5xl text-ivory md:text-7xl">
+          <h2 className="display mt-5 text-5xl text-[var(--ink)] md:text-7xl">
             Ready to glow?
           </h2>
           <p className="mx-auto mt-6 max-w-md text-ink-soft leading-relaxed">
