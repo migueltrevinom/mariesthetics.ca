@@ -201,7 +201,7 @@ export async function POST(req: Request) {
         kind: "deposit",
         method: depositMethod,
         amountCents: depositCents,
-        status: "completed",
+        status: "succeeded",
         note: `Manual booking created by manager ${session?.name || ""}`,
       });
     } else if (status === "held" && depositMethod === "etransfer") {
