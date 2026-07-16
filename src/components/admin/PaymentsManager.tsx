@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { formatCad } from "@/lib/money";
 
@@ -11,6 +11,29 @@ interface PaymentItem {
 	method: string;
 	amountCents: number;
 	status: string;
+}
+
+interface ClientOption {
+	id: string;
+	name: string;
+	email: string;
+	phone?: string;
+}
+
+interface BookingOption {
+	_id: string;
+	start: string;
+	status: string;
+	serviceId?: {
+		name: string;
+		depositCents: number;
+		priceCents: number;
+	};
+	paymentSummary?: {
+		depositCents: number;
+		balanceDueCents: number;
+		totalCents: number;
+	};
 }
 
 interface PaymentsManagerProps {
@@ -27,12 +50,77 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 	const [generatedUrl, setGeneratedUrl] = useState("");
 	const [copied, setCopied] = useState(false);
 
+	// Client Search & Bookings load
+	const [searchQuery, setSearchQuery] = useState("");
+	const [searchingClients, setSearchingClients] = useState(false);
+	const [localClients, setLocalClients] = useState<ClientOption[]>([]);
+	const [selectedClientId, setSelectedClientId] = useState("");
+
+	const [clientBookings, setClientBookings] = useState<BookingOption[]>([]);
+	const [loadingBookings, setLoadingBookings] = useState(false);
+
 	// Form States
 	const [amountCad, setAmountCad] = useState("");
 	const [description, setDescription] = useState("");
 	const [kind, setKind] = useState<"deposit" | "balance" | "tip" | "custom">("custom");
 	const [clientEmail, setClientEmail] = useState("");
 	const [bookingId, setBookingId] = useState("");
+
+	// Debounced client search
+	useEffect(() => {
+		if (!searchQuery.trim()) {
+			setLocalClients([]);
+			return;
+		}
+
+		const delayDebounce = setTimeout(async () => {
+			setSearchingClients(true);
+			try {
+				const res = await fetch(`/api/clients?search=${encodeURIComponent(searchQuery)}&limit=20&page=1`);
+				if (res.ok) {
+					const data = await res.json();
+					const formatted = (data.clients || []).map((c: any) => ({
+						id: String(c._id),
+						name: c.name,
+						email: c.email,
+						phone: c.phone || "",
+					}));
+					setLocalClients(formatted);
+				}
+			} catch (err) {
+				console.error("Failed to search clients", err);
+			} finally {
+				setSearchingClients(false);
+			}
+		}, 300);
+
+		return () => clearTimeout(delayDebounce);
+	}, [searchQuery]);
+
+	// Load bookings for selected client
+	useEffect(() => {
+		if (!selectedClientId) {
+			setClientBookings([]);
+			return;
+		}
+
+		const fetchBookings = async () => {
+			setLoadingBookings(true);
+			try {
+				const res = await fetch(`/api/clients/details?id=${selectedClientId}`);
+				if (res.ok) {
+					const data = await res.json();
+					setClientBookings(data.bookings || []);
+				}
+			} catch (err) {
+				console.error("Failed to fetch client bookings", err);
+			} finally {
+				setLoadingBookings(false);
+			}
+		};
+
+		void fetchBookings();
+	}, [selectedClientId]);
 
 	const handleOpen = () => {
 		setIsOpen(true);
@@ -44,6 +132,76 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 		setKind("custom");
 		setClientEmail("");
 		setBookingId("");
+		setSearchQuery("");
+		setSelectedClientId("");
+		setClientBookings([]);
+	};
+
+	const handleClientSelect = (clientId: string) => {
+		setSelectedClientId(clientId);
+		const chosen = localClients.find((c) => c.id === clientId);
+		if (chosen) {
+			setClientEmail(chosen.email);
+			setBookingId(""); // Reset booking select
+		}
+	};
+
+	const handleBookingSelect = (bId: string) => {
+		setBookingId(bId);
+		const chosen = clientBookings.find((b) => b._id === bId);
+		if (chosen) {
+			const serviceName = chosen.serviceId?.name || "Service";
+
+			// Autofill description & amount based on currently selected kind
+			if (kind === "deposit") {
+				setDescription(`${serviceName} Deposit`);
+				if (chosen.paymentSummary) {
+					setAmountCad((chosen.paymentSummary.depositCents / 100).toFixed(2));
+				}
+			} else if (kind === "balance") {
+				setDescription(`${serviceName} Balance`);
+				if (chosen.paymentSummary) {
+					setAmountCad((chosen.paymentSummary.balanceDueCents / 100).toFixed(2));
+				}
+			} else if (kind === "tip") {
+				setDescription(`${serviceName} Tip`);
+				setAmountCad("");
+			} else {
+				setDescription(`${serviceName} Custom Payment`);
+				if (chosen.paymentSummary) {
+					setAmountCad((chosen.paymentSummary.totalCents / 100).toFixed(2));
+				}
+			}
+		}
+	};
+
+	const handleKindChange = (newKind: "deposit" | "balance" | "tip" | "custom") => {
+		setKind(newKind);
+		if (bookingId) {
+			const chosen = clientBookings.find((b) => b._id === bookingId);
+			if (chosen) {
+				const serviceName = chosen.serviceId?.name || "Service";
+				if (newKind === "deposit") {
+					setDescription(`${serviceName} Deposit`);
+					if (chosen.paymentSummary) {
+						setAmountCad((chosen.paymentSummary.depositCents / 100).toFixed(2));
+					}
+				} else if (newKind === "balance") {
+					setDescription(`${serviceName} Balance`);
+					if (chosen.paymentSummary) {
+						setAmountCad((chosen.paymentSummary.balanceDueCents / 100).toFixed(2));
+					}
+				} else if (newKind === "tip") {
+					setDescription(`${serviceName} Tip`);
+					setAmountCad("");
+				} else {
+					setDescription(`${serviceName} Custom Payment`);
+					if (chosen.paymentSummary) {
+						setAmountCad((chosen.paymentSummary.totalCents / 100).toFixed(2));
+					}
+				}
+			}
+		}
 	};
 
 	const handleCreateLink = async (e: React.FormEvent) => {
@@ -256,88 +414,163 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 							</div>
 						) : (
 							<form onSubmit={handleCreateLink} className="mt-4 space-y-4 text-[var(--ink)]">
-								{/* Amount & Kind */}
-								<div className="grid grid-cols-2 gap-3">
-									<div>
-										<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-											Amount (CAD) *
-										</label>
-										<input
-											type="number"
-											step="0.01"
-											min="0.50"
-											required
-											placeholder="100.00"
-											className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-											value={amountCad}
-											onChange={(e) => setAmountCad(e.target.value)}
-										/>
+								{/* Step 1: Search & Select Client (Optional, but pre-fills data) */}
+								<div className="border border-[var(--border-color)] bg-white/[0.01] p-3.5 rounded-xl space-y-3">
+									<span className="block text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold">
+										Associate Client (Optional)
+									</span>
+									<div className="grid grid-cols-1 gap-2.5">
+										<div>
+											<label className="block text-[11px] font-medium text-[var(--ink-soft)] mb-1">
+												Search Client (Name, Email, or Phone)
+											</label>
+											<input
+												type="text"
+												placeholder="Type client details to search..."
+												className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+												value={searchQuery}
+												onChange={(e) => setSearchQuery(e.target.value)}
+											/>
+										</div>
+										{localClients.length > 0 && (
+											<div>
+												<label className="block text-[11px] font-medium text-[var(--ink-soft)] mb-1">
+													Select Client
+												</label>
+												<select
+													className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+													value={selectedClientId}
+													onChange={(e) => handleClientSelect(e.target.value)}
+												>
+													<option value="">-- Choose Client --</option>
+													{localClients.map((c) => (
+														<option key={c.id} value={c.id} className="bg-[var(--background)]">
+															{c.name} ({c.email}) {c.phone ? `· ${c.phone}` : ""}
+														</option>
+													))}
+												</select>
+											</div>
+										)}
 									</div>
-									<div>
-										<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-											Payment Kind *
-										</label>
-										<select
-											className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-											value={kind}
-											onChange={(e) => setKind(e.target.value as any)}
-										>
-											<option value="custom" className="bg-[var(--background)]">
-												Custom Amount
-											</option>
-											<option value="deposit" className="bg-[var(--background)]">
-												Deposit
-											</option>
-											<option value="balance" className="bg-[var(--background)]">
-												Remaining Balance
-											</option>
-											<option value="tip" className="bg-[var(--background)]">
-												Tip / Gratuity
-											</option>
-										</select>
-									</div>
+
+									{/* Step 2: Associated Booking Select (Shown only if client is selected) */}
+									{selectedClientId && (
+										<div className="pt-2 border-t border-[var(--border-color)]">
+											<label className="block text-[11px] font-medium text-[var(--ink-soft)] mb-1">
+												Associate Booking (today / upcoming)
+											</label>
+											{loadingBookings ? (
+												<p className="text-xs text-[var(--ink-soft)] italic">Loading bookings...</p>
+											) : clientBookings.length > 0 ? (
+												<select
+													className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+													value={bookingId}
+													onChange={(e) => handleBookingSelect(e.target.value)}
+												>
+													<option value="">-- Choose Booking --</option>
+													{clientBookings.map((b) => {
+														const dateStr = format(new Date(b.start), "PP · p");
+														return (
+															<option key={b._id} value={b._id} className="bg-[var(--background)]">
+																{b.serviceId?.name || "Service"} on {dateStr} ({b.status})
+															</option>
+														);
+													})}
+												</select>
+											) : (
+												<p className="text-xs text-[var(--ink-soft)] italic">
+													No bookings found for this client.
+												</p>
+											)}
+										</div>
+									)}
 								</div>
 
-								{/* Description */}
-								<div>
-									<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-										Description *
-									</label>
-									<input
-										type="text"
-										required
-										placeholder="e.g. Lash Lift Deposit, Custom Tip"
-										className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-										value={description}
-										onChange={(e) => setDescription(e.target.value)}
-									/>
-								</div>
-
-								{/* Optional fields: email & booking ID */}
-								<div className="grid grid-cols-2 gap-3">
-									<div>
-										<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1 text-ellipsis overflow-hidden whitespace-nowrap">
-											Client Email (optional)
-										</label>
-										<input
-											type="email"
-											placeholder="client@example.com"
-											className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-											value={clientEmail}
-											onChange={(e) => setClientEmail(e.target.value)}
-										/>
+								{/* Step 3: Payment Link Configuration */}
+								<div className="space-y-4">
+									{/* Payment Kind & Amount */}
+									<div className="grid grid-cols-2 gap-3">
+										<div>
+											<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+												Payment Kind *
+											</label>
+											<select
+												className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+												value={kind}
+												onChange={(e) => handleKindChange(e.target.value as any)}
+											>
+												<option value="custom" className="bg-[var(--background)]">
+													Custom Amount
+												</option>
+												<option value="deposit" className="bg-[var(--background)]">
+													Deposit
+												</option>
+												<option value="balance" className="bg-[var(--background)]">
+													Remaining Balance
+												</option>
+												<option value="tip" className="bg-[var(--background)]">
+													Tip / Gratuity
+												</option>
+											</select>
+										</div>
+										<div>
+											<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+												Amount (CAD) *
+											</label>
+											<input
+												type="number"
+												step="0.01"
+												min="0.50"
+												required
+												placeholder="100.00"
+												className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+												value={amountCad}
+												onChange={(e) => setAmountCad(e.target.value)}
+											/>
+										</div>
 									</div>
+
+									{/* Description */}
 									<div>
-										<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1 text-ellipsis overflow-hidden whitespace-nowrap">
-											Booking ID (optional)
+										<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+											Description *
 										</label>
 										<input
 											type="text"
-											placeholder="booking _id"
+											required
+											placeholder="e.g. Lash Lift Deposit, Custom Tip"
 											className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-											value={bookingId}
-											onChange={(e) => setBookingId(e.target.value)}
+											value={description}
+											onChange={(e) => setDescription(e.target.value)}
 										/>
+									</div>
+
+									{/* Client Email & Associated Booking ID */}
+									<div className="grid grid-cols-2 gap-3">
+										<div>
+											<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+												Client Email (optional)
+											</label>
+											<input
+												type="email"
+												placeholder="client@example.com"
+												className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+												value={clientEmail}
+												onChange={(e) => setClientEmail(e.target.value)}
+											/>
+										</div>
+										<div>
+											<label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+												Booking ID (optional)
+											</label>
+											<input
+												type="text"
+												readOnly
+												placeholder="Auto-fills from booking select"
+												className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none opacity-60 cursor-not-allowed"
+												value={bookingId}
+											/>
+										</div>
 									</div>
 								</div>
 
