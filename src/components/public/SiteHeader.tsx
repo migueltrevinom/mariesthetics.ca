@@ -50,7 +50,7 @@ export function SiteHeader({ navServices = [] }: { navServices?: NavService[] })
               aria-label="Open menu"
               aria-expanded={open}
               onClick={() => setOpen(true)}
-              className="group flex items-center gap-3 rounded-full border border-[var(--line-strong)] py-2 pl-4 pr-3 text-sm text-ivory transition hover:border-gold hover:text-gold-bright"
+              className="group flex items-center gap-3 rounded-full border border-[var(--line-strong)] py-2 pl-4 pr-3 text-sm text-[var(--ink)] transition hover:border-gold hover:text-gold-bright"
             >
               <span className="tracking-wide">Menu</span>
               <span className="flex h-6 w-6 flex-col items-center justify-center gap-1">

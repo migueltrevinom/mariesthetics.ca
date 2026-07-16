@@ -16,7 +16,7 @@ export function Logo({
   return (
     <span className={`inline-flex flex-col leading-none ${className}`}>
       <span
-        className={`font-[family-name:var(--font-body)] font-semibold uppercase text-ivory ${SIZES[size]}`}
+        className={`font-[family-name:var(--font-body)] font-semibold uppercase text-[var(--ink)] ${SIZES[size]}`}
       >
         Mari&nbsp;Esthetics
       </span>

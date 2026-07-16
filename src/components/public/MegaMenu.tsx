@@ -130,7 +130,7 @@ export function MegaMenu({
                 type="button"
                 aria-label="Close menu"
                 onClick={onClose}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line-strong)] text-ivory transition hover:border-gold hover:text-gold-bright"
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-color)] text-[var(--ink)] transition hover:border-gold hover:text-gold-bright"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                   <path
@@ -148,7 +148,7 @@ export function MegaMenu({
             {/* Left: heading + motif */}
             <div className={`menu-enter ${open ? "is-in" : ""} relative flex flex-col`}>
               <p className="eyebrow">The studio</p>
-              <h2 className="display mt-4 text-4xl leading-[0.95] text-ivory md:text-5xl">
+              <h2 className="display mt-4 text-4xl leading-[0.95] text-[var(--ink)] md:text-5xl">
                 Edmonton skin care,
                 <span className="gold-text italic"> by appointment.</span>
               </h2>
@@ -201,7 +201,7 @@ export function MegaMenu({
                     style={{ transitionDelay: `${100 + i * 60}ms` }}
                   >
                     <div className="flex items-start justify-between">
-                      <h3 className="display text-3xl text-ivory md:text-4xl">
+                      <h3 className="display text-3xl text-[var(--ink)] md:text-4xl">
                         {tile.label}
                       </h3>
                       <span className="text-gold opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100">
@@ -209,7 +209,7 @@ export function MegaMenu({
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-ink-soft">{tile.blurb}</p>
-                    <p className="mt-6 text-xs uppercase tracking-wider text-[var(--ivory-faint)]">
+                    <p className="mt-6 text-xs uppercase tracking-wider text-[var(--ink-faint)]">
                       {tile.count} {tile.count === 1 ? "treatment" : "treatments"}
                       {" · from "}
                       {formatCad(tile.from)}
@@ -222,7 +222,7 @@ export function MegaMenu({
                   onClick={onClose}
                   className="mega-tile group sm:col-span-2"
                 >
-                  <h3 className="display text-3xl text-ivory md:text-4xl">
+                  <h3 className="display text-3xl text-[var(--ink)] md:text-4xl">
                     View all services
                   </h3>
                   <p className="mt-2 text-sm text-ink-soft">
@@ -262,7 +262,7 @@ export function MegaMenu({
                     <Link
                       href={link.href}
                       onClick={onClose}
-                      className="group flex items-center justify-between border-b border-[var(--line-soft)] py-3 text-lg text-ivory transition-colors hover:text-gold-bright"
+                      className="group flex items-center justify-between border-b border-[var(--line-soft)] py-3 text-lg text-[var(--ink)] transition-colors hover:text-gold-bright"
                     >
                       {link.label}
                       <span className="text-gold opacity-0 transition group-hover:opacity-100">
@@ -299,7 +299,7 @@ export function MegaMenu({
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[var(--ivory-faint)] transition hover:text-gold-bright"
+                      className="text-[var(--ink-faint)] transition hover:text-gold-bright"
                     >
                       {url.includes("instagram") ? "Instagram" : "Facebook"}
                     </a>
