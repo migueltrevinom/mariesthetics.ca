@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { formatCad } from "@/lib/money";
 
@@ -61,8 +62,25 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 	const [payments] = useState<PaymentItem[]>(initialPayments);
 	const [paymentLinks, setPaymentLinks] = useState<StripePaymentLinkItem[]>(initialPaymentLinks);
 
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const tabParam = searchParams.get("tab");
+
 	// Navigation Tabs
 	const [activeTab, setActiveTab] = useState<"transactions" | "links">("transactions");
+
+	useEffect(() => {
+		if (tabParam === "links") {
+			setActiveTab("links");
+		} else {
+			setActiveTab("transactions");
+		}
+	}, [tabParam]);
+
+	const handleTabChange = (tab: "transactions" | "links") => {
+		setActiveTab(tab);
+		router.replace(`/admin/payments?tab=${tab}`);
+	};
 
 	// Modal States
 	const [isOpen, setIsOpen] = useState(false);
@@ -361,7 +379,7 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 			<div className="mt-6 flex border-b border-[var(--border-color)] text-sm font-medium">
 				<button
 					type="button"
-					onClick={() => setActiveTab("transactions")}
+					onClick={() => handleTabChange("transactions")}
 					className={`pb-3 px-4 border-b-2 cursor-pointer transition-all duration-200 ${
 						activeTab === "transactions"
 							? "border-[#c8a86b] text-[#c8a86b] font-semibold"
@@ -372,7 +390,7 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 				</button>
 				<button
 					type="button"
-					onClick={() => setActiveTab("links")}
+					onClick={() => handleTabChange("links")}
 					className={`pb-3 px-4 border-b-2 cursor-pointer transition-all duration-200 ${
 						activeTab === "links"
 							? "border-[#c8a86b] text-[#c8a86b] font-semibold"

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { connectDb } from "@/lib/db/connect";
 import { Payment } from "@/lib/db/models";
@@ -50,7 +51,9 @@ export default async function AdminPaymentsPage() {
 
 	return (
 		<AdminShell>
-			<PaymentsManager initialPayments={payments} initialPaymentLinks={paymentLinks} />
+			<Suspense fallback={<div className="text-sm text-[var(--ink-soft)] p-4">Loading Payments...</div>}>
+				<PaymentsManager initialPayments={payments} initialPaymentLinks={paymentLinks} />
+			</Suspense>
 		</AdminShell>
 	);
 }
