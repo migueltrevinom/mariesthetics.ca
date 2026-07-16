@@ -14,7 +14,10 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
     throw new Error("Service not found");
   }
 
-  const day = startOfDay(new Date(dayIso));
+  // Parse as local midnight — new Date("YYYY-MM-DD") is treated as UTC midnight
+  // which shifts the day backward in negative-offset timezones (e.g. MDT = UTC-6).
+  const [yyyy, mm, dd] = dayIso.split("-").map(Number);
+  const day = startOfDay(new Date(yyyy, mm - 1, dd)); // local time
   const dayEnd = addMinutes(day, 24 * 60);
 
   const existing = await Booking.find({
