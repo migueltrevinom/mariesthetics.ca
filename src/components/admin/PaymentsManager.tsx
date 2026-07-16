@@ -13,6 +13,21 @@ interface PaymentItem {
 	status: string;
 }
 
+interface StripePaymentLinkItem {
+	_id: string;
+	createdAt: string;
+	amountCents: number;
+	kind: string;
+	description: string;
+	stripePaymentLinkUrl: string;
+	status: string;
+	clientEmail: string;
+	booking?: {
+		_id: string;
+		start: string;
+	} | null;
+}
+
 interface ClientOption {
 	id: string;
 	name: string;
@@ -38,10 +53,15 @@ interface BookingOption {
 
 interface PaymentsManagerProps {
 	initialPayments: PaymentItem[];
+	initialPaymentLinks: StripePaymentLinkItem[];
 }
 
-export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
+export function PaymentsManager({ initialPayments, initialPaymentLinks }: PaymentsManagerProps) {
 	const [payments] = useState<PaymentItem[]>(initialPayments);
+	const [paymentLinks, setPaymentLinks] = useState<StripePaymentLinkItem[]>(initialPaymentLinks);
+
+	// Navigation Tabs
+	const [activeTab, setActiveTab] = useState<"transactions" | "links">("transactions");
 
 	// Modal States
 	const [isOpen, setIsOpen] = useState(false);
@@ -49,6 +69,7 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 	const [error, setError] = useState("");
 	const [generatedUrl, setGeneratedUrl] = useState("");
 	const [copied, setCopied] = useState(false);
+	const [copiedLinkId, setCopiedLinkId] = useState("");
 
 	// Client Search & Bookings load
 	const [searchQuery, setSearchQuery] = useState("");
@@ -152,7 +173,6 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 		if (chosen) {
 			const serviceName = chosen.serviceId?.name || "Service";
 
-			// Autofill description & amount based on currently selected kind
 			if (kind === "deposit") {
 				setDescription(`${serviceName} Deposit`);
 				if (chosen.paymentSummary) {
@@ -229,6 +249,28 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 			}
 
 			setGeneratedUrl(data.url);
+
+			// Append new payment link to state for live updates
+			if (data.link) {
+				const chosenBooking = bookingId ? clientBookings.find((b) => b._id === bookingId) : null;
+				const formattedNewLink: StripePaymentLinkItem = {
+					_id: String(data.link._id),
+					createdAt: new Date(data.link.createdAt).toISOString(),
+					amountCents: data.link.amountCents,
+					kind: data.link.kind,
+					description: data.link.description,
+					stripePaymentLinkUrl: data.link.stripePaymentLinkUrl,
+					status: data.link.status,
+					clientEmail: data.link.clientEmail || "",
+					booking: data.link.bookingId
+						? {
+								_id: String(data.link.bookingId),
+								start: chosenBooking?.start ? new Date(chosenBooking.start).toISOString() : "",
+							}
+						: null,
+				};
+				setPaymentLinks((prev) => [formattedNewLink, ...prev]);
+			}
 		} catch (err: any) {
 			setError(err.message || "An error occurred");
 		} finally {
@@ -241,6 +283,12 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 		void navigator.clipboard.writeText(generatedUrl);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
+	};
+
+	const handleCopyTableLink = (id: string, url: string) => {
+		void navigator.clipboard.writeText(url);
+		setCopiedLinkId(id);
+		setTimeout(() => setCopiedLinkId(""), 2000);
 	};
 
 	return (
@@ -279,46 +327,156 @@ export function PaymentsManager({ initialPayments }: PaymentsManagerProps) {
 				</div>
 			</div>
 
-			{/* Payments Table */}
-			<div className="mt-8 overflow-x-auto">
-				<table className="w-full text-left text-sm text-[var(--ink)]">
-					<thead className="text-[var(--ink-soft)]/75">
-						<tr>
-							<th className="py-2 pr-4 font-normal">When</th>
-							<th className="py-2 pr-4 font-normal">Kind</th>
-							<th className="py-2 pr-4 font-normal">Method</th>
-							<th className="py-2 pr-4 font-normal">Amount</th>
-							<th className="py-2 font-normal">Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{payments.map((p) => (
-							<tr key={p._id} className="border-t border-[var(--border-color)]">
-								<td className="py-3 pr-4 text-[var(--ink-soft)]">
-									{format(new Date(p.createdAt), "PP p")}
-								</td>
-								<td className="py-3 pr-4 font-medium capitalize">{p.kind}</td>
-								<td className="py-3 pr-4 uppercase text-xs tracking-wider">{p.method}</td>
-								<td className="py-3 pr-4 font-medium">{formatCad(p.amountCents)}</td>
-								<td className="py-3 uppercase text-xs tracking-wider font-semibold">
-									<span
-										className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-											p.status === "succeeded"
-												? "bg-leaf/10 text-leaf border border-leaf/20"
-												: p.status === "pending"
-													? "bg-[#c8a86b]/10 text-[#c8a86b] border border-[#c8a86b]/20"
-													: "bg-blush/10 text-blush border border-blush/20"
-										}`}
-									>
-										{p.status}
-									</span>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-				{payments.length === 0 && (
-					<p className="mt-6 text-sm text-[var(--ink-soft)]">No payments yet.</p>
+			{/* Tab Switcher */}
+			<div className="mt-6 flex border-b border-[var(--border-color)] text-sm font-medium">
+				<button
+					type="button"
+					onClick={() => setActiveTab("transactions")}
+					className={`pb-3 px-4 border-b-2 cursor-pointer transition-all duration-200 ${
+						activeTab === "transactions"
+							? "border-[#c8a86b] text-[#c8a86b] font-semibold"
+							: "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
+					}`}
+				>
+					Transactions
+				</button>
+				<button
+					type="button"
+					onClick={() => setActiveTab("links")}
+					className={`pb-3 px-4 border-b-2 cursor-pointer transition-all duration-200 ${
+						activeTab === "links"
+							? "border-[#c8a86b] text-[#c8a86b] font-semibold"
+							: "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
+					}`}
+				>
+					Stripe Payment Links
+				</button>
+			</div>
+
+			{/* Table Content */}
+			<div className="mt-6 overflow-x-auto">
+				{activeTab === "transactions" ? (
+					<>
+						<table className="w-full text-left text-sm text-[var(--ink)]">
+							<thead className="text-[var(--ink-soft)]/75">
+								<tr>
+									<th className="py-2 pr-4 font-normal">When</th>
+									<th className="py-2 pr-4 font-normal">Kind</th>
+									<th className="py-2 pr-4 font-normal">Method</th>
+									<th className="py-2 pr-4 font-normal">Amount</th>
+									<th className="py-2 font-normal">Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								{payments.map((p) => (
+									<tr key={p._id} className="border-t border-[var(--border-color)]">
+										<td className="py-3 pr-4 text-[var(--ink-soft)]">
+											{format(new Date(p.createdAt), "PP p")}
+										</td>
+										<td className="py-3 pr-4 font-medium capitalize">{p.kind}</td>
+										<td className="py-3 pr-4 uppercase text-xs tracking-wider">{p.method}</td>
+										<td className="py-3 pr-4 font-medium">{formatCad(p.amountCents)}</td>
+										<td className="py-3 uppercase text-xs tracking-wider font-semibold">
+											<span
+												className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+													p.status === "succeeded"
+														? "bg-leaf/10 text-leaf border border-leaf/20"
+														: p.status === "pending"
+															? "bg-[#c8a86b]/10 text-[#c8a86b] border border-[#c8a86b]/20"
+															: "bg-blush/10 text-blush border border-blush/20"
+												}`}
+											>
+												{p.status}
+											</span>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+						{payments.length === 0 && (
+							<p className="mt-6 text-sm text-[var(--ink-soft)]">No payments yet.</p>
+						)}
+					</>
+				) : (
+					<>
+						<table className="w-full text-left text-sm text-[var(--ink)]">
+							<thead className="text-[var(--ink-soft)]/75">
+								<tr>
+									<th className="py-2 pr-4 font-normal">Created</th>
+									<th className="py-2 pr-4 font-normal">Kind</th>
+									<th className="py-2 pr-4 font-normal">Description</th>
+									<th className="py-2 pr-4 font-normal">Amount</th>
+									<th className="py-2 pr-4 font-normal">Client Email</th>
+									<th className="py-2 pr-4 font-normal">Booking</th>
+									<th className="py-2 pr-4 font-normal">Status</th>
+									<th className="py-2 text-right font-normal">Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+								{paymentLinks.map((link) => (
+									<tr key={link._id} className="border-t border-[var(--border-color)]">
+										<td className="py-3 pr-4 text-[var(--ink-soft)] text-xs">
+											{format(new Date(link.createdAt), "PP p")}
+										</td>
+										<td className="py-3 pr-4 font-medium capitalize text-xs">{link.kind}</td>
+										<td className="py-3 pr-4 max-w-[150px] truncate text-xs">{link.description}</td>
+										<td className="py-3 pr-4 font-medium text-xs">{formatCad(link.amountCents)}</td>
+										<td className="py-3 pr-4 text-xs text-[var(--ink-soft)] truncate max-w-[150px]">
+											{link.clientEmail || "—"}
+										</td>
+										<td className="py-3 pr-4 text-xs">
+											{link.booking ? (
+												<span className="text-[var(--ink-soft)]">
+													{link.booking.start ? format(new Date(link.booking.start), "PP") : "Linked"}
+												</span>
+											) : (
+												<span className="text-[var(--ink-soft)]/50">—</span>
+											)}
+										</td>
+										<td className="py-3 pr-4 uppercase text-[10px] tracking-wider font-semibold">
+											<span
+												className={`px-2 py-0.5 rounded-full font-bold ${
+													link.status === "paid"
+														? "bg-leaf/10 text-leaf border border-leaf/20"
+														: link.status === "pending"
+															? "bg-[#c8a86b]/10 text-[#c8a86b] border border-[#c8a86b]/20"
+															: "bg-blush/10 text-blush border border-blush/20"
+												}`}
+											>
+												{link.status}
+											</span>
+										</td>
+										<td className="py-3 text-right">
+											<div className="flex justify-end gap-2">
+												<a
+													href={link.stripePaymentLinkUrl}
+													target="_blank"
+													rel="noreferrer"
+													className="px-2.5 py-1.5 border border-[var(--border-color)] hover:border-gold rounded-lg text-xs font-medium text-[var(--ink)] cursor-pointer"
+												>
+													Open
+												</a>
+												<button
+													type="button"
+													onClick={() => handleCopyTableLink(link._id, link.stripePaymentLinkUrl)}
+													className={`px-2.5 py-1.5 border rounded-lg text-xs font-medium cursor-pointer transition-all ${
+														copiedLinkId === link._id
+															? "bg-leaf/10 text-leaf border-leaf/20"
+															: "bg-[var(--card-bg)] text-[var(--ink)] border-[var(--border-color)] hover:border-gold"
+													}`}
+												>
+													{copiedLinkId === link._id ? "Copied!" : "Copy"}
+												</button>
+											</div>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+						{paymentLinks.length === 0 && (
+							<p className="mt-6 text-sm text-[var(--ink-soft)]">No payment links created yet.</p>
+						)}
+					</>
 				)}
 			</div>
 
