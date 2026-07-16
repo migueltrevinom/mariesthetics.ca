@@ -77,13 +77,15 @@ export default function RootLayout({
                     document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
                   } else {
-                    var matches = window.matchMedia('(prefers-color-scheme: light)').matches;
-                    if (matches) {
-                      document.documentElement.classList.add('light');
-                      document.documentElement.classList.remove('dark');
-                    } else {
+                    var hour = new Date().getHours();
+                    var isNightTime = hour >= 19 || hour < 7;
+                    var isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    if (isNightTime || isSystemDark) {
                       document.documentElement.classList.add('dark');
                       document.documentElement.classList.remove('light');
+                    } else {
+                      document.documentElement.classList.add('light');
+                      document.documentElement.classList.remove('dark');
                     }
                   }
                 } catch (e) {}

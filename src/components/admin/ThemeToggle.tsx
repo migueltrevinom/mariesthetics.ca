@@ -29,8 +29,10 @@ export function ThemeToggle() {
     };
 
     if (newTheme === "auto") {
-      const isSystemLight = window.matchMedia("(prefers-color-scheme: light)").matches;
-      applyTheme(isSystemLight ? "light" : "dark");
+      const hour = new Date().getHours();
+      const isNightTime = hour >= 19 || hour < 7;
+      const isSystemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      applyTheme((isNightTime || isSystemDark) ? "dark" : "light");
     } else {
       applyTheme(newTheme);
     }
