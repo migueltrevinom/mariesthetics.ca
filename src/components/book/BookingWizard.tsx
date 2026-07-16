@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { format, addDays } from "date-fns";
+import { format, addDays, parseISO, isToday, isTomorrow } from "date-fns";
 import { formatCad } from "@/lib/money";
 
 type Service = {
@@ -17,6 +17,22 @@ type Slot = { start: string; end: string };
 
 type Step = "service" | "slot" | "details" | "pay" | "done";
 
+function formatSlotTime(iso: string) {
+  const d = new Date(iso);
+  const h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m === 0 ? "00" : m} ${ampm}`;
+}
+
+function friendlyDate(dateStr: string) {
+  const d = parseISO(dateStr);
+  if (isToday(d)) return `Today · ${format(d, "MMMM d")}`;
+  if (isTomorrow(d)) return `Tomorrow · ${format(d, "MMMM d")}`;
+  return format(d, "EEEE, MMMM d");
+}
+
 export function BookingWizard({ initialServiceId }: { initialServiceId?: string }) {
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState(initialServiceId ?? "");
@@ -28,9 +44,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [couponCode, setCouponCode] = useState("");
-  const [depositMethod, setDepositMethod] = useState<"stripe" | "etransfer">(
-    "stripe",
-  );
+  const [depositMethod, setDepositMethod] = useState<"stripe" | "etransfer">("stripe");
   const [bookingId, setBookingId] = useState("");
   const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
   const [proofNote, setProofNote] = useState("");
@@ -41,7 +55,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
 
   const selectedService = useMemo(
     () => services.find((s) => s._id === serviceId),
-    [services, serviceId],
+    [services, serviceId]
   );
 
   useEffect(() => {
@@ -60,11 +74,11 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
   useEffect(() => {
     if (!serviceId || step !== "slot") return;
     setLoading(true);
+    setSelectedStart("");
     fetch(`/api/bookings/availability?serviceId=${serviceId}&date=${date}`)
       .then((r) => r.json())
       .then((data) => {
         setSlots(data.slots ?? []);
-        setSelectedStart("");
       })
       .catch(() => setError("Could not load availability"))
       .finally(() => setLoading(false));
@@ -100,19 +114,19 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
         const payData = await payRes.json();
         if (!payRes.ok) {
           setMessage(
-            "Booking created. Stripe deposit could not start — check STRIPE_SECRET_KEY, or switch to e-Transfer.",
+            "Booking created. Stripe deposit could not start — check STRIPE_SECRET_KEY, or switch to e-Transfer."
           );
           setStep("pay");
         } else {
           setMessage(
-            `Deposit PaymentIntent created (${formatCad(payData.amountCents)}). Client secret ready for Stripe Elements / Checkout integration.`,
+            `Deposit PaymentIntent created (${formatCad(payData.amountCents)}). Client secret ready for Stripe Elements / Checkout integration.`
           );
           setStep("done");
           setEncourageAccount(true);
         }
       } else {
         setMessage(
-          "Your slot is held for 2 hours. Send Interac e-Transfer for the deposit, then submit proof below.",
+          "Your slot is held for 2 hours. Send Interac e-Transfer for the deposit, then submit proof below."
         );
         setStep("pay");
       }
@@ -150,19 +164,14 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
       const res = await fetch("/api/auth/request-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          name,
-          phone,
-          purpose: "link_account",
-        }),
+        body: JSON.stringify({ email, name, phone, purpose: "link_account" }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       setMessage(
         data.devCode
           ? `Account code sent (dev): ${data.devCode}. Verify on the client login page.`
-          : "Check your email for a login code to save your booking history.",
+          : "Check your email for a login code to save your booking history."
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
@@ -171,19 +180,31 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
     }
   }
 
+  // Generate 14 available dates starting today
   const dates = Array.from({ length: 14 }, (_, i) =>
-    format(addDays(new Date(), i), "yyyy-MM-dd"),
+    format(addDays(new Date(), i), "yyyy-MM-dd")
   );
+
+  // Group slots into morning (before 12pm) and afternoon (12pm+)
+  const morningSlots = slots.filter((s) => new Date(s.start).getHours() < 12);
+  const afternoonSlots = slots.filter((s) => new Date(s.start).getHours() >= 12);
+
+  const STEPS: Step[] = ["service", "slot", "details", "pay", "done"];
+  const STEP_LABELS: Record<Step, string> = {
+    service: "Service",
+    slot: "Slot",
+    details: "Details",
+    pay: "Pay",
+    done: "Done",
+  };
 
   return (
     <div className="mx-auto max-w-2xl">
+      {/* Step breadcrumb */}
       <ol className="mb-10 flex flex-wrap gap-3 text-xs uppercase tracking-[0.16em] text-ink-soft">
-        {(["service", "slot", "details", "pay", "done"] as Step[]).map((s) => (
-          <li
-            key={s}
-            className={step === s ? "text-leaf font-semibold" : undefined}
-          >
-            {s}
+        {STEPS.map((s) => (
+          <li key={s} className={step === s ? "text-leaf font-semibold" : undefined}>
+            {STEP_LABELS[s]}
           </li>
         ))}
       </ol>
@@ -199,6 +220,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
         </p>
       )}
 
+      {/* ── SERVICE STEP ── */}
       {step === "service" && (
         <div className="space-y-3">
           {services.map((service) => (
@@ -216,8 +238,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
                   {service.name}
                 </span>
                 <span className="mt-1 block text-sm text-ink-soft">
-                  {service.durationMin} min · deposit{" "}
-                  {formatCad(service.depositCents)}
+                  {service.durationMin} min · deposit {formatCad(service.depositCents)}
                 </span>
               </span>
               <span className="font-medium">{formatCad(service.priceCents)}</span>
@@ -226,6 +247,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
         </div>
       )}
 
+      {/* ── SLOT STEP ── */}
       {step === "slot" && selectedService && (
         <div>
           <button
@@ -235,49 +257,147 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
           >
             ← Change service
           </button>
-          <h2 className="mt-4 font-[family-name:var(--font-display)] text-3xl">
-            {selectedService.name}
-          </h2>
-          <label className="mt-6 block text-sm text-ink-soft">
-            Date
-            <select
-              className="mt-2 w-full border border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] px-3 py-3"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            >
-              {dates.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="mt-6 grid grid-cols-3 gap-2 sm:grid-cols-4">
-            {loading && <p className="col-span-full text-sm text-ink-soft">Loading…</p>}
-            {!loading && slots.length === 0 && (
-              <p className="col-span-full text-sm text-ink-soft">
-                No open slots this day.
+
+          <div className="mt-4 flex items-baseline gap-4">
+            <h2 className="font-[family-name:var(--font-display)] text-3xl">
+              {selectedService.name}
+              <span className="text-[length:1rem] text-ink-soft">.</span>
+            </h2>
+            <span className="text-sm text-ink-soft">
+              {selectedService.durationMin} min · +30 min buffer
+            </span>
+          </div>
+
+          {/* Date picker — horizontal scroll strip */}
+          <div className="mt-6">
+            <p className="text-xs uppercase tracking-wider text-ink-soft mb-3 font-semibold">
+              Select date
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+              {dates.map((d) => {
+                const isSelected = date === d;
+                const dayDate = parseISO(d);
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDate(d)}
+                    className={`flex-shrink-0 flex flex-col items-center py-2.5 px-3.5 rounded-xl border text-center transition-all duration-150 cursor-pointer min-w-[56px]
+                      ${
+                        isSelected
+                          ? "border-[var(--leaf)] bg-[var(--leaf)]/10 text-[var(--ink)]"
+                          : "border-[var(--line)] bg-[var(--card-bg)] text-ink-soft hover:border-[var(--leaf)] hover:text-[var(--ink)]"
+                      }`}
+                  >
+                    <span className="text-[10px] uppercase font-bold tracking-wider">
+                      {format(dayDate, "EEE")}
+                    </span>
+                    <span className={`text-lg font-bold mt-0.5 ${isSelected ? "text-[var(--leaf)]" : ""}`}>
+                      {format(dayDate, "d")}
+                    </span>
+                    <span className="text-[9px] uppercase tracking-wide opacity-70">
+                      {format(dayDate, "MMM")}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Friendly date heading */}
+          {date && (
+            <p className="mt-5 text-sm font-medium text-ink-soft">
+              {friendlyDate(date)}
+            </p>
+          )}
+
+          {/* Slot grid */}
+          <div className="mt-3">
+            {loading && (
+              <p className="text-sm text-ink-soft animate-pulse py-6 text-center">
+                Checking availability…
               </p>
             )}
-            {slots.map((slot) => (
-              <button
-                key={slot.start}
-                type="button"
-                onClick={() => setSelectedStart(slot.start)}
-                className={`border px-2 py-3 text-sm ${
-                  selectedStart === slot.start
-                    ? "border-leaf bg-leaf text-white"
-                    : "border-[var(--line)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-leaf"
-                }`}
-              >
-                {format(new Date(slot.start), "h:mm a")}
-              </button>
-            ))}
+
+            {!loading && slots.length === 0 && (
+              <div className="py-8 text-center border border-[var(--line)] rounded-xl bg-[var(--card-bg)]">
+                <p className="text-ink-soft text-sm">No open slots on this day.</p>
+                <p className="text-ink-soft text-xs mt-1 opacity-70">
+                  Try another date — existing appointments may fill the schedule.
+                </p>
+              </div>
+            )}
+
+            {!loading && slots.length > 0 && (
+              <div className="space-y-4">
+                {morningSlots.length > 0 && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-ink-soft mb-2 font-semibold">
+                      Morning
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {morningSlots.map((slot) => (
+                        <button
+                          key={slot.start}
+                          type="button"
+                          onClick={() => setSelectedStart(slot.start)}
+                          className={`py-3 px-2 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer text-center
+                            ${
+                              selectedStart === slot.start
+                                ? "border-leaf bg-leaf/20 text-[var(--ink)] font-semibold shadow-sm"
+                                : "border-[var(--line)] bg-[var(--card-bg)] text-ink-soft hover:border-leaf hover:text-[var(--ink)]"
+                            }`}
+                        >
+                          {formatSlotTime(slot.start)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {afternoonSlots.length > 0 && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-ink-soft mb-2 font-semibold">
+                      Afternoon / Evening
+                    </p>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {afternoonSlots.map((slot) => (
+                        <button
+                          key={slot.start}
+                          type="button"
+                          onClick={() => setSelectedStart(slot.start)}
+                          className={`py-3 px-2 rounded-xl border text-sm font-medium transition-all duration-150 cursor-pointer text-center
+                            ${
+                              selectedStart === slot.start
+                                ? "border-leaf bg-leaf/20 text-[var(--ink)] font-semibold shadow-sm"
+                                : "border-[var(--line)] bg-[var(--card-bg)] text-ink-soft hover:border-leaf hover:text-[var(--ink)]"
+                            }`}
+                        >
+                          {formatSlotTime(slot.start)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* Selected slot confirmation strip */}
+          {selectedStart && (
+            <div className="mt-5 flex items-center gap-3 p-3 border border-leaf/30 bg-leaf/5 rounded-xl text-sm">
+              <span className="text-leaf font-bold text-base">✓</span>
+              <span className="text-ink">
+                <span className="font-semibold">{formatSlotTime(selectedStart)}</span>
+                <span className="text-ink-soft"> · {friendlyDate(date)} · {selectedService.durationMin} min</span>
+              </span>
+            </div>
+          )}
+
           <button
             type="button"
             disabled={!selectedStart}
-            className="btn-primary mt-8 disabled:opacity-40"
+            className="btn-primary mt-6 disabled:opacity-40"
             onClick={() => setStep("details")}
           >
             Continue
@@ -285,6 +405,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
         </div>
       )}
 
+      {/* ── DETAILS STEP ── */}
       {step === "details" && (
         <form
           className="space-y-4"
@@ -356,6 +477,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
         </form>
       )}
 
+      {/* ── PAY STEP ── */}
       {step === "pay" && depositMethod === "etransfer" && (
         <div className="space-y-4">
           <h2 className="font-[family-name:var(--font-display)] text-3xl">
@@ -383,10 +505,11 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
         </div>
       )}
 
+      {/* ── DONE STEP ── */}
       {step === "done" && (
         <div className="space-y-4">
           <h2 className="font-[family-name:var(--font-display)] text-3xl">
-            You’re set
+            You're set
           </h2>
           <p className="text-ink-soft">
             Booking ID: <span className="text-ink">{bookingId}</span>

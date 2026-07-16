@@ -3,8 +3,9 @@ import { connectDb } from "@/lib/db/connect";
 import { Booking, Service } from "@/lib/db/models";
 
 const OPEN_HOUR = 9;
-const CLOSE_HOUR = 18;
+const CLOSE_HOUR = 21; // Allow slots up to 9pm for evening appointments
 const SLOT_STEP_MIN = 30;
+const BUFFER_MIN = 30; // Minimum break between appointments
 
 export async function getAvailableSlots(serviceId: string, dayIso: string) {
   await connectDb();
@@ -36,15 +37,22 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
   const close = setMinutes(setHours(day, CLOSE_HOUR), 0);
 
   while (true) {
-    const end = addMinutes(cursor, service.durationMin);
-    if (isAfter(end, close)) break;
+    const proposedEnd = addMinutes(cursor, service.durationMin);
+    // Must finish before close
+    if (isAfter(proposedEnd, close)) break;
 
     if (!isBefore(cursor, now)) {
-      const overlaps = blocking.some(
-        (b) => cursor < b.end && end > b.start,
-      );
+      // A slot is only available if:
+      // 1. The new appointment window (cursor → proposedEnd) does not overlap any existing booking
+      // 2. The new appointment does not start within the 30-min buffer zone after any existing booking
+      //    i.e., cursor < existingBooking.end + BUFFER_MIN AND proposedEnd > existingBooking.start
+      const overlaps = blocking.some((b) => {
+        const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
+        return cursor < bufferedEnd && proposedEnd > new Date(b.start);
+      });
+
       if (!overlaps) {
-        slots.push({ start: cursor.toISOString(), end: end.toISOString() });
+        slots.push({ start: cursor.toISOString(), end: proposedEnd.toISOString() });
       }
     }
 
@@ -61,9 +69,15 @@ export async function assertSlotFree(
 ) {
   await connectDb();
   const now = new Date();
+
+  // Expand the conflict window to include the 30-min buffer after each existing booking
+  // We query for bookings whose (start - BUFFER_MIN) to end overlaps the new slot
+  const bufferedStart = addMinutes(start, -BUFFER_MIN);
   const query: Record<string, unknown> = {
-    start: { $lt: end },
-    end: { $gt: start },
+    // An existing booking conflicts if its end + buffer overlaps the new start
+    // OR the new appointment overlaps the existing booking window
+    start: { $lt: addMinutes(end, BUFFER_MIN) },
+    end: { $gt: bufferedStart },
     status: { $in: ["held", "confirmed"] },
   };
   if (excludeBookingId) {
@@ -76,7 +90,15 @@ export async function assertSlotFree(
     return !b.holdExpiresAt || isAfter(b.holdExpiresAt, now);
   });
 
-  if (blocking.length > 0) {
-    throw new Error("That time slot is no longer available");
+  // Now check more precisely: does the new slot land in the buffer zone of any existing booking?
+  const precise = blocking.filter((b) => {
+    const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
+    return start < bufferedEnd && end > new Date(b.start);
+  });
+
+  if (precise.length > 0) {
+    throw new Error(
+      "That time slot is no longer available — a 30-minute recovery buffer is required between appointments."
+    );
   }
 }

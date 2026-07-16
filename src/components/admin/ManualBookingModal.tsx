@@ -139,12 +139,14 @@ export function ManualBookingModal({
         if (!res.ok) return;
         const data = await res.json();
         const booked = new Set<string>();
+        const BUFFER_MIN = 30;
         for (const b of data.bookings || []) {
-          // Block all 30-min slots covered by this booking
           const start = new Date(b.start);
           const end = new Date(b.end);
+          // Mark slots from appointment start through end + 30-min buffer
+          const bufferedEnd = new Date(end.getTime() + BUFFER_MIN * 60 * 1000);
           const cursor = new Date(start);
-          while (cursor < end) {
+          while (cursor < bufferedEnd) {
             booked.add(format(cursor, "HH:mm"));
             cursor.setMinutes(cursor.getMinutes() + 30);
           }
