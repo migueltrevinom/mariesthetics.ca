@@ -47,8 +47,8 @@ export function SiteFooter() {
               {nav.map((item) => (
                 <li key={item.label} className="pt-0">{item.label === "Book an appointment" ? null : null}</li>
               ))}
-              <li>Tuesday – Saturday</li>
-              <li>9:00 am – 6:00 pm</li>
+              <li>Monday – Saturday</li>
+              <li>9:00 am – 8:00 pm</li>
               <li className="pt-2">
                 <a
                   href={whatsappUrl()}

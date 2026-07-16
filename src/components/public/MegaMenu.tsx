@@ -288,7 +288,7 @@ export function MegaMenu({
               </ul>
 
               <div className="mt-auto space-y-2 pt-10 text-sm text-ink-soft">
-                <p>Tue – Sat · 9:00 am – 6:00 pm</p>
+                <p>Mon – Sat · 9:00 am – 8:00 pm</p>
                 <p>
                   {business.locality}, {business.region} · by appointment
                 </p>

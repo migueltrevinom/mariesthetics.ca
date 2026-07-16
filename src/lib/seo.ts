@@ -40,7 +40,7 @@ export const business = {
   currency: "CAD",
   // Placeholder hours — confirm and update.
   hours: [
-    { days: ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], open: "09:00", close: "18:00" },
+    { days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], open: "09:00", close: "20:00" },
   ],
   sameAs: [
     "https://www.instagram.com/mariesthetics",
