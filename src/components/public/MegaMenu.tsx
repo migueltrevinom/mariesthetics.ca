@@ -118,13 +118,15 @@ export function MegaMenu({
               <Logo size="md" />
             </Link>
             <div className="flex items-center gap-3">
-              <Link
-                href="/book"
-                onClick={onClose}
-                className="btn-primary hidden !py-2.5 !px-5 text-sm sm:inline-flex"
-              >
-                Book a service
-              </Link>
+              <div className="hidden sm:inline-flex">
+                <Link
+                  href="/book"
+                  onClick={onClose}
+                  className="btn-primary !py-2.5 !px-5 text-sm"
+                >
+                  Book a service
+                </Link>
+              </div>
               <button
                 ref={closeRef}
                 type="button"
