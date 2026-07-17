@@ -86,7 +86,21 @@ export default function AdminLoginPage() {
           </div>
         )}
 
-        <div className="mt-8 space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!sent) {
+              if (!loading && email) {
+                void requestCode();
+              }
+            } else {
+              if (!loading && code.trim().length === 6) {
+                void verify();
+              }
+            }
+          }}
+          className="mt-8 space-y-4"
+        >
           <input
             type="email"
             placeholder="Manager email"
@@ -98,10 +112,9 @@ export default function AdminLoginPage() {
 
           {!sent ? (
             <button
-              type="button"
+              type="submit"
               className="w-full bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] hover:from-[#e2c78c] hover:to-[#c8a86b] hover:shadow-[0_0_20px_rgba(200,168,107,0.3)] active:scale-[0.99] disabled:opacity-40 disabled:scale-100 disabled:hover:shadow-none text-[#24180a] font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer disabled:cursor-not-allowed"
               disabled={loading || !email}
-              onClick={() => void requestCode()}
             >
               {loading ? "Sending..." : "Send OTP"}
             </button>
@@ -116,10 +129,9 @@ export default function AdminLoginPage() {
                 onChange={(e) => setCode(e.target.value)}
               />
               <button
-                type="button"
+                type="submit"
                 className="w-full bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] hover:from-[#e2c78c] hover:to-[#c8a86b] hover:shadow-[0_0_20px_rgba(200,168,107,0.3)] active:scale-[0.99] disabled:opacity-40 disabled:scale-100 disabled:hover:shadow-none text-[#24180a] font-semibold text-sm py-3 px-4 rounded-xl transition-all duration-300 cursor-pointer disabled:cursor-not-allowed"
                 disabled={loading || code.trim().length !== 6}
-                onClick={() => void verify()}
               >
                 {loading ? "Verifying..." : "Verify & Login"}
               </button>
@@ -135,7 +147,7 @@ export default function AdminLoginPage() {
               </button>
             </>
           )}
-        </div>
+        </form>
       </div>
     </div>
   );
