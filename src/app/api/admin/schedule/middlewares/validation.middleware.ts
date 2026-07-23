@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+const timeShiftSchema = z.object({
+  openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+});
+
 export const updateWeeklyScheduleSchema = z.object({
   weeklyHours: z.array(
     z.object({
       dayOfWeek: z.number().min(0).max(6),
       isOpen: z.boolean(),
-      openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
-      closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+      shifts: z.array(timeShiftSchema).default([]),
     })
   ),
 });
@@ -15,8 +19,7 @@ export const updateWeeklyScheduleSchema = z.object({
 export const dateOverrideSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   isOpen: z.boolean(),
-  openTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
-  closeTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
+  shifts: z.array(timeShiftSchema).optional(),
   note: z.string().optional(),
 });
 

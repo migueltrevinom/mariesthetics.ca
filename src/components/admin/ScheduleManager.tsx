@@ -1,20 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
+
+export interface TimeShift {
+  openTime: string;
+  closeTime: string;
+}
 
 export interface WeeklyHour {
   dayOfWeek: number;
   isOpen: boolean;
-  openTime: string;
-  closeTime: string;
+  shifts: TimeShift[];
 }
 
 export interface DateOverride {
   date: string;
   isOpen: boolean;
-  openTime?: string;
-  closeTime?: string;
+  shifts?: TimeShift[];
   note?: string;
 }
 
@@ -40,8 +43,9 @@ export function ScheduleManager() {
   // New Override form state
   const [overrideDate, setOverrideDate] = useState("");
   const [overrideIsOpen, setOverrideIsOpen] = useState(false);
-  const [overrideOpenTime, setOverrideOpenTime] = useState("09:00");
-  const [overrideCloseTime, setOverrideCloseTime] = useState("18:00");
+  const [overrideShifts, setOverrideShifts] = useState<TimeShift[]>([
+    { openTime: "09:00", closeTime: "18:00" },
+  ]);
   const [overrideNote, setOverrideNote] = useState("");
 
   // New Blackout Block form state
@@ -58,8 +62,37 @@ export function ScheduleManager() {
       if (!res.ok) throw new Error("Failed to load schedule config");
       const data = await res.json();
       if (data.schedule) {
-        setWeeklyHours(data.schedule.weeklyHours || []);
-        setDateOverrides(data.schedule.dateOverrides || []);
+        // Normalize weekly hours so each day has shifts array
+        const normalizedWeekly: WeeklyHour[] = (data.schedule.weeklyHours || []).map((w: any) => {
+          let shifts: TimeShift[] = w.shifts || [];
+          if (shifts.length === 0 && w.openTime && w.closeTime) {
+            shifts = [{ openTime: w.openTime, closeTime: w.closeTime }];
+          }
+          if (shifts.length === 0) {
+            shifts = [{ openTime: "09:00", closeTime: "18:00" }];
+          }
+          return {
+            dayOfWeek: w.dayOfWeek,
+            isOpen: w.isOpen,
+            shifts,
+          };
+        });
+        setWeeklyHours(normalizedWeekly);
+
+        // Normalize date overrides
+        const normalizedOverrides: DateOverride[] = (data.schedule.dateOverrides || []).map((o: any) => {
+          let shifts: TimeShift[] = o.shifts || [];
+          if (shifts.length === 0 && o.openTime && o.closeTime) {
+            shifts = [{ openTime: o.openTime, closeTime: o.closeTime }];
+          }
+          return {
+            date: o.date,
+            isOpen: o.isOpen,
+            shifts,
+            note: o.note,
+          };
+        });
+        setDateOverrides(normalizedOverrides);
       }
       if (data.blocks) {
         setBlackoutBlocks(data.blocks);
@@ -87,12 +120,35 @@ export function ScheduleManager() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save weekly schedule");
-      setMessage("Weekly working hours saved successfully!");
+      setMessage("Weekly working hours & shift splits saved successfully!");
     } catch (err: any) {
       setError(err.message || "Failed to save weekly schedule");
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleAddShift = (dayIdx: number) => {
+    const updated = [...weeklyHours];
+    const currentShifts = updated[dayIdx].shifts || [];
+    const lastShift = currentShifts[currentShifts.length - 1];
+    let newOpen = "13:00";
+    let newClose = "20:00";
+    if (lastShift) {
+      // Suggest next shift starting 1 hour after previous shift ends
+      const [h, m] = lastShift.closeTime.split(":").map(Number);
+      const nextH = Math.min(h + 1, 22);
+      newOpen = `${String(nextH).padStart(2, "0")}:00`;
+      newClose = `${String(Math.min(nextH + 5, 23)).padStart(2, "0")}:00`;
+    }
+    updated[dayIdx].shifts = [...currentShifts, { openTime: newOpen, closeTime: newClose }];
+    setWeeklyHours(updated);
+  };
+
+  const handleRemoveShift = (dayIdx: number, shiftIdx: number) => {
+    const updated = [...weeklyHours];
+    updated[dayIdx].shifts = updated[dayIdx].shifts.filter((_, idx) => idx !== shiftIdx);
+    setWeeklyHours(updated);
   };
 
   const handleAddOverride = async (e: React.FormEvent) => {
@@ -111,8 +167,7 @@ export function ScheduleManager() {
         note: overrideNote,
       };
       if (overrideIsOpen) {
-        payload.openTime = overrideOpenTime;
-        payload.closeTime = overrideCloseTime;
+        payload.shifts = overrideShifts;
       }
       const res = await fetch("/api/admin/schedule", {
         method: "POST",
@@ -226,115 +281,145 @@ export function ScheduleManager() {
         </div>
       )}
 
-      {/* ── SECTION 1: WEEKLY WORKING HOURS ── */}
+      {/* ── SECTION 1: WEEKLY WORKING HOURS & LUNCH BREAK SHIFTS ── */}
       <div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-[var(--border-color)]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)]">
           <div>
             <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
-              Weekly Operating Schedule
+              Weekly Schedule & Shift Splits
             </h2>
             <p className="text-xs text-[var(--ink-soft)] mt-1">
-              Set default working hours for each day of the week.
+              Set working shifts and lunch breaks per day (e.g. 9:00 AM – 12:00 PM, then 1:00 PM – 8:00 PM).
             </p>
           </div>
           <button
             type="button"
             disabled={saving}
             onClick={handleSaveWeekly}
-            className="bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] hover:from-[#e2c78c] hover:to-[#c8a86b] text-[#24180a] font-semibold text-xs py-2.5 px-5 rounded-xl transition-all duration-300 cursor-pointer disabled:opacity-40 shadow-sm"
+            className="bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] hover:from-[#e2c78c] hover:to-[#c8a86b] text-[#24180a] font-semibold text-xs py-2.5 px-5 rounded-xl transition-all duration-300 cursor-pointer disabled:opacity-40 shadow-sm shrink-0"
           >
             {saving ? "Saving..." : "Save Weekly Schedule"}
           </button>
         </div>
 
-        <div className="space-y-3">
-          {weeklyHours.map((setting, idx) => (
+        <div className="space-y-4">
+          {weeklyHours.map((setting, dayIdx) => (
             <div
               key={setting.dayOfWeek}
-              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 rounded-xl border transition-all ${
+              className={`p-4 rounded-xl border transition-all space-y-3 ${
                 setting.isOpen
                   ? "border-[var(--border-color)] bg-white/[0.01]"
                   : "border-white/5 opacity-50 bg-black/10"
               }`}
             >
-              <div className="flex items-center gap-3 w-40">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const updated = [...weeklyHours];
-                    updated[idx].isOpen = !updated[idx].isOpen;
-                    setWeeklyHours(updated);
-                  }}
-                  className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
-                    setting.isOpen ? "bg-[#c8a86b]" : "bg-white/20"
-                  }`}
-                >
-                  <div
-                    className={`bg-black w-4 h-4 rounded-full shadow-md transform transition-transform ${
-                      setting.isOpen ? "translate-x-5" : "translate-x-0"
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const updated = [...weeklyHours];
+                      updated[dayIdx].isOpen = !updated[dayIdx].isOpen;
+                      setWeeklyHours(updated);
+                    }}
+                    className={`w-11 h-6 flex items-center rounded-full p-1 transition-colors cursor-pointer ${
+                      setting.isOpen ? "bg-[#c8a86b]" : "bg-white/20"
                     }`}
-                  />
-                </button>
-                <span className="text-sm font-semibold text-[var(--ink)]">
-                  {DAY_NAMES[setting.dayOfWeek]}
-                </span>
+                  >
+                    <div
+                      className={`bg-black w-4 h-4 rounded-full shadow-md transform transition-transform ${
+                        setting.isOpen ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm font-semibold text-[var(--ink)]">
+                    {DAY_NAMES[setting.dayOfWeek]}
+                  </span>
+                </div>
+
+                {!setting.isOpen && (
+                  <span className="text-xs text-blush font-semibold tracking-wider uppercase">
+                    Day Off / Closed
+                  </span>
+                )}
               </div>
 
-              {setting.isOpen ? (
-                <div className="flex items-center gap-3 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[var(--ink-soft)]">Open:</span>
-                    <input
-                      type="time"
-                      value={setting.openTime}
-                      onChange={(e) => {
-                        const updated = [...weeklyHours];
-                        updated[idx].openTime = e.target.value;
-                        setWeeklyHours(updated);
-                      }}
-                      className="border border-[var(--border-color)] bg-[var(--background)] px-2.5 py-1.5 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                    />
-                  </div>
-                  <span className="text-[var(--ink-soft)]">–</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[var(--ink-soft)]">Close:</span>
-                    <input
-                      type="time"
-                      value={setting.closeTime}
-                      onChange={(e) => {
-                        const updated = [...weeklyHours];
-                        updated[idx].closeTime = e.target.value;
-                        setWeeklyHours(updated);
-                      }}
-                      className="border border-[var(--border-color)] bg-[var(--background)] px-2.5 py-1.5 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                    />
-                  </div>
+              {/* Working Shifts list for this day */}
+              {setting.isOpen && (
+                <div className="space-y-2.5 pt-2 border-t border-white/5">
+                  {setting.shifts.map((shift, shiftIdx) => (
+                    <div key={shiftIdx} className="flex flex-wrap items-center gap-3 text-xs">
+                      <span className="text-[10px] uppercase font-bold text-[#c8a86b] w-14">
+                        Shift {shiftIdx + 1}:
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[var(--ink-soft)]">Start:</span>
+                        <input
+                          type="time"
+                          value={shift.openTime}
+                          onChange={(e) => {
+                            const updated = [...weeklyHours];
+                            updated[dayIdx].shifts[shiftIdx].openTime = e.target.value;
+                            setWeeklyHours(updated);
+                          }}
+                          className="border border-[var(--border-color)] bg-[var(--background)] px-2.5 py-1.5 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                        />
+                      </div>
+                      <span className="text-[var(--ink-soft)]">–</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[var(--ink-soft)]">End:</span>
+                        <input
+                          type="time"
+                          value={shift.closeTime}
+                          onChange={(e) => {
+                            const updated = [...weeklyHours];
+                            updated[dayIdx].shifts[shiftIdx].closeTime = e.target.value;
+                            setWeeklyHours(updated);
+                          }}
+                          className="border border-[var(--border-color)] bg-[var(--background)] px-2.5 py-1.5 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                        />
+                      </div>
+
+                      {setting.shifts.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveShift(dayIdx, shiftIdx)}
+                          className="text-blush hover:underline text-xs ml-auto cursor-pointer"
+                        >
+                          ✕ Remove Shift
+                        </button>
+                      )}
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddShift(dayIdx)}
+                    className="text-[11px] text-[#c8a86b] hover:text-[#e2c78c] font-medium underline underline-offset-2 cursor-pointer pt-1 block"
+                  >
+                    + Add Shift / Lunch Break Split
+                  </button>
                 </div>
-              ) : (
-                <span className="text-xs text-blush font-semibold tracking-wider uppercase">
-                  Day Off / Closed
-                </span>
               )}
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── SECTION 2: BLACKOUT TIME BLOCKS (BREAKS) ── */}
+      {/* ── SECTION 2: BLACKOUT TIME BLOCKS (SPECIFIC SINGLE DATE BREAKS) ── */}
       <div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm space-y-6">
         <div>
           <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
-            Blackout Periods & Breaks
+            Single-Date Blackout Blocks
           </h2>
           <p className="text-xs text-[var(--ink-soft)] mt-1">
-            Block out specific hours in the day (e.g. 3-hour personal break, lunch, maintenance).
+            Block out hours for a specific date (e.g. personal appointment, studio maintenance).
           </p>
         </div>
 
         {/* Add Block Form */}
         <form onSubmit={handleAddBlock} className="p-4 border border-[var(--border-color)] rounded-xl bg-white/[0.01] space-y-4">
           <p className="text-xs font-semibold uppercase tracking-wider text-[#c8a86b]">
-            + Add Blackout Time Block
+            + Add Single-Date Blackout Block
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
             <div>
@@ -368,7 +453,7 @@ export function ScheduleManager() {
               <label className="block text-[var(--ink-soft)] mb-1">Reason / Note</label>
               <input
                 type="text"
-                placeholder="e.g. Lunch break"
+                placeholder="e.g. Studio Maintenance"
                 value={blockReason}
                 onChange={(e) => setBlockReason(e.target.value)}
                 className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3 py-2 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
@@ -465,30 +550,38 @@ export function ScheduleManager() {
                 className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
               >
                 <option value="closed" className="bg-[var(--background)]">Closed / Full Day Off</option>
-                <option value="open" className="bg-[var(--background)]">Custom Hours</option>
+                <option value="open" className="bg-[var(--background)]">Custom Working Shifts</option>
               </select>
             </div>
             {overrideIsOpen && (
-              <>
-                <div>
-                  <label className="block text-[var(--ink-soft)] mb-1">Open Time</label>
-                  <input
-                    type="time"
-                    value={overrideOpenTime}
-                    onChange={(e) => setOverrideOpenTime(e.target.value)}
-                    className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3 py-2 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[var(--ink-soft)] mb-1">Close Time</label>
-                  <input
-                    type="time"
-                    value={overrideCloseTime}
-                    onChange={(e) => setOverrideCloseTime(e.target.value)}
-                    className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3 py-2 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                  />
-                </div>
-              </>
+              <div className="sm:col-span-2 space-y-2">
+                <label className="block text-[var(--ink-soft)] mb-1">Shifts for this date</label>
+                {overrideShifts.map((s, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="time"
+                      value={s.openTime}
+                      onChange={(e) => {
+                        const updated = [...overrideShifts];
+                        updated[idx].openTime = e.target.value;
+                        setOverrideShifts(updated);
+                      }}
+                      className="border border-[var(--border-color)] bg-[var(--background)] px-2 py-1.5 rounded-lg text-xs text-[var(--ink)]"
+                    />
+                    <span>–</span>
+                    <input
+                      type="time"
+                      value={s.closeTime}
+                      onChange={(e) => {
+                        const updated = [...overrideShifts];
+                        updated[idx].closeTime = e.target.value;
+                        setOverrideShifts(updated);
+                      }}
+                      className="border border-[var(--border-color)] bg-[var(--background)] px-2 py-1.5 rounded-lg text-xs text-[var(--ink)]"
+                    />
+                  </div>
+                ))}
+              </div>
             )}
             <div className="sm:col-span-2">
               <label className="block text-[var(--ink-soft)] mb-1">Note (optional)</label>
@@ -529,7 +622,9 @@ export function ScheduleManager() {
                   <div>
                     <span className="font-bold text-[var(--ink)]">{o.date}</span>
                     <span className="ml-3 font-semibold text-leaf">
-                      {o.isOpen ? `${o.openTime} – ${o.closeTime}` : "Closed / Day Off"}
+                      {o.isOpen
+                        ? (o.shifts || []).map((s) => `${s.openTime}–${s.closeTime}`).join(", ")
+                        : "Closed / Day Off"}
                     </span>
                     {o.note && (
                       <span className="text-[var(--ink-soft)] ml-3 opacity-80">

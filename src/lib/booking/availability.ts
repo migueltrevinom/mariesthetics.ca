@@ -15,7 +15,7 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
 
   // Get effective schedule for this date (weekly default or custom date override)
   const schedule = await getEffectiveDaySchedule(dayIso);
-  if (!schedule.isOpen) {
+  if (!schedule.isOpen || !schedule.shifts || schedule.shifts.length === 0) {
     return { service, slots: [] };
   }
 
@@ -23,10 +23,6 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
   const [yyyy, mm, dd] = dayIso.split("-").map(Number);
   const day = startOfDay(new Date(yyyy, mm - 1, dd)); // local time
   const dayEnd = addMinutes(day, 24 * 60);
-
-  // Parse open and close times from schedule
-  const [openHour, openMin] = schedule.openTime.split(":").map(Number);
-  const [closeHour, closeMin] = schedule.closeTime.split(":").map(Number);
 
   // Fetch existing bookings for the day
   const existingBookings = await Booking.find({
@@ -51,32 +47,39 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
   });
 
   const slots: { start: string; end: string }[] = [];
-  let cursor = setMinutes(setHours(day, openHour), openMin);
-  const close = setMinutes(setHours(day, closeHour), closeMin);
 
-  while (true) {
-    const proposedEnd = addMinutes(cursor, service.durationMin);
-    // Must finish on or before closing time
-    if (isAfter(proposedEnd, close)) break;
+  // Iterate over each working shift for the day (e.g. Morning Shift 9-12, Afternoon Shift 1-8)
+  for (const shift of schedule.shifts) {
+    const [openHour, openMin] = shift.openTime.split(":").map(Number);
+    const [closeHour, closeMin] = shift.closeTime.split(":").map(Number);
 
-    if (!isBefore(cursor, now)) {
-      // 1. Check overlaps with existing bookings + 30-min buffer
-      const overlapsBooking = blockingBookings.some((b) => {
-        const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
-        return cursor < bufferedEnd && proposedEnd > new Date(b.start);
-      });
+    let cursor = setMinutes(setHours(day, openHour), openMin);
+    const shiftClose = setMinutes(setHours(day, closeHour), closeMin);
 
-      // 2. Check overlaps with blackout blocks (breaks/blocked times)
-      const overlapsBlackout = blackoutBlocks.some((blk) => {
-        return cursor < new Date(blk.end) && proposedEnd > new Date(blk.start);
-      });
+    while (true) {
+      const proposedEnd = addMinutes(cursor, service.durationMin);
+      // Must finish on or before closing time of the current shift
+      if (isAfter(proposedEnd, shiftClose)) break;
 
-      if (!overlapsBooking && !overlapsBlackout) {
-        slots.push({ start: cursor.toISOString(), end: proposedEnd.toISOString() });
+      if (!isBefore(cursor, now)) {
+        // 1. Check overlaps with existing bookings + 30-min buffer
+        const overlapsBooking = blockingBookings.some((b) => {
+          const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
+          return cursor < bufferedEnd && proposedEnd > new Date(b.start);
+        });
+
+        // 2. Check overlaps with blackout blocks (breaks/blocked times)
+        const overlapsBlackout = blackoutBlocks.some((blk) => {
+          return cursor < new Date(blk.end) && proposedEnd > new Date(blk.start);
+        });
+
+        if (!overlapsBooking && !overlapsBlackout) {
+          slots.push({ start: cursor.toISOString(), end: proposedEnd.toISOString() });
+        }
       }
-    }
 
-    cursor = addMinutes(cursor, SLOT_STEP_MIN);
+      cursor = addMinutes(cursor, SLOT_STEP_MIN);
+    }
   }
 
   return { service, slots };
@@ -90,26 +93,33 @@ export async function assertSlotFree(
   await connectDb();
   const now = new Date();
 
-  // 1. Check schedule operating hours for the start date
+  // 1. Check schedule operating hours & shifts for the start date
   const yyyy = start.getFullYear();
   const mm = String(start.getMonth() + 1).padStart(2, "0");
   const dd = String(start.getDate()).padStart(2, "0");
   const dayIso = `${yyyy}-${mm}-${dd}`;
 
   const schedule = await getEffectiveDaySchedule(dayIso);
-  if (!schedule.isOpen) {
+  if (!schedule.isOpen || !schedule.shifts || schedule.shifts.length === 0) {
     throw new Error("The studio is closed on this date.");
   }
 
-  const [openHour, openMin] = schedule.openTime.split(":").map(Number);
-  const [closeHour, closeMin] = schedule.closeTime.split(":").map(Number);
-
   const day = startOfDay(start);
-  const open = setMinutes(setHours(day, openHour), openMin);
-  const close = setMinutes(setHours(day, closeHour), closeMin);
 
-  if (isBefore(start, open) || isAfter(end, close)) {
-    throw new Error(`Appointments must be between ${schedule.openTime} and ${schedule.closeTime}.`);
+  // Check if slot falls completely inside AT LEAST ONE working shift
+  const fitsInShift = schedule.shifts.some((shift) => {
+    const [openHour, openMin] = shift.openTime.split(":").map(Number);
+    const [closeHour, closeMin] = shift.closeTime.split(":").map(Number);
+    const open = setMinutes(setHours(day, openHour), openMin);
+    const close = setMinutes(setHours(day, closeHour), closeMin);
+    return !isBefore(start, open) && !isAfter(end, close);
+  });
+
+  if (!fitsInShift) {
+    const shiftSummary = schedule.shifts
+      .map((s) => `${s.openTime} – ${s.closeTime}`)
+      .join(", ");
+    throw new Error(`Appointments must fall within working shifts (${shiftSummary}).`);
   }
 
   // 2. Check blackout blocks

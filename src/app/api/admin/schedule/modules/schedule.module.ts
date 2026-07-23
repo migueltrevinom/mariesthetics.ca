@@ -1,5 +1,5 @@
 import { ScheduleRepository } from "../repositories/schedule.repository";
-import { WeeklyHourSetting, DateOverrideSetting } from "@/lib/db/models";
+import { WeeklyHourSetting, DateOverrideSetting, TimeShift } from "@/lib/db/models";
 
 export async function getScheduleConfig() {
   const schedule = await ScheduleRepository.getSchedule();
@@ -17,11 +17,14 @@ export async function getEffectiveDaySchedule(dayIso: string) {
   // Check for date override first
   const override = schedule.dateOverrides.find((o) => o.date === dayIso);
   if (override) {
+    let shifts: TimeShift[] = override.shifts || [];
+    if (shifts.length === 0 && (override as any).openTime && (override as any).closeTime) {
+      shifts = [{ openTime: (override as any).openTime, closeTime: (override as any).closeTime }];
+    }
     return {
       date: dayIso,
       isOpen: override.isOpen,
-      openTime: override.openTime || "09:00",
-      closeTime: override.closeTime || "18:00",
+      shifts,
       note: override.note,
       isOverride: true,
     };
@@ -32,18 +35,18 @@ export async function getEffectiveDaySchedule(dayIso: string) {
   const dayDate = new Date(yyyy, mm - 1, dd);
   const dayOfWeek = dayDate.getDay();
 
-  const weeklySetting = schedule.weeklyHours.find((w) => w.dayOfWeek === dayOfWeek) || {
-    dayOfWeek,
-    isOpen: dayOfWeek !== 0,
-    openTime: "09:00",
-    closeTime: "18:00",
-  };
+  const weeklySetting = schedule.weeklyHours.find((w) => w.dayOfWeek === dayOfWeek);
+  let shifts: TimeShift[] = weeklySetting?.shifts || [];
+  if (shifts.length === 0) {
+    const legacyOpen = (weeklySetting as any)?.openTime || "09:00";
+    const legacyClose = (weeklySetting as any)?.closeTime || "18:00";
+    shifts = [{ openTime: legacyOpen, closeTime: legacyClose }];
+  }
 
   return {
     date: dayIso,
-    isOpen: weeklySetting.isOpen,
-    openTime: weeklySetting.openTime,
-    closeTime: weeklySetting.closeTime,
+    isOpen: weeklySetting ? weeklySetting.isOpen : dayOfWeek !== 0,
+    shifts,
     isOverride: false,
   };
 }

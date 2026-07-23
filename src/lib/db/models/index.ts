@@ -13,5 +13,5 @@ export { Booking } from "./Booking";
 export { Payment } from "./Payment";
 export { ServiceImage } from "./ServiceImage";
 export { StripePaymentLink } from "./StripePaymentLink";
-export { CalendarSchedule, type WeeklyHourSetting, type DateOverrideSetting, type ICalendarSchedule } from "./CalendarSchedule";
+export { CalendarSchedule, type TimeShift, type WeeklyHourSetting, type DateOverrideSetting, type ICalendarSchedule } from "./CalendarSchedule";
 export { CalendarBlock, type ICalendarBlock } from "./CalendarBlock";
