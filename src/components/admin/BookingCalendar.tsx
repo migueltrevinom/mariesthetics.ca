@@ -157,11 +157,11 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
       <div className="flex-1 flex flex-col bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm min-w-0">
         
         {/* Mode Tabs */}
-        <div className="flex items-center gap-2 mb-5 border-b border-[var(--border-color)] pb-3">
+        <div className="flex flex-wrap items-center gap-2 mb-5 border-b border-[var(--border-color)] pb-3">
           <button
             type="button"
             onClick={() => setMainTab("calendar")}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer text-center ${
               mainTab === "calendar"
                 ? "bg-white/[0.08] text-[var(--ink)] border-[#c8a86b] shadow-sm font-bold"
                 : "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
@@ -172,7 +172,7 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
           <button
             type="button"
             onClick={() => setMainTab("schedule")}
-            className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer text-center ${
               mainTab === "schedule"
                 ? "bg-white/[0.08] text-[var(--ink)] border-[#c8a86b] shadow-sm font-bold"
                 : "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
@@ -187,91 +187,92 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
         ) : (
           <>
             {/* Navigation & Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)] mb-5">
-              <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-[family-name:var(--font-display)] tracking-wide capitalize">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[var(--border-color)] mb-5">
+              <div className="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
+                <h2 className="text-xl sm:text-2xl font-[family-name:var(--font-display)] tracking-wide capitalize truncate">
                   {view === "day" && format(activeDate, "eeee, MMMM d, yyyy")}
                   {view === "week" && `Week of ${format(startOfWeek(activeDate), "MMM d, yyyy")}`}
                   {view === "month" && format(activeDate, "MMMM yyyy")}
                 </h2>
                 {loading && (
-                  <span className="text-xs text-[var(--ink-soft)] bg-white/[0.04] border border-[var(--border-color)] rounded px-2 py-0.5 animate-pulse">
+                  <span className="text-xs text-[var(--ink-soft)] bg-white/[0.04] border border-[var(--border-color)] rounded px-2 py-0.5 animate-pulse shrink-0">
                     loading…
                   </span>
                 )}
               </div>
 
-          <div className="flex items-center gap-4">
-            {/* View Selectors */}
-            <div className="flex bg-white/[0.02] border border-[var(--border-color)] p-0.5 rounded-xl text-xs font-semibold shadow-inner">
-              {(["month", "week", "day"] as const).map((v) => (
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+                {/* View Selectors */}
+                <div className="flex bg-white/[0.02] border border-[var(--border-color)] p-0.5 rounded-xl text-xs font-semibold shadow-inner">
+                  {(["month", "week", "day"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setView(v)}
+                      className={`px-2.5 py-1.5 rounded-lg cursor-pointer capitalize transition-all duration-200 ${
+                        view === v
+                          ? "bg-white/[0.08] dark:bg-white/[0.06] text-[var(--ink)] border border-[var(--border-color)] font-bold shadow-sm"
+                          : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                      }`}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Back, Today, Forward */}
+                <div className="flex items-center gap-1 border border-[var(--border-color)] rounded-xl p-0.5 bg-white/[0.01]">
+                  <button
+                    type="button"
+                    onClick={prev}
+                    className="p-1.5 text-[var(--ink-soft)] hover:text-[var(--ink)] rounded-lg hover:bg-white/[0.03] cursor-pointer"
+                    title="Previous"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={today}
+                    className="px-2.5 py-1.5 text-xs text-[var(--ink)] font-semibold rounded-lg hover:bg-white/[0.03] cursor-pointer"
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    onClick={next}
+                    className="p-1.5 text-[var(--ink-soft)] hover:text-[var(--ink)] rounded-lg hover:bg-white/[0.03] cursor-pointer"
+                    title="Next"
+                  >
+                    →
+                  </button>
+                </div>
+
+                {/* Direct Create Booking */}
                 <button
-                  key={v}
                   type="button"
-                  onClick={() => setView(v)}
-                  className={`px-3 py-1.5 rounded-lg cursor-pointer capitalize transition-all duration-200 ${
-                    view === v
-                      ? "bg-white/[0.08] dark:bg-white/[0.06] text-[var(--ink)] border border-[var(--border-color)] font-bold shadow-sm"
-                      : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
-                  }`}
+                  onClick={() => {
+                    setModalDefaultDate(new Date());
+                    setIsModalOpen(true);
+                  }}
+                  className="bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] hover:from-[#e2c78c] hover:to-[#c8a86b] hover:shadow-[0_0_15px_rgba(200,168,107,0.25)] text-[#24180a] font-semibold text-xs py-2 px-3.5 rounded-xl transition-all duration-300 cursor-pointer text-center whitespace-nowrap shrink-0"
                 >
-                  {v}
+                  + Book
                 </button>
-              ))}
+              </div>
             </div>
-
-            {/* Back, Today, Forward */}
-            <div className="flex items-center gap-1 border border-[var(--border-color)] rounded-xl p-0.5 bg-white/[0.01]">
-              <button
-                type="button"
-                onClick={prev}
-                className="p-1.5 text-[var(--ink-soft)] hover:text-[var(--ink)] rounded-lg hover:bg-white/[0.03] cursor-pointer"
-                title="Previous"
-              >
-                ←
-              </button>
-              <button
-                type="button"
-                onClick={today}
-                className="px-3 py-1.5 text-xs text-[var(--ink)] font-semibold rounded-lg hover:bg-white/[0.03] cursor-pointer"
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={next}
-                className="p-1.5 text-[var(--ink-soft)] hover:text-[var(--ink)] rounded-lg hover:bg-white/[0.03] cursor-pointer"
-                title="Next"
-              >
-                →
-              </button>
-            </div>
-
-            {/* Direct Create Booking */}
-            <button
-              type="button"
-              onClick={() => {
-                setModalDefaultDate(new Date());
-                setIsModalOpen(true);
-              }}
-              className="bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] hover:from-[#e2c78c] hover:to-[#c8a86b] hover:shadow-[0_0_15px_rgba(200,168,107,0.25)] text-[#24180a] font-semibold text-xs py-2 px-4 rounded-xl transition-all duration-300 cursor-pointer text-center"
-            >
-              + Book
-            </button>
-          </div>
-        </div>
 
         {/* --- MONTH VIEW --- */}
         {view === "month" && (
-          <div className="flex-1 flex flex-col min-h-[500px]">
-            {/* Weekdays header */}
-            <div className="grid grid-cols-7 text-center text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider mb-2">
-              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="py-2 border-b border-[var(--border-color)]">{day}</div>
-              ))}
-            </div>
-            {/* Grid days */}
-            <div className="grid grid-cols-7 flex-1 border-l border-t border-[var(--border-color)]">
+          <div className="flex-1 flex flex-col min-h-[500px] overflow-x-auto scrollbar-thin">
+            <div className="min-w-[620px] flex-1 flex flex-col">
+              {/* Weekdays header */}
+              <div className="grid grid-cols-7 text-center text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider mb-2">
+                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                  <div key={day} className="py-2 border-b border-[var(--border-color)]">{day}</div>
+                ))}
+              </div>
+              {/* Grid days */}
+              <div className="grid grid-cols-7 flex-1 border-l border-t border-[var(--border-color)]">
               {daysInView().map((day) => {
                 const dayBookings = bookings.filter((b) => isSameDay(new Date(b.start), day));
                 const inMonth = isSameMonth(day, activeDate);
@@ -349,7 +350,8 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
               })}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* --- WEEK VIEW --- */}
         {view === "week" && (
