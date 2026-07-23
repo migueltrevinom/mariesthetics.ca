@@ -1,11 +1,10 @@
 import { addMinutes, setHours, setMinutes, startOfDay, isBefore, isAfter } from "date-fns";
 import { connectDb } from "@/lib/db/connect";
-import { Booking, Service } from "@/lib/db/models";
+import { Booking, Service, CalendarBlock } from "@/lib/db/models";
+import { getEffectiveDaySchedule } from "@/app/api/admin/schedule/modules/schedule.module";
 
-const OPEN_HOUR = 9;
-const CLOSE_HOUR = 21; // Allow slots up to 9pm for evening appointments
 const SLOT_STEP_MIN = 30;
-const BUFFER_MIN = 30; // Minimum break between appointments
+const BUFFER_MIN = 30; // Minimum recovery break between appointments
 
 export async function getAvailableSlots(serviceId: string, dayIso: string) {
   await connectDb();
@@ -14,20 +13,30 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
     throw new Error("Service not found");
   }
 
-  // Parse as local midnight — new Date("YYYY-MM-DD") is treated as UTC midnight
-  // which shifts the day backward in negative-offset timezones (e.g. MDT = UTC-6).
+  // Get effective schedule for this date (weekly default or custom date override)
+  const schedule = await getEffectiveDaySchedule(dayIso);
+  if (!schedule.isOpen) {
+    return { service, slots: [] };
+  }
+
+  // Parse local day of target date
   const [yyyy, mm, dd] = dayIso.split("-").map(Number);
   const day = startOfDay(new Date(yyyy, mm - 1, dd)); // local time
   const dayEnd = addMinutes(day, 24 * 60);
 
-  const existing = await Booking.find({
+  // Parse open and close times from schedule
+  const [openHour, openMin] = schedule.openTime.split(":").map(Number);
+  const [closeHour, closeMin] = schedule.closeTime.split(":").map(Number);
+
+  // Fetch existing bookings for the day
+  const existingBookings = await Booking.find({
     start: { $lt: dayEnd },
     end: { $gt: day },
     status: { $in: ["held", "confirmed"] },
   }).select("start end holdExpiresAt status");
 
   const now = new Date();
-  const blocking = existing.filter((b) => {
+  const blockingBookings = existingBookings.filter((b) => {
     if (b.status === "confirmed") return true;
     if (b.status === "held") {
       return !b.holdExpiresAt || isAfter(b.holdExpiresAt, now);
@@ -35,26 +44,34 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
     return false;
   });
 
+  // Fetch blackout blocks for the day
+  const blackoutBlocks = await CalendarBlock.find({
+    start: { $lt: dayEnd },
+    end: { $gt: day },
+  });
+
   const slots: { start: string; end: string }[] = [];
-  let cursor = setMinutes(setHours(day, OPEN_HOUR), 0);
-  const close = setMinutes(setHours(day, CLOSE_HOUR), 0);
+  let cursor = setMinutes(setHours(day, openHour), openMin);
+  const close = setMinutes(setHours(day, closeHour), closeMin);
 
   while (true) {
     const proposedEnd = addMinutes(cursor, service.durationMin);
-    // Must finish before close
+    // Must finish on or before closing time
     if (isAfter(proposedEnd, close)) break;
 
     if (!isBefore(cursor, now)) {
-      // A slot is only available if:
-      // 1. The new appointment window (cursor → proposedEnd) does not overlap any existing booking
-      // 2. The new appointment does not start within the 30-min buffer zone after any existing booking
-      //    i.e., cursor < existingBooking.end + BUFFER_MIN AND proposedEnd > existingBooking.start
-      const overlaps = blocking.some((b) => {
+      // 1. Check overlaps with existing bookings + 30-min buffer
+      const overlapsBooking = blockingBookings.some((b) => {
         const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
         return cursor < bufferedEnd && proposedEnd > new Date(b.start);
       });
 
-      if (!overlaps) {
+      // 2. Check overlaps with blackout blocks (breaks/blocked times)
+      const overlapsBlackout = blackoutBlocks.some((blk) => {
+        return cursor < new Date(blk.end) && proposedEnd > new Date(blk.start);
+      });
+
+      if (!overlapsBooking && !overlapsBlackout) {
         slots.push({ start: cursor.toISOString(), end: proposedEnd.toISOString() });
       }
     }
@@ -68,17 +85,47 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
 export async function assertSlotFree(
   start: Date,
   end: Date,
-  excludeBookingId?: string,
+  excludeBookingId?: string
 ) {
   await connectDb();
   const now = new Date();
 
-  // Expand the conflict window to include the 30-min buffer after each existing booking
-  // We query for bookings whose (start - BUFFER_MIN) to end overlaps the new slot
+  // 1. Check schedule operating hours for the start date
+  const yyyy = start.getFullYear();
+  const mm = String(start.getMonth() + 1).padStart(2, "0");
+  const dd = String(start.getDate()).padStart(2, "0");
+  const dayIso = `${yyyy}-${mm}-${dd}`;
+
+  const schedule = await getEffectiveDaySchedule(dayIso);
+  if (!schedule.isOpen) {
+    throw new Error("The studio is closed on this date.");
+  }
+
+  const [openHour, openMin] = schedule.openTime.split(":").map(Number);
+  const [closeHour, closeMin] = schedule.closeTime.split(":").map(Number);
+
+  const day = startOfDay(start);
+  const open = setMinutes(setHours(day, openHour), openMin);
+  const close = setMinutes(setHours(day, closeHour), closeMin);
+
+  if (isBefore(start, open) || isAfter(end, close)) {
+    throw new Error(`Appointments must be between ${schedule.openTime} and ${schedule.closeTime}.`);
+  }
+
+  // 2. Check blackout blocks
+  const blackoutConflicts = await CalendarBlock.find({
+    start: { $lt: end },
+    end: { $gt: start },
+  });
+
+  if (blackoutConflicts.length > 0) {
+    const reason = blackoutConflicts[0].reason || "a scheduled blackout period";
+    throw new Error(`That time slot conflicts with ${reason}.`);
+  }
+
+  // 3. Check existing bookings + 30-min recovery buffer
   const bufferedStart = addMinutes(start, -BUFFER_MIN);
   const query: Record<string, unknown> = {
-    // An existing booking conflicts if its end + buffer overlaps the new start
-    // OR the new appointment overlaps the existing booking window
     start: { $lt: addMinutes(end, BUFFER_MIN) },
     end: { $gt: bufferedStart },
     status: { $in: ["held", "confirmed"] },
@@ -93,7 +140,6 @@ export async function assertSlotFree(
     return !b.holdExpiresAt || isAfter(b.holdExpiresAt, now);
   });
 
-  // Now check more precisely: does the new slot land in the buffer zone of any existing booking?
   const precise = blocking.filter((b) => {
     const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
     return start < bufferedEnd && end > new Date(b.start);

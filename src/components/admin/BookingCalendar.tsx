@@ -21,6 +21,14 @@ import {
 import { formatCad } from "@/lib/money";
 import { ManualBookingModal, ServiceOption, ClientOption } from "./ManualBookingModal";
 import { BookingActions } from "./BookingActions";
+import { ScheduleManager } from "./ScheduleManager";
+
+interface BlackoutBlockItem {
+  _id: string;
+  start: string;
+  end: string;
+  reason?: string;
+}
 
 interface BookingItem {
   _id: string;
@@ -55,9 +63,11 @@ interface BookingCalendarProps {
 }
 
 export function BookingCalendar({ services, clients }: BookingCalendarProps) {
+  const [mainTab, setMainTab] = useState<"calendar" | "schedule">("calendar");
   const [activeDate, setActiveDate] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "day">("month");
   const [bookings, setBookings] = useState<BookingItem[]>([]);
+  const [blackoutBlocks, setBlackoutBlocks] = useState<BlackoutBlockItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -92,12 +102,18 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
     setLoading(true);
     try {
       const { start, end } = getRange(activeDate, view);
-      const res = await fetch(
-        `/api/bookings?scope=admin&start=${start.toISOString()}&end=${end.toISOString()}`
-      );
-      if (res.ok) {
-        const data = await res.json();
+      const [resBookings, resSchedule] = await Promise.all([
+        fetch(`/api/bookings?scope=admin&start=${start.toISOString()}&end=${end.toISOString()}`),
+        fetch("/api/admin/schedule"),
+      ]);
+
+      if (resBookings.ok) {
+        const data = await resBookings.json();
         setBookings(data.bookings || []);
+      }
+      if (resSchedule.ok) {
+        const data = await resSchedule.json();
+        setBlackoutBlocks(data.blocks || []);
       }
     } catch (e) {
       console.error("Failed to load calendar bookings", e);
@@ -140,20 +156,50 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
     <div className="flex flex-col md:flex-row gap-6 w-full text-[var(--ink)]">
       <div className="flex-1 flex flex-col bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm min-w-0">
         
-        {/* Navigation & Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)] mb-5">
-          <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-[family-name:var(--font-display)] tracking-wide capitalize">
-              {view === "day" && format(activeDate, "eeee, MMMM d, yyyy")}
-              {view === "week" && `Week of ${format(startOfWeek(activeDate), "MMM d, yyyy")}`}
-              {view === "month" && format(activeDate, "MMMM yyyy")}
-            </h2>
-            {loading && (
-              <span className="text-xs text-[var(--ink-soft)] bg-white/[0.04] border border-[var(--border-color)] rounded px-2 py-0.5 animate-pulse">
-                loading…
-              </span>
-            )}
-          </div>
+        {/* Mode Tabs */}
+        <div className="flex items-center gap-2 mb-5 border-b border-[var(--border-color)] pb-3">
+          <button
+            type="button"
+            onClick={() => setMainTab("calendar")}
+            className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+              mainTab === "calendar"
+                ? "bg-white/[0.08] text-[var(--ink)] border-[#c8a86b] shadow-sm font-bold"
+                : "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
+            }`}
+          >
+            📅 Calendar View
+          </button>
+          <button
+            type="button"
+            onClick={() => setMainTab("schedule")}
+            className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+              mainTab === "schedule"
+                ? "bg-white/[0.08] text-[var(--ink)] border-[#c8a86b] shadow-sm font-bold"
+                : "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
+            }`}
+          >
+            ⚙ Working Hours & Rules
+          </button>
+        </div>
+
+        {mainTab === "schedule" ? (
+          <ScheduleManager />
+        ) : (
+          <>
+            {/* Navigation & Controls */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[var(--border-color)] mb-5">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-[family-name:var(--font-display)] tracking-wide capitalize">
+                  {view === "day" && format(activeDate, "eeee, MMMM d, yyyy")}
+                  {view === "week" && `Week of ${format(startOfWeek(activeDate), "MMM d, yyyy")}`}
+                  {view === "month" && format(activeDate, "MMMM yyyy")}
+                </h2>
+                {loading && (
+                  <span className="text-xs text-[var(--ink-soft)] bg-white/[0.04] border border-[var(--border-color)] rounded px-2 py-0.5 animate-pulse">
+                    loading…
+                  </span>
+                )}
+              </div>
 
           <div className="flex items-center gap-4">
             {/* View Selectors */}
@@ -560,7 +606,9 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
             </div>
           </div>
         )}
-      </div>
+      </>
+    )}
+  </div>
 
       {/* --- SIDEBAR / DETAIL DRAWER --- */}
       {selectedBooking && (
