@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Client, Payment, Service } from "@/lib/db/models";
+import { RevenueDashboard } from "@/components/admin/RevenueDashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -23,33 +24,47 @@ export default async function AdminHomePage() {
 
   return (
     <AdminShell>
-      <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
-        Overview
-      </h1>
-      <p className="mt-2 text-sm text-[var(--ink-soft)]">
-        Hidden management dashboard — JWT + email OTP.
-      </p>
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[
-          ["Total bookings", stats.bookings, "/admin/bookings"],
-          ["Held (awaiting proof)", stats.held, "/admin/bookings"],
-          ["Active services", stats.services, "/admin/services"],
-          ["Clients", stats.clients, "/admin/clients"],
-          ["Pending payments", stats.pendingPay, "/admin/payments"],
-        ].map(([label, value, href]) => (
-          <Link
-            key={String(label)}
-            href={String(href)}
-            className="border border-[var(--border-color)] bg-[var(--card-bg)] p-5 transition-all duration-300 hover:border-[var(--line)] rounded-2xl shadow-sm"
-          >
-            <p className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
-              {label}
-            </p>
-            <p className="mt-3 font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
-              {value}
-            </p>
-          </Link>
-        ))}
+      <div className="space-y-10 text-left">
+        <div>
+          <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
+            Overview
+          </h1>
+          <p className="mt-2 text-sm text-[var(--ink-soft)]">
+            Studio Management Dashboard & Financial Performance.
+          </p>
+        </div>
+
+        {/* Revenue Analytics & Top Services Dashboard */}
+        <RevenueDashboard />
+
+        {/* System Summary Quick Links */}
+        <div className="pt-4 border-t border-[var(--border-color)] space-y-4">
+          <h3 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
+            Studio System Totals
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {[
+              ["Total Bookings", stats.bookings, "/admin/bookings"],
+              ["Held (Proof Required)", stats.held, "/admin/bookings"],
+              ["Active Services", stats.services, "/admin/services"],
+              ["Registered Clients", stats.clients, "/admin/clients"],
+              ["Pending Payments", stats.pendingPay, "/admin/payments"],
+            ].map(([label, value, href]) => (
+              <Link
+                key={String(label)}
+                href={String(href)}
+                className="border border-[var(--border-color)] bg-[var(--card-bg)] p-4 transition-all duration-300 hover:border-[#c8a86b] rounded-2xl shadow-sm block"
+              >
+                <p className="text-[10px] uppercase tracking-wider font-bold text-[var(--ink-soft)] truncate">
+                  {label}
+                </p>
+                <p className="mt-2 font-[family-name:var(--font-display)] text-3xl text-[var(--ink)]">
+                  {value}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </AdminShell>
   );
