@@ -18,6 +18,8 @@ import {
   subDays,
   isToday,
 } from "date-fns";
+import { Suspense } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { formatCad } from "@/lib/money";
 import { ManualBookingModal, ServiceOption, ClientOption } from "./ManualBookingModal";
 import { BookingActions } from "./BookingActions";
@@ -62,8 +64,33 @@ interface BookingCalendarProps {
   clients: ClientOption[];
 }
 
-export function BookingCalendar({ services, clients }: BookingCalendarProps) {
-  const [mainTab, setMainTab] = useState<"calendar" | "schedule">("calendar");
+function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const tabParam = searchParams.get("tab");
+  const [mainTab, setMainTab] = useState<"calendar" | "schedule">(() => {
+    if (tabParam === "hours" || tabParam === "schedule") return "schedule";
+    return "calendar";
+  });
+
+  useEffect(() => {
+    if (tabParam === "hours" || tabParam === "schedule") {
+      setMainTab("schedule");
+    } else if (tabParam === "calendar") {
+      setMainTab("calendar");
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (targetTab: "calendar" | "schedule") => {
+    setMainTab(targetTab);
+    const params = new URLSearchParams(searchParams.toString());
+    const paramVal = targetTab === "schedule" ? "hours" : "calendar";
+    params.set("tab", paramVal);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const [activeDate, setActiveDate] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "day">("month");
   const [bookings, setBookings] = useState<BookingItem[]>([]);
@@ -160,7 +187,7 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
         <div className="flex flex-wrap items-center gap-2 mb-5 border-b border-[var(--border-color)] pb-3">
           <button
             type="button"
-            onClick={() => setMainTab("calendar")}
+            onClick={() => handleTabChange("calendar")}
             className={`flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer text-center ${
               mainTab === "calendar"
                 ? "bg-white/[0.08] text-[var(--ink)] border-[#c8a86b] shadow-sm font-bold"
@@ -171,7 +198,7 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
           </button>
           <button
             type="button"
-            onClick={() => setMainTab("schedule")}
+            onClick={() => handleTabChange("schedule")}
             className={`flex-1 sm:flex-initial px-3.5 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer text-center ${
               mainTab === "schedule"
                 ? "bg-white/[0.08] text-[var(--ink)] border-[#c8a86b] shadow-sm font-bold"
@@ -763,3 +790,12 @@ export function BookingCalendar({ services, clients }: BookingCalendarProps) {
     </div>
   );
 }
+
+export function BookingCalendar(props: BookingCalendarProps) {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-sm text-[var(--ink-soft)] animate-pulse">Loading booking calendar...</div>}>
+      <BookingCalendarContent {...props} />
+    </Suspense>
+  );
+}
+
