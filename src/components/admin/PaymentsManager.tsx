@@ -692,21 +692,39 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 											{loadingBookings ? (
 												<p className="text-xs text-[var(--ink-soft)] italic">Loading bookings...</p>
 											) : clientBookings.length > 0 ? (
-												<select
-													className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-													value={bookingId}
-													onChange={(e) => handleBookingSelect(e.target.value)}
-												>
-													<option value="">-- Choose Booking --</option>
-													{clientBookings.map((b) => {
-														const dateStr = format(new Date(b.start), "PP · p");
-														return (
-															<option key={b._id} value={b._id} className="bg-[var(--background)]">
-																{b.serviceId?.name || "Service"} on {dateStr} ({b.status})
-															</option>
-														);
-													})}
-												</select>
+												<>
+													<select
+														className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 rounded-lg text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+														value={bookingId}
+														onChange={(e) => handleBookingSelect(e.target.value)}
+													>
+														<option value="">-- Choose Booking --</option>
+														{clientBookings.map((b) => {
+															const isPastStr = new Date(b.start) < new Date();
+															const dateStr = format(new Date(b.start), "PP · p");
+															return (
+																<option key={b._id} value={b._id} className="bg-[var(--background)]">
+																	{b.serviceId?.name || "Service"} on {dateStr} ({b.status}){isPastStr ? " ⚠️ [PAST APPOINTMENT]" : ""}
+																</option>
+															);
+														})}
+													</select>
+													{(() => {
+														const chosenObj = bookingId ? clientBookings.find((b) => b._id === bookingId) : null;
+														if (chosenObj && new Date(chosenObj.start) < new Date()) {
+															return (
+																<div className="mt-2 text-[11px] border border-amber-500/40 bg-amber-500/10 p-2.5 rounded-lg text-amber-600 dark:text-amber-400 font-medium flex items-start gap-2 text-left">
+																	<span className="text-sm shrink-0">⚠️</span>
+																	<div>
+																		<span className="font-bold">Past Appointment:</span> This appointment took place on{" "}
+																		<span className="font-semibold underline decoration-dotted">{format(new Date(chosenObj.start), "PPP 'at' p")}</span>.
+																	</div>
+																</div>
+															);
+														}
+														return null;
+													})()}
+												</>
 											) : (
 												<p className="text-xs text-[var(--ink-soft)] italic">
 													No bookings found for this client.
