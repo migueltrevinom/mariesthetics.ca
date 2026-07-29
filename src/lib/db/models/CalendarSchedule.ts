@@ -74,6 +74,9 @@ const CalendarScheduleSchema = new Schema<ICalendarSchedule>(
   { timestamps: true }
 );
 
+delete (mongoose.models as any).CalendarSchedule;
+
 export const CalendarSchedule: Model<ICalendarSchedule> =
   mongoose.models.CalendarSchedule ||
   mongoose.model<ICalendarSchedule>("CalendarSchedule", CalendarScheduleSchema);
+

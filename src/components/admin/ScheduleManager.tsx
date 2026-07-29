@@ -121,6 +121,7 @@ export function ScheduleManager() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save weekly schedule");
       setMessage("Weekly working hours & shift splits saved successfully!");
+      void loadData();
     } catch (err: any) {
       setError(err.message || "Failed to save weekly schedule");
     } finally {

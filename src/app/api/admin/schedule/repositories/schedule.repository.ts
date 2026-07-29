@@ -24,14 +24,12 @@ export class ScheduleRepository {
    */
   static async updateWeeklyHours(weeklyHours: WeeklyHourSetting[]) {
     await connectDb();
-    let schedule = await CalendarSchedule.findOne();
-    if (!schedule) {
-      schedule = await CalendarSchedule.create({ weeklyHours });
-    } else {
-      schedule.weeklyHours = weeklyHours;
-      await schedule.save();
-    }
-    return schedule;
+    const updated = await CalendarSchedule.findOneAndUpdate(
+      {},
+      { $set: { weeklyHours } },
+      { new: true, upsert: true, runValidators: true }
+    );
+    return updated;
   }
 
   /**
@@ -46,6 +44,7 @@ export class ScheduleRepository {
     } else {
       schedule.dateOverrides.push(override);
     }
+    schedule.markModified("dateOverrides");
     await schedule.save();
     return schedule;
   }
@@ -57,6 +56,7 @@ export class ScheduleRepository {
     await connectDb();
     let schedule = await this.getSchedule();
     schedule.dateOverrides = schedule.dateOverrides.filter((o) => o.date !== dateStr);
+    schedule.markModified("dateOverrides");
     await schedule.save();
     return schedule;
   }
