@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Confirmed — Mari Esthetics</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b100d; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f3efe6; -webkit-font-smoothing: antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0b100d; min-height: 100vh; padding: 40px 20px;">
+    <tr>
+      <td align="center" valign="top">
+        <!-- Main Container Card -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; background-color: #0f1712; border: 1px solid rgba(200, 168, 107, 0.25); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
+          
+          <!-- Top Gold Accent Line -->
+          <tr>
+            <td height="5" style="background-color: #c8a86b;"></td>
+          </tr>
+
+          <!-- Header / Logo -->
+          <tr>
+            <td align="center" style="padding: 40px 40px 20px 40px;">
+              <h1 style="margin: 0; font-family: Georgia, serif; font-size: 26px; font-weight: 400; letter-spacing: 0.08em; color: #f3efe6; text-transform: uppercase;">
+                Mari Esthetics
+              </h1>
+              <p style="margin: 6px 0 0 0; font-size: 11px; text-transform: uppercase; tracking: 0.2em; color: #c8a86b; font-weight: 600;">
+                Appointment Confirmation Receipt
+              </p>
+              <div style="height: 1px; width: 60px; background-color: #c8a86b; margin-top: 15px; opacity: 0.6;"></div>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 20px 40px; font-size: 14px; line-height: 1.6; color: rgba(243, 239, 230, 0.85);">
+              <p style="margin: 0 0 20px 0; text-align: center; font-size: 18px; color: #f3efe6; font-family: Georgia, serif;">
+                Thank you, <%= clientName || "Valued Client" %>!
+              </p>
+              <p style="margin: 0 0 25px 0; text-align: center; color: rgba(243, 239, 230, 0.75);">
+                Your reservation for <strong style="color: #f3efe6;"><%= serviceName %></strong> has been received and confirmed. We look forward to welcoming you to the studio!
+              </p>
+
+              <!-- Treatment Details Box -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #12241c; border: 1px solid rgba(200, 168, 107, 0.2); border-radius: 12px; margin-bottom: 25px; padding: 20px;">
+                <tr>
+                  <td>
+                    <p style="margin: 0 0 10px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #c8a86b; font-weight: 700;">
+                      📅 Date &amp; Time
+                    </p>
+                    <p style="margin: 0 0 16px 0; font-size: 18px; font-weight: 600; color: #f3efe6;">
+                      <%= formattedDate %> at <%= formattedTime %>
+                    </p>
+
+                    <p style="margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #c8a86b; font-weight: 700;">
+                      ⏱ Treatment Duration
+                    </p>
+                    <p style="margin: 0 0 16px 0; font-size: 14px; color: #f3efe6;">
+                      <%= durationMin %> Minutes
+                    </p>
+
+                    <p style="margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #c8a86b; font-weight: 700;">
+                      📍 Studio Address
+                    </p>
+                    <p style="margin: 0; font-size: 14px; color: #f3efe6; line-height: 1.4;">
+                      <%= studioAddress %>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Financial Summary Box -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid rgba(243, 239, 230, 0.1); border-radius: 12px; margin-bottom: 25px; padding: 16px 20px;">
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Treatment Total:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 600; color: #f3efe6;">
+                    <%= totalFormatted %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: #c8a86b; font-weight: 700;">
+                    Deposit Paid Today:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 14px; font-weight: 700; color: #c8a86b;">
+                    <%= depositPaidFormatted %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid rgba(243, 239, 230, 0.1); padding-top: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Balance Due at Appointment:
+                  </td>
+                  <td align="right" style="border-top: 1px solid rgba(243, 239, 230, 0.1); padding-top: 8px; font-size: 13px; font-weight: 600; color: #f3efe6;">
+                    <%= balanceDueFormatted %>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Attachment Note -->
+              <p style="margin: 0 0 20px 0; font-size: 13px; text-align: center; color: rgba(243, 239, 230, 0.65); font-style: italic;">
+                📎 An <strong>appointment.ics</strong> calendar file is attached to this email. Tap it to add your session directly to Apple, Google, or Outlook Calendar.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 25px 40px 35px 40px; font-size: 12px; line-height: 1.5; color: rgba(243, 239, 230, 0.4); border-top: 1px solid rgba(243, 239, 230, 0.1);">
+              <p style="margin: 0 0 8px 0;">
+                Need to reschedule? Please contact us at <a href="mailto:mari@mariesthetics.ca" style="color: #c8a86b; text-decoration: none;">mari@mariesthetics.ca</a>
+              </p>
+              <p style="margin: 0;">
+                &copy; <%= new Date().getFullYear() %> Mari Esthetics &bull; <a href="https://mariesthetics.ca" style="color: #c8a86b; text-decoration: none;">mariesthetics.ca</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

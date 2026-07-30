@@ -3,7 +3,7 @@ import { connectDb } from "@/lib/db/connect";
 import { StripePaymentLink } from "@/lib/db/models/StripePaymentLink";
 import { getStripe } from "@/lib/payments/stripe";
 import { Booking, Payment } from "@/lib/db/models";
-import "@/lib/db/models/Service"; // Ensure schema registration
+import "@/lib/db/models/Service";
 
 export const dynamic = "force-dynamic";
 
@@ -11,84 +11,110 @@ export async function GET(req: Request) {
 	try {
 		const { searchParams } = new URL(req.url);
 		const sessionId = searchParams.get("session_id");
-
-		if (!sessionId) {
-			return NextResponse.json({ error: "session_id is required" }, { status: 400 });
-		}
+		const bookingIdParam = searchParams.get("bookingId");
+		const paymentIdParam = searchParams.get("paymentId");
 
 		await connectDb();
 
-		// Find payment link in MongoDB
-		const link = await StripePaymentLink.findOne({ stripeSessionId: sessionId })
-			.populate({
-				path: "bookingId",
-				populate: { path: "serviceId" },
-			})
-			.lean();
-
-		if (!link) {
-			return NextResponse.json({ error: "Payment link not found" }, { status: 404 });
+		const stripe = getStripe();
+		let session: any = null;
+		if (sessionId) {
+			try {
+				session = await stripe.checkout.sessions.retrieve(sessionId);
+			} catch (err: any) {
+				console.error("[Stripe Session Retrieve Error]:", err.message);
+			}
 		}
 
-		const stripe = getStripe();
-		const session = await stripe.checkout.sessions.retrieve(sessionId);
+		// 1. Try finding by StripePaymentLink first
+		let link = sessionId
+			? await StripePaymentLink.findOne({ stripeSessionId: sessionId })
+					.populate({
+						path: "bookingId",
+						populate: { path: "serviceId" },
+					})
+					.lean()
+			: null;
 
-		// If paid and not yet recorded, sync status + create Payment record
-		if (session.payment_status === "paid" && link.status !== "paid") {
-			await StripePaymentLink.findOneAndUpdate(
-				{ stripeSessionId: sessionId },
-				{ $set: { status: "paid", paidAt: new Date() } }
-			);
-			link.status = "paid";
+		// 2. If not a StripePaymentLink, check if linked to a direct Booking/Payment
+		let booking: any = null;
+		let paymentRecord: any = null;
 
-			// Create Payment transaction record if it doesn't already exist
-			const stripePaymentIntentId = String(session.payment_intent || "");
-			const existingPayment = await Payment.findOne({ stripePaymentIntentId });
+		const targetBookingId = link?.bookingId?._id || link?.bookingId || session?.metadata?.bookingId || bookingIdParam;
+		const targetPaymentId = session?.metadata?.paymentId || paymentIdParam;
 
-			if (!existingPayment && stripePaymentIntentId) {
-				const payment = await Payment.create({
-					bookingId: link.bookingId ? (link.bookingId as any)._id ?? link.bookingId : null,
-					kind: link.kind === "custom" ? "adjustment" : link.kind,
-					method: "stripe",
-					amountCents: link.amountCents,
-					status: "succeeded",
-					stripePaymentIntentId,
-					note: `Stripe Checkout Session ${session.id} — auto-confirmed on redirect`,
+		if (targetBookingId) {
+			booking = await Booking.findById(targetBookingId).populate("serviceId").lean();
+		}
+
+		if (targetPaymentId) {
+			paymentRecord = await Payment.findById(targetPaymentId).lean();
+		} else if (sessionId) {
+			paymentRecord = await Payment.findOne({ stripeCheckoutSessionId: sessionId }).lean();
+		}
+
+		// If session is paid, auto-sync database states
+		if (session && session.payment_status === "paid") {
+			// Sync StripePaymentLink if present
+			if (link && link.status !== "paid") {
+				await StripePaymentLink.findOneAndUpdate(
+					{ stripeSessionId: sessionId },
+					{ $set: { status: "paid", paidAt: new Date() } }
+				);
+				link.status = "paid";
+			}
+
+			// Sync Payment record if present
+			if (paymentRecord && paymentRecord.status !== "succeeded") {
+				await Payment.findByIdAndUpdate(paymentRecord._id, {
+					$set: { status: "succeeded" },
 				});
+				paymentRecord.status = "succeeded";
+			}
 
-				// Update booking paymentSummary if linked
-				const bookingId = link.bookingId ? (link.bookingId as any)._id ?? link.bookingId : null;
-				if (bookingId) {
-					const booking = await Booking.findById(bookingId);
-					if (booking) {
-						if (booking.status === "held") {
-							booking.status = "confirmed";
-							booking.holdExpiresAt = null;
-						}
-						const summary = booking.paymentSummary ?? {
-							totalCents: 0,
-							depositCents: 0,
-							paidCents: 0,
-							tipCents: 0,
-							discountCents: 0,
-							balanceDueCents: 0,
-						};
-						summary.paidCents = (summary.paidCents ?? 0) + link.amountCents;
+			// Sync Booking status and paymentSummary if present
+			if (booking) {
+				const currentBooking = await Booking.findById(booking._id);
+				if (currentBooking) {
+					let updated = false;
+					if (currentBooking.status === "held") {
+						currentBooking.status = "confirmed";
+						currentBooking.holdExpiresAt = null;
+						updated = true;
+					}
+
+					const amountPaid = session.amount_total || paymentRecord?.amountCents || link?.amountCents || 0;
+					const summary = currentBooking.paymentSummary ?? {
+						totalCents: 0,
+						depositCents: 0,
+						paidCents: 0,
+						tipCents: 0,
+						discountCents: 0,
+						balanceDueCents: 0,
+					};
+
+					if (summary.paidCents === 0 && amountPaid > 0) {
+						summary.paidCents = amountPaid;
 						summary.balanceDueCents = Math.max(
 							0,
 							(summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents
 						);
-						booking.paymentSummary = summary;
-						await booking.save();
+						currentBooking.paymentSummary = summary;
+						updated = true;
+					}
+
+					if (updated) {
+						await currentBooking.save();
+						booking = await Booking.findById(booking._id).populate("serviceId").lean();
 					}
 				}
 			}
 		}
 
-		// Retrieve card/method details from payment intent if available
-		let paymentMethodDetails = "Stripe Card";
-		try {
-			if (session.payment_intent) {
+		// Retrieve payment method details
+		let paymentMethodDetails = "Stripe / Card";
+		if (session?.payment_intent) {
+			try {
 				const paymentIntent = await stripe.paymentIntents.retrieve(String(session.payment_intent));
 				if (paymentIntent.payment_method) {
 					const method = await stripe.paymentMethods.retrieve(String(paymentIntent.payment_method));
@@ -96,31 +122,49 @@ export async function GET(req: Request) {
 						paymentMethodDetails = `${method.card.brand.toUpperCase()} ···· ${method.card.last4}`;
 					}
 				}
+			} catch (e) {
+				// ignore
 			}
-		} catch (e) {
-			console.error("Failed to fetch Stripe payment method details:", e);
+		} else if (booking?.depositMethod === "etransfer") {
+			paymentMethodDetails = "Interac e-Transfer";
 		}
 
-		const booking = link.bookingId as any;
+		const serviceObj = booking?.serviceId;
+		const amountCents = session?.amount_total || paymentRecord?.amountCents || link?.amountCents || booking?.paymentSummary?.depositCents || 0;
 
 		return NextResponse.json({
-			paymentStatus: session.payment_status, // "paid" or "unpaid"
-			sessionStatus: session.status, // "complete", "expired", "open"
+			paymentStatus: session?.payment_status || paymentRecord?.status || (booking?.status === "confirmed" ? "paid" : "pending"),
+			sessionStatus: session?.status || "complete",
 			paymentMethod: paymentMethodDetails,
 			receipt: {
-				id: String(link._id),
-				amountCents: link.amountCents,
-				description: link.description,
-				kind: link.kind,
-				clientEmail: link.clientEmail || session.customer_details?.email || "",
-				createdAt: link.createdAt ? new Date(link.createdAt).toISOString() : new Date().toISOString(),
+				id: String(link?._id || paymentRecord?._id || booking?._id || "RECEIPT"),
+				amountCents,
+				description: link?.description || (serviceObj ? `${serviceObj.name} — Reservation Deposit` : "Esthetics Treatment Deposit"),
+				kind: link?.kind || paymentRecord?.kind || "deposit",
+				clientEmail: link?.clientEmail || booking?.guest?.email || session?.customer_details?.email || "",
+				createdAt: link?.createdAt ? new Date(link.createdAt).toISOString() : paymentRecord?.createdAt ? new Date(paymentRecord.createdAt).toISOString() : new Date().toISOString(),
 				bookingDate: booking?.start ? new Date(booking.start).toISOString() : null,
-				bookingServiceName: booking?.serviceId?.name || null,
+				bookingServiceName: serviceObj?.name || null,
 			},
+			booking: booking ? {
+				id: String(booking._id),
+				start: booking.start ? new Date(booking.start).toISOString() : null,
+				end: booking.end ? new Date(booking.end).toISOString() : null,
+				status: booking.status,
+				guestName: booking.guest?.name || "",
+				guestEmail: booking.guest?.email || "",
+				guestPhone: booking.guest?.phone || "",
+				serviceName: serviceObj?.name || "",
+				durationMin: serviceObj?.durationMin || 60,
+				totalCents: booking.paymentSummary?.totalCents || serviceObj?.priceCents || 0,
+				depositCents: booking.paymentSummary?.depositCents || amountCents,
+				paidCents: booking.paymentSummary?.paidCents || amountCents,
+				balanceDueCents: booking.paymentSummary?.balanceDueCents || 0,
+			} : null,
 			provider: {
 				name: "Marinelle Tala",
 				businessName: "Mari Esthetics",
-				address: "1211 Gillespie Crescent NW",
+				address: "1211 Gillespie Crescent NW, Edmonton, AB",
 				email: "mari@mariesthetics.ca",
 				phone: "+1 (780) 555-0199",
 			},
@@ -133,4 +177,3 @@ export async function GET(req: Request) {
 		);
 	}
 }
-

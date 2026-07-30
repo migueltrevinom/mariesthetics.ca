@@ -3,16 +3,23 @@ import path from "path";
 import ejs from "ejs";
 import { config } from "@/lib/config";
 
+export interface AttachmentOption {
+  filename: string;
+  content: string;
+  contentType: string;
+}
+
 export interface SendEmailOptions {
   to: string;
   subject: string;
-  templateName: "otp";
+  templateName: "otp" | "booking-confirmation";
   data: Record<string, any>;
+  attachment?: AttachmentOption;
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const { to, subject, templateName, data } = options;
+    const { to, subject, templateName, data, attachment } = options;
 
     if (!config.mailgunApiKey) {
       console.warn("[Mailgun] MAILGUN_API_KEY is not set. Logging email content to console instead:");
@@ -33,11 +40,18 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
 
     // 3. Prepare Mailgun API request
     const authHeader = "Basic " + Buffer.from(`api:${config.mailgunApiKey}`).toString("base64");
-    const formData = new URLSearchParams();
+    
+    // Use FormData for attachment support
+    const formData = new FormData();
     formData.append("from", config.mailgunFromEmail);
     formData.append("to", to);
     formData.append("subject", subject);
     formData.append("html", html);
+
+    if (attachment) {
+      const blob = new Blob([attachment.content], { type: attachment.contentType });
+      formData.append("attachment", blob, attachment.filename);
+    }
 
     const url = `https://api.mailgun.net/v3/${config.mailgunDomain}/messages`;
 
@@ -46,9 +60,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       method: "POST",
       headers: {
         Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: formData.toString(),
+      body: formData,
     });
 
     const resultText = await response.text();
