@@ -131,9 +131,12 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
             `Stripe Deposit Issue: ${payData.error || "Please check your Stripe keys in .env"}. You can also choose Interac e-Transfer below.`
           );
           setStep("pay");
+        } else if (payData.checkoutUrl) {
+          setMessage("Redirecting to secure Stripe Checkout...");
+          window.location.href = payData.checkoutUrl;
         } else {
           setMessage(
-            `Deposit PaymentIntent created (${formatCad(payData.amountCents)}). Instant confirmation ready.`
+            `Deposit Payment session created (${formatCad(payData.amountCents)}). Instant confirmation ready.`
           );
           setStep("done");
           setEncourageAccount(true);

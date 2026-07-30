@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
-import { Booking, Payment } from "@/lib/db/models";
+import { Booking, Payment, Product } from "@/lib/db/models";
 import { config } from "@/lib/config";
 import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
 
@@ -13,53 +13,85 @@ export async function POST(req: Request) {
   try {
     if (!isStripeConfigured()) {
       return NextResponse.json(
-        { error: "Stripe is not configured" },
-        { status: 503 },
+        { error: "Stripe is not configured on the server. Please check STRIPE_SECRET_KEY in .env" },
+        { status: 503 }
       );
     }
 
     const { bookingId } = bodySchema.parse(await req.json());
     await connectDb();
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking || booking.status !== "held") {
-      return NextResponse.json({ error: "Invalid booking" }, { status: 400 });
+    const booking = await Booking.findById(bookingId).populate("serviceId");
+    if (!booking || (booking.status !== "held" && booking.status !== "confirmed")) {
+      return NextResponse.json({ error: "Invalid or cancelled booking" }, { status: 400 });
     }
 
     const amount = booking.paymentSummary?.depositCents ?? 0;
     if (amount <= 0) {
-      return NextResponse.json({ error: "No deposit due" }, { status: 400 });
+      return NextResponse.json({ error: "No deposit due for this booking" }, { status: 400 });
     }
 
+    // Look up mapped Product for this service deposit
+    const serviceObj = booking.serviceId as any;
+    const mappedProduct = serviceObj
+      ? await Product.findOne({ serviceId: serviceObj._id, kind: "deposit" })
+      : null;
+
+    const productName = mappedProduct
+      ? mappedProduct.name
+      : `${serviceObj?.name || "Esthetics Service"} - Reservation Deposit`;
+
     const stripe = getStripe();
+
     const payment = await Payment.create({
       bookingId: booking._id,
       kind: "deposit",
       method: "stripe",
       amountCents: amount,
       status: "pending",
+      note: `Deposit for ${serviceObj?.name || "Service"} (Product: ${productName})`,
     });
 
-    const intent = await stripe.paymentIntents.create({
-      amount,
-      currency: "cad",
-      automatic_payment_methods: { enabled: true },
+    // Create Stripe Checkout Session for seamless payment
+    const checkoutSession = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "cad",
+            product_data: {
+              name: productName,
+              description: `Reservation deposit for ${serviceObj?.name || "Appointment"} on ${new Date(booking.start).toLocaleDateString()}`,
+            },
+            unit_amount: amount,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      customer_email: booking.guest?.email,
+      success_url: `${config.appUrl}/payment-link?bookingId=${booking._id}&paymentId=${payment._id}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${config.appUrl}/book?serviceId=${serviceObj?._id || ""}`,
       metadata: {
         bookingId: String(booking._id),
         paymentId: String(payment._id),
+        productId: mappedProduct ? String(mappedProduct._id) : "",
         kind: "deposit",
       },
-      receipt_email: booking.guest?.email,
     });
 
-    payment.stripePaymentIntentId = intent.id;
+    payment.stripeCheckoutSessionId = checkoutSession.id;
+    if (checkoutSession.payment_intent) {
+      payment.stripePaymentIntentId = String(checkoutSession.payment_intent);
+    }
     await payment.save();
 
     return NextResponse.json({
-      clientSecret: intent.client_secret,
-      paymentIntentId: intent.id,
+      checkoutUrl: checkoutSession.url,
+      sessionId: checkoutSession.id,
       publishableKey: config.stripePublishableKey,
       amountCents: amount,
+      productName,
     });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
@@ -67,7 +99,7 @@ export async function POST(req: Request) {
     }
     console.error("[Stripe Deposit Error]:", err);
     return NextResponse.json(
-      { error: err?.message || "Failed to create deposit intent" },
+      { error: err?.message || "Failed to create deposit payment session" },
       { status: 500 }
     );
   }

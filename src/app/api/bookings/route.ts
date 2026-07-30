@@ -184,7 +184,7 @@ export async function POST(req: Request) {
 			return NextResponse.json({ error: "Deposit method is required" }, { status: 400 });
 		}
 
-		const status = isManager ? (body.status ?? "confirmed") : "held";
+		const status = body.status ?? "held";
 		const depositMethod = body.depositMethod ?? (isManager ? "cash" : "etransfer");
 		const isStripe = depositMethod === "stripe";
 
