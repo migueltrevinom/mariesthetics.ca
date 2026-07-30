@@ -103,23 +103,23 @@ export default async function ServicesPage() {
   const categories = Array.from(new Set(services.map((s) => s.category)));
 
   return (
-    <div className="bg-night">
+    <div className="bg-[var(--background)] text-[var(--foreground)] min-h-screen">
       {/* Hero band */}
       <section className="aurora relative overflow-hidden pt-40 pb-20 md:pt-48">
         <div className="grain absolute inset-0" />
         <div className="relative mx-auto max-w-6xl px-6 md:px-10">
           <p className="reveal eyebrow">Services &amp; pricing</p>
-          <h1 className="reveal reveal-delay-1 display mt-5 max-w-3xl text-5xl text-ivory md:text-7xl">
+          <h1 className="reveal reveal-delay-1 display mt-5 max-w-3xl text-5xl text-[var(--ink)] md:text-7xl">
             Clear pricing.
             <span className="gold-text italic"> No surprises.</span>
           </h1>
-          <p className="reveal reveal-delay-2 mt-6 max-w-xl text-ink-soft leading-relaxed">
+          <p className="reveal reveal-delay-2 mt-6 max-w-xl text-[var(--ink-soft)] leading-relaxed">
             Every treatment is personalized in a private Edmonton studio. A
             deposit secures your appointment; the balance is settled after your
             visit.
           </p>
           {categories.length > 0 && (
-            <div className="reveal reveal-delay-3 mt-10 flex flex-wrap gap-2">
+            <div className="reveal reveal-delay-3 mt-10 flex flex-wrap gap-2.5">
               {categories.map((c) => (
                 <a key={c} href={`#${c}`} className="chip">
                   {CATEGORY_LABELS[c] ?? c}
@@ -132,7 +132,7 @@ export default async function ServicesPage() {
 
       <div className="mx-auto max-w-4xl px-6 py-20 md:px-10">
         {offline && (
-          <p className="mb-10 rounded border border-[var(--line)] bg-white/5 px-4 py-3 text-sm text-ink-soft">
+          <p className="mb-10 rounded border border-[var(--line)] bg-[var(--card-bg)] px-4 py-3 text-sm text-[var(--ink-soft)]">
             Connect MongoDB and run <code className="text-gold">npm run seed</code>{" "}
             to load live services.
           </p>
@@ -141,7 +141,7 @@ export default async function ServicesPage() {
         {categories.map((category) => (
           <div key={category} id={category} className="scroll-mt-28 pb-16">
             <div className="mb-8 flex items-center gap-4">
-              <h2 className="display text-3xl text-ivory md:text-4xl">
+              <h2 className="display text-3xl text-[var(--ink)] md:text-4xl">
                 {CATEGORY_LABELS[category] ?? category}
               </h2>
               <span className="hairline flex-1" />
@@ -155,13 +155,13 @@ export default async function ServicesPage() {
                     className="flex flex-col gap-4 py-7 sm:flex-row sm:items-end sm:justify-between"
                   >
                     <div>
-                      <h3 className="display text-2xl text-ivory">
+                      <h3 className="display text-2xl text-[var(--ink)]">
                         {service.name}
                       </h3>
-                      <p className="mt-2 max-w-md text-sm leading-relaxed text-ink-soft">
+                      <p className="mt-2 max-w-md text-sm leading-relaxed text-[var(--ink-soft)]">
                         {service.description}
                       </p>
-                      <p className="mt-3 text-xs uppercase tracking-wider text-[var(--ivory-faint)]">
+                      <p className="mt-3 text-xs uppercase tracking-wider text-[var(--ink-faint)] font-medium">
                         {service.durationMin} min · deposit{" "}
                         {formatCad(service.depositCents)}
                       </p>
@@ -184,17 +184,17 @@ export default async function ServicesPage() {
         ))}
 
         {!offline && services.length === 0 && (
-          <p className="text-ink-soft">No services published yet.</p>
+          <p className="text-[var(--ink-soft)]">No services published yet.</p>
         )}
 
         {promotions.length > 0 && (
           <div className="border-t border-[var(--line-soft)] pt-14">
-            <h2 className="display text-3xl text-ivory">Current offers</h2>
+            <h2 className="display text-3xl text-[var(--ink)]">Current offers</h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {promotions.map((promo) => (
                 <div key={promo._id} className="card p-6">
-                  <p className="text-gold-bright">{promo.title}</p>
-                  <p className="mt-2 text-sm text-ink-soft">{promo.description}</p>
+                  <p className="text-gold-bright font-semibold">{promo.title}</p>
+                  <p className="mt-2 text-sm text-[var(--ink-soft)]">{promo.description}</p>
                 </div>
               ))}
             </div>
@@ -203,23 +203,23 @@ export default async function ServicesPage() {
 
         {plans.length > 0 && (
           <div id="memberships" className="mt-16 scroll-mt-28 border-t border-[var(--line-soft)] pt-14">
-            <h2 className="display text-3xl text-ivory">Memberships</h2>
+            <h2 className="display text-3xl text-[var(--ink)]">Memberships</h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               {plans.map((plan) => (
                 <div key={plan._id} className="card p-6">
                   <div className="flex flex-wrap items-baseline justify-between gap-3">
-                    <h3 className="display text-2xl text-ivory">{plan.name}</h3>
+                    <h3 className="display text-2xl text-[var(--ink)]">{plan.name}</h3>
                     <p className="gold-text text-xl font-semibold">
                       {formatCad(plan.priceCents)}
-                      <span className="text-sm font-normal text-ink-soft">
+                      <span className="text-sm font-normal text-[var(--ink-soft)]">
                         {" "}
                         /{plan.interval}
                       </span>
                     </p>
                   </div>
-                  <p className="mt-3 text-sm text-ink-soft">{plan.description}</p>
+                  <p className="mt-3 text-sm text-[var(--ink-soft)]">{plan.description}</p>
                   {plan.billingNote && (
-                    <p className="mt-3 text-xs uppercase tracking-wider text-gold">
+                    <p className="mt-3 text-xs uppercase tracking-wider text-gold font-medium">
                       {plan.billingNote}
                     </p>
                   )}

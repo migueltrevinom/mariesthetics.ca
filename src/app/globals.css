@@ -327,19 +327,22 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  padding: 0.4rem 0.9rem;
-  font-size: 0.78rem;
-  color: var(--ivory-soft);
-  transition: all 0.2s ease;
+  padding: 0.45rem 1.05rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--card-bg);
+  transition: all 0.25s ease;
   cursor: pointer;
 }
 .chip[data-active="true"],
 .chip:hover {
   border-color: var(--gold);
-  color: var(--gold-bright);
-  background: rgba(200, 168, 107, 0.06);
+  color: var(--gold);
+  background: rgba(200, 168, 107, 0.12);
+  transform: translateY(-1px);
 }
 
 .card {
