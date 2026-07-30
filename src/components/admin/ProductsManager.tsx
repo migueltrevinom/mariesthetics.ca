@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { formatCad } from "@/lib/money";
 
 export interface ProductItem {
@@ -34,14 +35,24 @@ interface ProductsManagerProps {
   services: ServiceItem[];
 }
 
-export function ProductsManager({
+function ProductsManagerContent({
   initialProducts,
   services,
 }: ProductsManagerProps) {
+  const searchParams = useSearchParams();
+  const initialServiceFilter = searchParams.get("serviceId") || "all";
+
   const [products, setProducts] = useState<ProductItem[]>(initialProducts);
   const [search, setSearch] = useState("");
   const [kindFilter, setKindFilter] = useState<string>("all");
-  const [serviceFilter, setServiceFilter] = useState<string>("all");
+  const [serviceFilter, setServiceFilter] = useState<string>(initialServiceFilter);
+
+  useEffect(() => {
+    const sId = searchParams.get("serviceId");
+    if (sId) {
+      setServiceFilter(sId);
+    }
+  }, [searchParams]);
   const [modalOpen, setModalOpen] = useState(false);
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
@@ -568,5 +579,13 @@ export function ProductsManager({
         </div>
       )}
     </div>
+  );
+}
+
+export function ProductsManager(props: ProductsManagerProps) {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs text-[var(--ink-soft)] animate-pulse">Loading products manager...</div>}>
+      <ProductsManagerContent {...props} />
+    </Suspense>
   );
 }

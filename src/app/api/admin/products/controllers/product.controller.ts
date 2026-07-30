@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import {
   getProductsList,
+  getProductsByService,
   createNewProduct,
   updateExistingProduct,
   removeProduct,
   autoGenerateServiceProducts,
 } from "../modules/product.module";
 
-export async function handleGetProducts(): Promise<NextResponse> {
+export async function handleGetProducts(req: Request): Promise<NextResponse> {
   try {
-    const products = await getProductsList();
+    const { searchParams } = new URL(req.url);
+    const serviceId = searchParams.get("serviceId");
+    let products;
+    if (serviceId) {
+      products = await getProductsByService(serviceId);
+    } else {
+      products = await getProductsList();
+    }
     return NextResponse.json({ products });
   } catch (err: any) {
     console.error("[Product Controller GET Error]:", err.message);

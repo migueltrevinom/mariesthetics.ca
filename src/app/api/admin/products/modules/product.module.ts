@@ -6,6 +6,10 @@ export async function getProductsList() {
   return ProductRepository.findAllProducts();
 }
 
+export async function getProductsByService(serviceId: string) {
+  return ProductRepository.findProductsByServiceId(serviceId);
+}
+
 export async function getProductDetails(id: string) {
   const product = await ProductRepository.findProductById(id);
   if (!product) {

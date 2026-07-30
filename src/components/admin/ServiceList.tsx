@@ -213,6 +213,12 @@ export function ServiceList({ services }: ServiceListProps) {
             {/* Action buttons list */}
             <div className="flex items-center gap-2 w-full md:w-auto shrink-0 border-t md:border-t-0 border-[var(--border-color)] pt-3 md:pt-0">
               <Link
+                href={`/admin/products?serviceId=${row.id}`}
+                className="flex-1 md:flex-none border border-[var(--border-color)] hover:border-[#c8a86b] text-[#c8a86b] hover:bg-[#c8a86b]/10 px-3.5 py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer text-center block"
+              >
+                📦 Products
+              </Link>
+              <Link
                 href={`/admin/services/${row.id}`}
                 className="flex-1 md:flex-none border border-[var(--border-color)] hover:border-[#c8a86b] hover:text-[var(--ink)] hover:bg-[var(--card-bg)] px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer text-center block"
               >

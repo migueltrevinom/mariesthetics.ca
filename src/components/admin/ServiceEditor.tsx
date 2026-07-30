@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { formatCad } from "@/lib/money";
 
 type ServiceRow = {
   id?: string;
@@ -55,6 +56,49 @@ export function ServiceEditor({
   const [resultPrivate, setResultPrivate] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Mapped Products State
+  const [mappedProducts, setMappedProducts] = useState<any[]>([]);
+  const [genLoading, setGenLoading] = useState(false);
+
+  const loadMappedProducts = async (serviceId: string) => {
+    try {
+      const res = await fetch(`/api/admin/products?serviceId=${serviceId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMappedProducts(data.products || []);
+      }
+    } catch {
+      // quiet catch
+    }
+  };
+
+  useEffect(() => {
+    if (isEdit && initialService?.id) {
+      void loadMappedProducts(initialService.id);
+    }
+  }, [isEdit, initialService?.id]);
+
+  const handleGenerateProductsForThisService = async () => {
+    const sId = form.id || initialService?.id;
+    if (!sId) return;
+    setGenLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/products/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId: sId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate products");
+      await loadMappedProducts(sId);
+    } catch (err: any) {
+      setError(err.message || "Failed to generate products");
+    } finally {
+      setGenLoading(false);
+    }
+  };
 
   // Initialize form state when editing
   useEffect(() => {
@@ -338,6 +382,78 @@ export function ServiceEditor({
               </div>
             ) : (
               <div className="space-y-8">
+                {/* 0. MAPPED PRODUCTS & PAYMENT VARIANTS */}
+                <div className="space-y-4 border-b border-[var(--border-color)] pb-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-[var(--ink)] uppercase tracking-wider flex items-center gap-2">
+                        <span>📦 Mapped Products &amp; Payment Variants</span>
+                        <span className="bg-[#c8a86b]/15 text-[#c8a86b] px-2.5 py-0.5 rounded-full text-[10px] font-bold">
+                          {mappedProducts.length} mapped
+                        </span>
+                      </h3>
+                      <p className="text-xs text-[var(--ink-soft)] mt-1">
+                        Products linked to this service (Full Payment, Deposit, Balance) for accounting &amp; transaction tracking.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={genLoading}
+                        onClick={handleGenerateProductsForThisService}
+                        className="px-3.5 py-1.5 rounded-xl border border-[#c8a86b]/40 bg-[#c8a86b]/10 text-[#c8a86b] text-xs font-semibold hover:bg-[#c8a86b]/20 transition-all cursor-pointer shadow-sm"
+                      >
+                        {genLoading ? "Generating..." : "⚡ Auto-Generate 3 Variants"}
+                      </button>
+                      <Link
+                        href="/admin/products"
+                        className="px-3.5 py-1.5 rounded-xl border border-[var(--border-color)] text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] transition-all font-medium"
+                      >
+                        Manage All Products →
+                      </Link>
+                    </div>
+                  </div>
+
+                  {mappedProducts.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                      {mappedProducts.map((prod) => (
+                        <div
+                          key={prod._id}
+                          className="border border-[var(--border-color)] bg-[var(--card-bg)] p-3.5 rounded-2xl space-y-1.5 text-left shadow-sm"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] uppercase font-bold text-[#c8a86b] tracking-wider">
+                              {prod.kind.replace("_", " ")}
+                            </span>
+                            <span className="text-xs font-bold text-[var(--ink)]">
+                              {formatCad(prod.priceCents)}
+                            </span>
+                          </div>
+                          <p className="text-xs font-semibold text-[var(--ink)] truncate">{prod.name}</p>
+                          <p className="text-[10px] text-[var(--ink-soft)] line-clamp-1">
+                            {prod.description || "Mapped product variant"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-5 border border-dashed border-[var(--border-color)] bg-black/5 dark:bg-white/[0.01] rounded-2xl text-center space-y-2">
+                      <p className="text-xs text-[var(--ink-soft)] italic">
+                        No mapped products found for this service yet.
+                      </p>
+                      <button
+                        type="button"
+                        disabled={genLoading}
+                        onClick={handleGenerateProductsForThisService}
+                        className="text-xs text-[#c8a86b] font-bold hover:underline cursor-pointer"
+                      >
+                        Click here to auto-generate Full Payment, Deposit, and Balance products →
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* 1. SHOWCASE IMAGES */}
                 <div className="space-y-3">
                   <div>
