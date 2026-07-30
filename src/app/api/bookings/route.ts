@@ -9,6 +9,7 @@ import { applyDiscount } from "@/lib/money";
 import { config } from "@/lib/config";
 import { getSession } from "@/lib/auth/jwt";
 import { AuthError, requireManager } from "@/lib/auth/jwt";
+import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
 
 const createSchema = z.object({
 	serviceId: z.string().min(1),
@@ -262,6 +263,12 @@ export async function POST(req: Request) {
 				note: "Awaiting Interac e-Transfer proof",
 			});
 		}
+
+		// Trigger asynchronous admin notification email with .ics calendar file
+		void notifyAdminsOfBooking({
+			bookingId: String(booking._id),
+			eventType: isConfirmed ? "deposit_paid" : "creation",
+		});
 
 		return NextResponse.json({
 			booking,

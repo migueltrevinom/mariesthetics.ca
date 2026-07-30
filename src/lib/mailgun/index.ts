@@ -12,7 +12,7 @@ export interface AttachmentOption {
 export interface SendEmailOptions {
   to: string;
   subject: string;
-  templateName: "otp" | "booking-confirmation";
+  templateName: "otp" | "booking-confirmation" | "admin-booking-notification";
   data: Record<string, any>;
   attachment?: AttachmentOption;
 }

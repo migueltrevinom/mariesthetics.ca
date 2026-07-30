@@ -3,6 +3,7 @@ import { connectDb } from "@/lib/db/connect";
 import { StripePaymentLink } from "@/lib/db/models/StripePaymentLink";
 import { getStripe } from "@/lib/payments/stripe";
 import { Booking, Payment } from "@/lib/db/models";
+import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
 import "@/lib/db/models/Service";
 
 export const dynamic = "force-dynamic";
@@ -106,6 +107,12 @@ export async function GET(req: Request) {
 					if (updated) {
 						await currentBooking.save();
 						booking = await Booking.findById(booking._id).populate("serviceId").lean();
+
+						// Notify admins of deposit payment confirmation with attached .ics file
+						void notifyAdminsOfBooking({
+							bookingId: String(booking._id),
+							eventType: "deposit_paid",
+						});
 					}
 				}
 			}

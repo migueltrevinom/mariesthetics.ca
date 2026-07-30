@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= eventTitle %> — Mari Esthetics Admin</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0b100d; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #f3efe6; -webkit-font-smoothing: antialiased;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #0b100d; min-height: 100vh; padding: 40px 20px;">
+    <tr>
+      <td align="center" valign="top">
+        <!-- Main Card Container -->
+        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 580px; background-color: #0f1712; border: 1px solid rgba(200, 168, 107, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);">
+          
+          <!-- Top Gold Accent Bar -->
+          <tr>
+            <td height="5" style="background-color: #c8a86b;"></td>
+          </tr>
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding: 35px 40px 15px 40px;">
+              <span style="font-size: 10px; font-weight: 700; uppercase; tracking: 0.25em; color: #c8a86b; background-color: rgba(200, 168, 107, 0.12); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(200, 168, 107, 0.3); display: inline-block;">
+                Admin Alert Notification
+              </span>
+              <h1 style="margin: 15px 0 0 0; font-family: Georgia, serif; font-size: 24px; font-weight: 400; color: #f3efe6;">
+                <%= eventTitle %>
+              </h1>
+              <div style="height: 1px; width: 60px; background-color: #c8a86b; margin-top: 15px; opacity: 0.5;"></div>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 20px 40px; font-size: 14px; line-height: 1.6; color: rgba(243, 239, 230, 0.85);">
+              
+              <!-- Appointment Time & Service Box -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #12241c; border: 1px solid rgba(200, 168, 107, 0.2); border-radius: 12px; margin-bottom: 20px; padding: 20px;">
+                <tr>
+                  <td>
+                    <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #c8a86b; font-weight: 700;">
+                      Treatment Service
+                    </p>
+                    <p style="margin: 0 0 16px 0; font-size: 20px; font-weight: 700; color: #f3efe6; font-family: Georgia, serif;">
+                      <%= serviceName %>
+                    </p>
+
+                    <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #c8a86b; font-weight: 700;">
+                      📅 Date &amp; Time
+                    </p>
+                    <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #f3efe6;">
+                      <%= formattedDate %> at <%= formattedTime %> (<%= durationMin %> mins)
+                    </p>
+
+                    <p style="margin: 0 0 4px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: #c8a86b; font-weight: 700;">
+                      👤 Client Info
+                    </p>
+                    <p style="margin: 0; font-size: 14px; color: #f3efe6; line-height: 1.5;">
+                      <strong><%= clientName %></strong><br>
+                      Email: <a href="mailto:<%= clientEmail %>" style="color: #c8a86b; text-decoration: none;"><%= clientEmail %></a><br>
+                      <% if (clientPhone) { %>Phone: <a href="tel:<%= clientPhone %>" style="color: #c8a86b; text-decoration: none;"><%= clientPhone %></a><% } %>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Payment Status Box -->
+              <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: rgba(255, 255, 255, 0.02); border: 1px solid rgba(243, 239, 230, 0.1); border-radius: 12px; margin-bottom: 20px; padding: 16px 20px;">
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Booking Status:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 700; color: #c8a86b; text-transform: uppercase;">
+                    <%= paymentStatus %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Deposit Method:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 600; color: #f3efe6; text-transform: capitalize;">
+                    <%= depositMethod %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Treatment Price:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 600; color: #f3efe6;">
+                    <%= totalFormatted %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: #c8a86b; font-weight: 700;">
+                    Deposit Collected:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 14px; font-weight: 700; color: #c8a86b;">
+                    <%= depositPaidFormatted %>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="border-top: 1px solid rgba(243, 239, 230, 0.1); padding-top: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Balance Remaining:
+                  </td>
+                  <td align="right" style="border-top: 1px solid rgba(243, 239, 230, 0.1); padding-top: 8px; font-size: 13px; font-weight: 600; color: #f3efe6;">
+                    <%= balanceDueFormatted %>
+                  </td>
+                </tr>
+              </table>
+
+              <% if (notes) { %>
+              <!-- Notes Box -->
+              <div style="background-color: rgba(200, 168, 107, 0.08); border-left: 3px solid #c8a86b; padding: 12px 16px; border-radius: 4px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 12px; color: #f3efe6;">
+                  <strong>Client Notes:</strong> <%= notes %>
+                </p>
+              </div>
+              <% } %>
+
+              <!-- Attachment Note -->
+              <p style="margin: 0; font-size: 12px; text-align: center; color: rgba(243, 239, 230, 0.6); font-style: italic;">
+                📎 The appointment <strong>client-booking.ics</strong> calendar file is attached. Tap to automatically add this appointment to your admin calendar.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 25px 40px 30px 40px; font-size: 11px; line-height: 1.5; color: rgba(243, 239, 230, 0.4); border-top: 1px solid rgba(243, 239, 230, 0.1);">
+              <p style="margin: 0;">
+                Mari Esthetics Management Automated System &bull; <a href="https://mariesthetics.ca/admin" style="color: #c8a86b; text-decoration: none;">Go to Admin Portal</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
