@@ -61,11 +61,14 @@ export async function POST(req: Request) {
       publishableKey: config.stripePublishableKey,
       amountCents: amount,
     });
-  } catch (err) {
+  } catch (err: any) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
     }
-    console.error(err);
-    return NextResponse.json({ error: "Failed to create deposit intent" }, { status: 500 });
+    console.error("[Stripe Deposit Error]:", err);
+    return NextResponse.json(
+      { error: err?.message || "Failed to create deposit intent" },
+      { status: 500 }
+    );
   }
 }

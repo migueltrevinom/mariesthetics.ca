@@ -127,13 +127,13 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
         });
         const payData = await payRes.json();
         if (!payRes.ok) {
-          setMessage(
-            "Booking created. Stripe deposit could not start — check STRIPE_SECRET_KEY, or switch to e-Transfer."
+          setError(
+            `Stripe Deposit Issue: ${payData.error || "Please check your Stripe keys in .env"}. You can also choose Interac e-Transfer below.`
           );
           setStep("pay");
         } else {
           setMessage(
-            `Deposit PaymentIntent created (${formatCad(payData.amountCents)}). Client secret ready for Stripe Elements / Checkout integration.`
+            `Deposit PaymentIntent created (${formatCad(payData.amountCents)}). Instant confirmation ready.`
           );
           setStep("done");
           setEncourageAccount(true);
