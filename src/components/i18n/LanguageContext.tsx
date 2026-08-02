@@ -24,7 +24,7 @@ export const LANGUAGES: LanguageOption[] = [
   { code: "es", label: "Español", flag: "🇲🇽", dir: "ltr" },
 ];
 
-const dictionaries: Record<Locale, any> = { en, tl, pa, ar, es };
+const staticDictionaries: Record<Locale, any> = { en, tl, pa, ar, es };
 
 interface LanguageContextType {
   locale: Locale;
@@ -43,6 +43,7 @@ const LanguageContext = createContext<LanguageContextType>({
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+  const [dbOverrides, setDbOverrides] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("mari_locale") as Locale | null;
@@ -53,6 +54,22 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.setAttribute("dir", targetDir);
       document.documentElement.setAttribute("lang", saved);
     }
+
+    // Fetch dynamic translation overrides from MongoDB
+    async function loadDbTranslations() {
+      try {
+        const res = await fetch("/api/public/translations");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.overrides) {
+            setDbOverrides(data.overrides);
+          }
+        }
+      } catch {
+        // quiet fallback to static dictionaries
+      }
+    }
+    void loadDbTranslations();
   }, []);
 
   const setLocale = (newLocale: Locale) => {
@@ -66,25 +83,43 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (keyPath: string): string => {
+    // 1. Check MongoDB Overrides for active locale
+    if (dbOverrides[locale] && dbOverrides[locale][keyPath]) {
+      return dbOverrides[locale][keyPath];
+    }
+
+    // 2. Check Static JSON Dictionary for active locale
     const parts = keyPath.split(".");
-    let current = dictionaries[locale] || dictionaries.en;
+    let current = staticDictionaries[locale] || staticDictionaries.en;
+    let foundInLocale = true;
     for (const part of parts) {
       if (current && typeof current === "object" && part in current) {
         current = current[part];
       } else {
-        // Fallback to English dictionary if key is missing in active locale
-        let fallback = dictionaries.en;
-        for (const p of parts) {
-          if (fallback && typeof fallback === "object" && p in fallback) {
-            fallback = fallback[p];
-          } else {
-            return keyPath;
-          }
-        }
-        return typeof fallback === "string" ? fallback : keyPath;
+        foundInLocale = false;
+        break;
       }
     }
-    return typeof current === "string" ? current : keyPath;
+    if (foundInLocale && typeof current === "string") {
+      return current;
+    }
+
+    // 3. Fallback to MongoDB Overrides for English
+    if (dbOverrides.en && dbOverrides.en[keyPath]) {
+      return dbOverrides.en[keyPath];
+    }
+
+    // 4. Fallback to Static JSON Dictionary for English
+    let fallback = staticDictionaries.en;
+    for (const p of parts) {
+      if (fallback && typeof fallback === "object" && p in fallback) {
+        fallback = fallback[p];
+      } else {
+        return keyPath;
+      }
+    }
+
+    return typeof fallback === "string" ? fallback : keyPath;
   };
 
   return (

@@ -17,4 +17,5 @@ export { CalendarSchedule, type TimeShift, type WeeklyHourSetting, type DateOver
 export { CalendarBlock, type ICalendarBlock } from "./CalendarBlock";
 export { Product, type ProductDoc } from "./Product";
 export { SocialLink, type SocialLinkDoc } from "./SocialLink";
+export { TranslationModel, type TranslationDoc } from "./Translation";
 
