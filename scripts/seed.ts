@@ -24,6 +24,12 @@ const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 8);
 
 const MANAGERS = [
   {
+    name: "Marinelle Tala",
+    email: "mari@mariesthetics.ca",
+    phone: "+1 780 555-0199",
+    role: "owner" as const,
+  },
+  {
     name: "Marinelle",
     email: "marinelle@yahoo.ca",
     phone: "+507 62639742",
@@ -33,7 +39,7 @@ const MANAGERS = [
     name: "Miguel",
     email: "miguel.trevinom@gmail.com",
     phone: "+1 7809133081",
-    role: "manager" as const,
+    role: "owner" as const,
   },
 ];
 
