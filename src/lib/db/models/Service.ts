@@ -11,6 +11,10 @@ const ServiceSchema = new Schema(
     sortOrder: { type: Number, default: 0 },
     category: { type: String, default: "general" },
     photos: { type: [String], default: [] },
+    slug: { type: String, trim: true, default: "" },
+    metaTitle: { type: String, trim: true, default: "" },
+    metaDescription: { type: String, trim: true, default: "" },
+    keywords: { type: String, trim: true, default: "" },
   },
   { 
     timestamps: true,

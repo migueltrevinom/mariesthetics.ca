@@ -16,6 +16,10 @@ type ServiceRow = {
   sortOrder: number;
   category: string;
   photos: string[];
+  slug?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
   images?: {
     id: string;
     url: string;
@@ -46,6 +50,10 @@ export function ServiceEditor({
     sortOrder: 0,
     category: "facials",
     photos: [],
+    slug: "",
+    metaTitle: "",
+    metaDescription: "",
+    keywords: "",
   });
   
   const [priceDollars, setPriceDollars] = useState<string>("100");
@@ -387,6 +395,72 @@ export function ServiceEditor({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
             />
+          </div>
+
+          {/* SEO & SEARCH ENGINE OPTIMIZATION */}
+          <div className="sm:col-span-2 border-t border-[var(--border-color)] pt-6 mt-2 space-y-4">
+            <div>
+              <h3 className="text-sm font-bold text-[var(--ink)] uppercase tracking-wider flex items-center gap-2">
+                <span>🔍 Search Engine Optimization (SEO) &amp; Social Previews</span>
+              </h3>
+              <p className="text-xs text-[var(--ink-soft)] mt-1">
+                Customize how this treatment appears on Google Search, Maps, and social media link previews (iMessage, WhatsApp, Instagram).
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                  Custom SEO Title
+                </label>
+                <input
+                  placeholder={`e.g. ${form.name || "Treatment"} | Mari Esthetics Edmonton`}
+                  style={{ backgroundColor: "var(--card-bg)" }}
+                  className="w-full border border-[var(--border-color)] px-3 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
+                  value={form.metaTitle || ""}
+                  onChange={(e) => setForm({ ...form, metaTitle: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                  URL Slug
+                </label>
+                <input
+                  placeholder={`e.g. ${form.name ? form.name.toLowerCase().replace(/\s+/g, "-") : "treatment-slug"}`}
+                  style={{ backgroundColor: "var(--card-bg)" }}
+                  className="w-full border border-[var(--border-color)] px-3 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors font-mono"
+                  value={form.slug || ""}
+                  onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase().replace(/\s+/g, "-") })}
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                  Meta Description (Google Snippet)
+                </label>
+                <textarea
+                  placeholder="Brief 1-2 sentence summary for Google search results..."
+                  style={{ backgroundColor: "var(--card-bg)" }}
+                  className="w-full border border-[var(--border-color)] px-3 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors min-h-[60px]"
+                  value={form.metaDescription || ""}
+                  onChange={(e) => setForm({ ...form, metaDescription: e.target.value })}
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                  Search Keywords (Comma Separated)
+                </label>
+                <input
+                  placeholder="e.g. facial edmonton, skin treatment, dermaplaning, mari esthetics"
+                  style={{ backgroundColor: "var(--card-bg)" }}
+                  className="w-full border border-[var(--border-color)] px-3 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
+                  value={form.keywords || ""}
+                  onChange={(e) => setForm({ ...form, keywords: e.target.value })}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Showcase & Results Galleries */}

@@ -11,6 +11,10 @@ export const createServiceSchema = z.object({
 	sortOrder: z.number().int().optional().default(0),
 	active: z.boolean().optional().default(true),
 	photos: z.array(z.string().url("Please enter valid image URLs")).max(5, "Maximum of 5 photos allowed").optional().default([]),
+	slug: z.string().optional().default(""),
+	metaTitle: z.string().optional().default(""),
+	metaDescription: z.string().optional().default(""),
+	keywords: z.string().optional().default(""),
 });
 
 export const updateServiceSchema = createServiceSchema.extend({
