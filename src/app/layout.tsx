@@ -9,6 +9,8 @@ import {
   siteUrl,
 } from "@/lib/seo";
 
+import { LanguageProvider } from "@/components/i18n/LanguageContext";
+
 const display = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
@@ -95,11 +97,13 @@ export default function RootLayout({
         />
       </head>
       <body className={`${display.variable} ${body.variable} antialiased`}>
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        {children}
-        <JsonLd data={localBusinessJsonLd()} />
+        <LanguageProvider>
+          <a href="#main" className="skip-link">
+            Skip to content
+          </a>
+          {children}
+          <JsonLd data={localBusinessJsonLd()} />
+        </LanguageProvider>
       </body>
     </html>
   );

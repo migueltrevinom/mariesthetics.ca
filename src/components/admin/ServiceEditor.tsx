@@ -5,6 +5,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatCad } from "@/lib/money";
 
+type TranslationMap = {
+  en?: string;
+  tl?: string;
+  pa?: string;
+  ar?: string;
+  es?: string;
+};
+
 type ServiceRow = {
   id?: string;
   name: string;
@@ -20,6 +28,8 @@ type ServiceRow = {
   metaTitle?: string;
   metaDescription?: string;
   keywords?: string;
+  nameTranslations?: TranslationMap;
+  descriptionTranslations?: TranslationMap;
   images?: {
     id: string;
     url: string;
@@ -39,6 +49,7 @@ export function ServiceEditor({
   isEdit = false,
 }: ServiceEditorProps) {
   const router = useRouter();
+  const [activeLangTab, setActiveLangTab] = useState<"en" | "tl" | "pa" | "ar" | "es">("en");
   
   const [form, setForm] = useState<ServiceRow>({
     name: "",
@@ -54,6 +65,8 @@ export function ServiceEditor({
     metaTitle: "",
     metaDescription: "",
     keywords: "",
+    nameTranslations: { en: "", tl: "", pa: "", ar: "", es: "" },
+    descriptionTranslations: { en: "", tl: "", pa: "", ar: "", es: "" },
   });
   
   const [priceDollars, setPriceDollars] = useState<string>("100");
@@ -298,6 +311,91 @@ export function ServiceEditor({
               <option value="lashes" className="bg-[var(--card-bg)] text-[var(--ink)]">Lashes</option>
               <option value="permanentMakeUp" className="bg-[var(--card-bg)] text-[var(--ink)]">Permanent Make-Up (Brows)</option>
             </select>
+          </div>
+
+          {/* Multilingual Copies & Translations */}
+          <div className="sm:col-span-2 border-t border-b border-[var(--border-color)] py-5 my-2 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider flex items-center gap-2">
+                  <span>🌐 Multilingual Service Copies (5 Languages)</span>
+                </h3>
+                <p className="text-[11px] text-[var(--ink-soft)] mt-0.5">
+                  Provide translated treatment titles and descriptions for Edmonton&apos;s top community languages.
+                </p>
+              </div>
+
+              {/* Language Tabs */}
+              <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl border border-[var(--border-color)] self-start sm:self-auto">
+                {[
+                  { code: "en", label: "English", flag: "🇨🇦" },
+                  { code: "tl", label: "Tagalog", flag: "🇵🇭" },
+                  { code: "pa", label: "ਪੰਜਾਬੀ", flag: "🇮🇳" },
+                  { code: "ar", label: "العربية", flag: "🇸🇦" },
+                  { code: "es", label: "Español", flag: "🇲🇽" },
+                ].map((lang) => (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => setActiveLangTab(lang.code as any)}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 ${
+                      activeLangTab === lang.code
+                        ? "bg-[#c8a86b] text-black shadow-sm"
+                        : "text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                    }`}
+                  >
+                    <span>{lang.flag}</span>
+                    <span className="hidden sm:inline">{lang.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 bg-black/5 dark:bg-black/20 p-4 rounded-2xl border border-[var(--border-color)]">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                  Title ({activeLangTab.toUpperCase()})
+                </label>
+                <input
+                  placeholder={`e.g. Translated title in ${activeLangTab.toUpperCase()}`}
+                  style={{ backgroundColor: "var(--card-bg)" }}
+                  className="w-full border border-[var(--border-color)] px-3 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
+                  value={form.nameTranslations?.[activeLangTab] || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setForm((prev) => ({
+                      ...prev,
+                      nameTranslations: {
+                        ...(prev.nameTranslations || {}),
+                        [activeLangTab]: val,
+                      },
+                    }));
+                  }}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                  Description ({activeLangTab.toUpperCase()})
+                </label>
+                <input
+                  placeholder={`e.g. Translated summary in ${activeLangTab.toUpperCase()}`}
+                  style={{ backgroundColor: "var(--card-bg)" }}
+                  className="w-full border border-[var(--border-color)] px-3 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
+                  value={form.descriptionTranslations?.[activeLangTab] || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setForm((prev) => ({
+                      ...prev,
+                      descriptionTranslations: {
+                        ...(prev.descriptionTranslations || {}),
+                        [activeLangTab]: val,
+                      },
+                    }));
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Duration Field */}

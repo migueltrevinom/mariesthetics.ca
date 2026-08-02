@@ -1,8 +1,13 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { business } from "@/lib/seo";
+import { useLanguage } from "@/components/i18n/LanguageContext";
 
 export function Hero() {
+  const { t } = useLanguage();
+
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[var(--background)] transition-colors duration-200">
       <div className="absolute inset-0">
@@ -21,22 +26,21 @@ export function Hero() {
       <div className="grain absolute inset-0" />
 
       <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-6 pb-24 pt-40 md:px-10 md:pb-32">
-        <p className="reveal eyebrow">{business.locality}, {business.regionName} · By appointment</p>
+        <p className="reveal eyebrow">{t("hero.eyebrow")}</p>
         <h1 className="reveal reveal-delay-1 display mt-6 max-w-4xl text-[3.4rem] leading-[0.95] text-[var(--ink)] sm:text-7xl md:text-[6.5rem]">
-          Edmonton skin care,
+          {t("hero.title1")}
           <br />
-          <span className="gold-text italic">tailored to you.</span>
+          <span className="gold-text italic">{t("hero.title2")}</span>
         </h1>
         <p className="reveal reveal-delay-2 mt-8 max-w-xl text-lg leading-relaxed text-ink-soft">
-          A private esthetics studio for facials, lash lifts, brows and
-          dermaplaning — quiet, unhurried, and personalized to your skin.
+          {t("hero.subtitle")}
         </p>
         <div className="reveal reveal-delay-3 mt-10 flex flex-wrap gap-4">
           <Link href="/book" className="btn-primary">
-            Book a service
+            {t("hero.ctaBook")}
           </Link>
           <Link href="/services" className="btn-ghost">
-            View services &amp; pricing
+            {t("hero.ctaServices")}
           </Link>
         </div>
       </div>

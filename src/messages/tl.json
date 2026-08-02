@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "home": "Tahanan",
+    "services": "Mga Serbisyo at Presyo",
+    "book": "Mag-book ng Appointment",
+    "contact": "Kontak at Lokasyon",
+    "admin": "Admin Portal"
+  },
+  "hero": {
+    "eyebrow": "Pribadong Esthetics Studio · Edmonton",
+    "title1": "Pasadya na Facials at Lash Artistry.",
+    "title2": "Para sa iyong likas na kagandahan.",
+    "subtitle": "Kapanatagan at personal na pangangalaga sa balat, dermaplaning, at lash lifts sa Edmonton. Malinaw na presyo at mabilis na online booking.",
+    "ctaBook": "Mag-book ng Serbisyo",
+    "ctaServices": "Tingnan ang Serbisyo"
+  },
+  "services": {
+    "eyebrow": "Mga De-Kalidad na Serbisyo",
+    "title": "Serbisyo at Presyo",
+    "subtitle": "Bawat serbisyo ay inangkop para sa iyong balat at kagustuhan. Maliit na deposito lamang para maseguro ang appointment.",
+    "depositNote": "Kailangan ng deposito upang kumpirmahin ang appointment",
+    "bookNow": "Mag-book Ngayon",
+    "details": "Tingnan ang Detalye"
+  },
+  "howItWorks": {
+    "eyebrow": "Madaling Proseso",
+    "title": "Paano Mag-Book",
+    "step1Title": "Pumili ng Serbisyo",
+    "step1Desc": "Pumili sa mga customized facials, dermaplaning, lash lifts, o brow shaping.",
+    "step2Title": "Pumili ng Petsa at Oras",
+    "step2Desc": "Tingnan ang live availability sa oras ng Edmonton at pumili ng angkop na slot.",
+    "step3Title": "Iseguro ang Deposito",
+    "step3Desc": "Magbayad ng maliit na deposito gamit ang Stripe o e-Transfer upang maseguro ang iyong slot."
+  },
+  "memberships": {
+    "eyebrow": "Esklusibong Plano sa Pangangalaga",
+    "title": "Buwanang Esthetics Memberships",
+    "subtitle": "Mag-enjoy sa regular na alaga, VIP discounts, at priority booking."
+  },
+  "booking": {
+    "title": "Mag-reserba ng Appointment",
+    "subtitle": "Pumili ng iyong serbisyo at oras sa ibaba.",
+    "stepService": "1. Pumili ng Serbisyo",
+    "stepDateTime": "2. Petsa at Oras",
+    "stepDetails": "3. Impormasyon ng Panauhin",
+    "stepPayment": "4. Kumpirmahin ang Deposito",
+    "depositRequired": "Halaga ng Deposito Ngayon",
+    "payDeposit": "Magbayad ng Deposito at Kumpirmahin"
+  },
+  "footer": {
+    "rights": "Lahat ng karapatan ay nakalaan.",
+    "address": "Edmonton, AB · Service Area Studio"
+  }
+}

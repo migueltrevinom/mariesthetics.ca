@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "home": "Home",
+    "services": "Services & Pricing",
+    "book": "Book Appointment",
+    "contact": "Contact & Location",
+    "admin": "Admin Portal"
+  },
+  "hero": {
+    "eyebrow": "Private Esthetics Studio · Edmonton",
+    "title1": "Customized Facials & Lash Artistry.",
+    "title2": "Tailored for your natural glow.",
+    "subtitle": "Serene, one-on-one skincare, dermaplaning, and lash lifts in Edmonton. Transparent pricing and seamless online booking.",
+    "ctaBook": "Book Treatment",
+    "ctaServices": "Explore Services"
+  },
+  "services": {
+    "eyebrow": "Curated Esthetics",
+    "title": "Services & Pricing",
+    "subtitle": "Every treatment is tailored to your unique skin & beauty goals. A small deposit secures your private session.",
+    "depositNote": "Deposit required to hold appointment",
+    "bookNow": "Book Treatment",
+    "details": "View Details"
+  },
+  "howItWorks": {
+    "eyebrow": "Seamless Process",
+    "title": "How Booking Works",
+    "step1Title": "Choose Your Treatment",
+    "step1Desc": "Select from customized facials, dermaplaning, lash lifts, or brow shaping.",
+    "step2Title": "Pick Date & Time",
+    "step2Desc": "View live availability in Edmonton local time and pick your ideal slot.",
+    "step3Title": "Secure with Deposit",
+    "step3Desc": "Pay a small deposit via Stripe or e-Transfer to hold your private appointment."
+  },
+  "memberships": {
+    "eyebrow": "Exclusive Skincare Plans",
+    "title": "Monthly Esthetics Memberships",
+    "subtitle": "Enjoy regular treatments, VIP discounts, and priority booking."
+  },
+  "booking": {
+    "title": "Reserve Your Appointment",
+    "subtitle": "Select your treatment and preferred time below.",
+    "stepService": "1. Select Service",
+    "stepDateTime": "2. Date & Time",
+    "stepDetails": "3. Guest Details",
+    "stepPayment": "4. Confirm Deposit",
+    "depositRequired": "Deposit Amount Due Today",
+    "payDeposit": "Pay Deposit & Confirm Booking"
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "address": "Edmonton, AB · Service Area Studio"
+  }
+}

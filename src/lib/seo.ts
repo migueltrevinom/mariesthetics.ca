@@ -85,7 +85,16 @@ export function buildMetadata({
     title: title ?? undefined,
     description,
     keywords: keywords ?? seoKeywords,
-    alternates: { canonical },
+    alternates: {
+      canonical,
+      languages: {
+        "en-CA": canonical,
+        "tl-PH": canonical,
+        "pa-IN": canonical,
+        "ar-SA": canonical,
+        "es-MX": canonical,
+      },
+    },
     robots: noindex
       ? { index: false, follow: false }
       : { index: true, follow: true, "max-image-preview": "large" },

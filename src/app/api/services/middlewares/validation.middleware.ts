@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+const languageMapSchema = z.object({
+	en: z.string().optional().default(""),
+	tl: z.string().optional().default(""),
+	pa: z.string().optional().default(""),
+	ar: z.string().optional().default(""),
+	es: z.string().optional().default(""),
+}).optional();
+
 export const createServiceSchema = z.object({
 	name: z.string().min(1, "Service name is required"),
 	description: z.string().optional().default(""),
@@ -15,6 +23,8 @@ export const createServiceSchema = z.object({
 	metaTitle: z.string().optional().default(""),
 	metaDescription: z.string().optional().default(""),
 	keywords: z.string().optional().default(""),
+	nameTranslations: languageMapSchema,
+	descriptionTranslations: languageMapSchema,
 });
 
 export const updateServiceSchema = createServiceSchema.extend({

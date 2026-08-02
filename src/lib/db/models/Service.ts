@@ -15,6 +15,20 @@ const ServiceSchema = new Schema(
     metaTitle: { type: String, trim: true, default: "" },
     metaDescription: { type: String, trim: true, default: "" },
     keywords: { type: String, trim: true, default: "" },
+    nameTranslations: {
+      en: { type: String, default: "" },
+      tl: { type: String, default: "" },
+      pa: { type: String, default: "" },
+      ar: { type: String, default: "" },
+      es: { type: String, default: "" },
+    },
+    descriptionTranslations: {
+      en: { type: String, default: "" },
+      tl: { type: String, default: "" },
+      pa: { type: String, default: "" },
+      ar: { type: String, default: "" },
+      es: { type: String, default: "" },
+    },
   },
   { 
     timestamps: true,

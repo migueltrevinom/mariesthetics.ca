@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { MegaMenu, type NavService } from "@/components/public/MegaMenu";
 import { Logo } from "@/components/public/Logo";
+import { LanguageSelector } from "@/components/public/LanguageSelector";
+import { useLanguage } from "@/components/i18n/LanguageContext";
 
 export function SiteHeader({ navServices = [] }: { navServices?: NavService[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -38,12 +41,14 @@ export function SiteHeader({ navServices = [] }: { navServices?: NavService[] })
           </Link>
 
           <div className="flex items-center gap-3 md:gap-4">
+            <LanguageSelector />
+
             <div className="hidden sm:inline-flex">
               <Link
                 href="/book"
                 className="btn-primary !py-2.5 !px-5 text-sm"
               >
-                Book a service
+                {t("nav.book")}
               </Link>
             </div>
 

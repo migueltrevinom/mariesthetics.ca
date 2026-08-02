@@ -1,0 +1,54 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "services": "Servicios y Precios",
+    "book": "Reservar Cita",
+    "contact": "Contacto y Ubicación",
+    "admin": "Portal Admin"
+  },
+  "hero": {
+    "eyebrow": "Estudio Privado de Estética · Edmonton",
+    "title1": "Faciales Personalizados y Arte en Pestañas.",
+    "title2": "Diseñado para resaltar tu brillo natural.",
+    "subtitle": "Tratamientos faciales tranquilos, dermaplaning y levantamiento de pestañas en Edmonton. Precios transparentes y reservas en línea sencillas.",
+    "ctaBook": "Reservar Tratamiento",
+    "ctaServices": "Ver Servicios"
+  },
+  "services": {
+    "eyebrow": "Estética de Alta Gama",
+    "title": "Servicios y Precios",
+    "subtitle": "Cada tratamiento se adapta a los objetivos de tu piel. Un pequeño depósito asegura tu sesión privada.",
+    "depositNote": "Se requiere depósito para asegurar la cita",
+    "bookNow": "Reservar Ahora",
+    "details": "Ver Detalles"
+  },
+  "howItWorks": {
+    "eyebrow": "Proceso Sencillo",
+    "title": "Cómo Funciona la Reserva",
+    "step1Title": "Elige tu Tratamiento",
+    "step1Desc": "Selecciona entre faciales personalizados, dermaplaning, lifting de pestañas o diseño de cejas.",
+    "step2Title": "Selecciona Fecha y Hora",
+    "step2Desc": "Consulta la disponibilidad en tiempo local de Edmonton y elige tu horario ideal.",
+    "step3Title": "Asegura con tu Depósito",
+    "step3Desc": "Paga un depósito accesible vía Stripe o e-Transfer para confirmar tu cita privada."
+  },
+  "memberships": {
+    "eyebrow": "Planes Exclusivos de Cuidado",
+    "title": "Membresías Mensuales de Estética",
+    "subtitle": "Disfruta de tratamientos regulares, descuentos VIP y prioridad en reservas."
+  },
+  "booking": {
+    "title": "Reserva tu Cita Privada",
+    "subtitle": "Selecciona tu servicio y horario preferido a continuación.",
+    "stepService": "1. Seleccionar Servicio",
+    "stepDateTime": "2. Fecha y Hora",
+    "stepDetails": "3. Datos del Cliente",
+    "stepPayment": "4. Confirmar Depósito",
+    "depositRequired": "Monto de Depósito Requerido Hoy",
+    "payDeposit": "Pagar Depósito y Confirmar Reserva"
+  },
+  "footer": {
+    "rights": "Todos los derechos reservados.",
+    "address": "Edmonton, AB · Estudio Privado"
+  }
+}
