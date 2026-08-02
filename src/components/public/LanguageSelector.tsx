@@ -42,8 +42,8 @@ export function LanguageSelector() {
       </button>
 
       {open && (
-        <div className="absolute right-0 ltr:right-0 rtl:left-0 mt-2 w-44 rounded-2xl border border-[var(--border-color)] bg-[var(--card-bg)] shadow-xl z-50 py-1.5 backdrop-blur-md overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-          <div className="px-3 py-1.5 text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider border-b border-[var(--border-color)]">
+        <div className="absolute right-0 ltr:right-0 rtl:left-0 mt-2 w-48 rounded-2xl border border-[#c8a86b]/40 bg-[#0d1310] dark:bg-[#0a0f0c] light:bg-white text-[var(--ink)] shadow-2xl z-50 py-2 backdrop-blur-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider border-b border-[var(--border-color)]">
             Select Language
           </div>
           {LANGUAGES.map((lang) => {
