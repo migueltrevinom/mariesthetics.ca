@@ -25,7 +25,7 @@ export function LanguageSelector() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] transition-all shadow-sm select-none"
+        className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] transition-all shadow-sm select-none"
         aria-label="Select Language"
       >
         <span className="text-sm">{currentLang.flag}</span>
@@ -42,7 +42,7 @@ export function LanguageSelector() {
       </button>
 
       {open && (
-        <div className="absolute right-0 ltr:right-0 rtl:left-0 mt-2 w-48 rounded-2xl border border-[#c8a86b]/40 bg-[#0d1310] dark:bg-[#0a0f0c] light:bg-white text-[var(--ink)] shadow-2xl z-50 py-2 backdrop-blur-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 ltr:right-0 rtl:left-0 mt-2 w-48 rounded-2xl border border-[var(--border-color)] dark:border-[#c8a86b]/40 bg-white dark:bg-[#0d1310] text-[var(--ink)] shadow-2xl z-50 py-2 backdrop-blur-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
           <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider border-b border-[var(--border-color)]">
             Select Language
           </div>
@@ -56,18 +56,18 @@ export function LanguageSelector() {
                   setLocale(lang.code as Locale);
                   setOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-medium transition-colors ${
                   isSelected
-                    ? "bg-[#c8a86b]/15 font-bold text-[#c8a86b]"
-                    : "text-[var(--ink)] hover:bg-black/5 dark:hover:bg-white/5"
+                    ? "bg-[#c8a86b]/20 font-bold text-[#967431] dark:text-[#c8a86b]"
+                    : "text-[var(--ink)] hover:bg-black/5 dark:hover:bg-white/10"
                 }`}
               >
-                <span className="flex items-center gap-2">
-                  <span>{lang.flag}</span>
+                <span className="flex items-center gap-2.5">
+                  <span className="text-sm">{lang.flag}</span>
                   <span>{lang.label}</span>
                 </span>
                 {isSelected && (
-                  <span className="text-[#c8a86b]">✓</span>
+                  <span className="text-[#967431] dark:text-[#c8a86b] font-bold">✓</span>
                 )}
               </button>
             );
