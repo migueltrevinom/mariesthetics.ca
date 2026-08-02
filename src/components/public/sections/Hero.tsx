@@ -26,7 +26,7 @@ export function Hero() {
       <div className="grain absolute inset-0" />
 
       <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-6 pb-24 pt-40 md:px-10 md:pb-32">
-        <p className="reveal eyebrow">{t("hero.eyebrow")}</p>
+        <p className="reveal eyebrow font-bold tracking-[0.28em] text-[#856526] dark:text-[#c8a86b] drop-shadow-md">{t("hero.eyebrow")}</p>
         <h1 className="reveal reveal-delay-1 display mt-6 max-w-4xl text-[3.4rem] leading-[0.95] text-[var(--ink)] sm:text-7xl md:text-[6.5rem]">
           {t("hero.title1")}
           <br />
