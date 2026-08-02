@@ -6,6 +6,7 @@ import { whatsappUrl } from "@/lib/config";
 import { business } from "@/lib/seo";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/admin/ThemeToggle";
+import { SocialIcon } from "@/components/ui/SocialIcon";
 
 const nav = [
   { href: "/services", label: "Services" },
@@ -105,9 +106,9 @@ export function SiteFooter() {
                     href={item.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm group"
                   >
-                    <span>{getPlatformIcon(item.platform)}</span>
+                    <SocialIcon platform={item.platform} className="w-3.5 h-3.5 text-[#c8a86b] group-hover:scale-110 transition-transform" />
                     <span>{item.label}</span>
                   </a>
                 ))}
@@ -118,18 +119,18 @@ export function SiteFooter() {
                   href="https://instagram.com/mariesthetics"
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm group"
                 >
-                  <span>📸</span>
+                  <SocialIcon platform="instagram" className="w-3.5 h-3.5 text-[#c8a86b] group-hover:scale-110 transition-transform" />
                   <span>Instagram</span>
                 </a>
                 <a
                   href="https://facebook.com/mariesthetics"
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm group"
                 >
-                  <span>👤</span>
+                  <SocialIcon platform="facebook" className="w-3.5 h-3.5 text-[#c8a86b] group-hover:scale-110 transition-transform" />
                   <span>Facebook</span>
                 </a>
               </div>

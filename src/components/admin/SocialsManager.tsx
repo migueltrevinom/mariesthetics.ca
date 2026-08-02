@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SocialIcon } from "@/components/ui/SocialIcon";
 
 export interface SocialItem {
   _id: string;
@@ -250,7 +251,7 @@ export function SocialsManager({ initialSocials = [] }: { initialSocials?: Socia
                           : "border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink-soft)] hover:text-[var(--ink)] hover:border-[var(--border-color)]"
                       }`}
                     >
-                      <span className="text-base">{preset.icon}</span>
+                      <SocialIcon platform={preset.value} className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#c8a86b]" : "text-[var(--ink-soft)]"}`} />
                       <span className="truncate">{preset.label}</span>
                     </button>
                   );
@@ -317,7 +318,7 @@ export function SocialsManager({ initialSocials = [] }: { initialSocials?: Socia
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] shadow-sm">
-                    <span>{currentIcon}</span>
+                    <SocialIcon platform={platform} className="w-3.5 h-3.5 text-[#c8a86b]" />
                     <span>{label || "Channel Label"}</span>
                   </div>
                   <span className="text-xs text-[var(--ink-soft)] font-mono truncate">
@@ -384,7 +385,6 @@ export function SocialsManager({ initialSocials = [] }: { initialSocials?: Socia
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {socials.map((item) => {
-              const preset = PLATFORM_PRESETS.find((p) => p.value === item.platform) || { icon: "🔗" };
               return (
                 <div
                   key={item._id}
@@ -396,8 +396,8 @@ export function SocialsManager({ initialSocials = [] }: { initialSocials?: Socia
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5 min-w-0">
-                      <span className="text-2xl p-3 rounded-2xl bg-black/5 dark:bg-white/10 select-none shrink-0 border border-[var(--border-color)]">
-                        {preset.icon}
+                      <span className="p-3 rounded-2xl bg-black/5 dark:bg-white/10 select-none shrink-0 border border-[var(--border-color)] text-[#c8a86b]">
+                        <SocialIcon platform={item.platform} className="w-5 h-5" />
                       </span>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
