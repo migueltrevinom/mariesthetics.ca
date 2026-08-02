@@ -16,4 +16,5 @@ export { StripePaymentLink } from "./StripePaymentLink";
 export { CalendarSchedule, type TimeShift, type WeeklyHourSetting, type DateOverrideSetting, type ICalendarSchedule } from "./CalendarSchedule";
 export { CalendarBlock, type ICalendarBlock } from "./CalendarBlock";
 export { Product, type ProductDoc } from "./Product";
+export { SocialLink, type SocialLinkDoc } from "./SocialLink";
 

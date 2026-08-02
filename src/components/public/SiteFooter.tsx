@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { whatsappUrl } from "@/lib/config";
 import { business } from "@/lib/seo";
 import { Logo } from "@/components/public/Logo";
@@ -11,12 +14,37 @@ const nav = [
   { href: "/login", label: "Client login" },
 ];
 
+export interface SocialLinkItem {
+  _id: string;
+  platform: string;
+  label: string;
+  url: string;
+}
+
 export function SiteFooter() {
+  const [socials, setSocials] = useState<SocialLinkItem[]>([]);
+
+  useEffect(() => {
+    async function loadSocials() {
+      try {
+        const res = await fetch("/api/public/socials");
+        if (res.ok) {
+          const data = await res.json();
+          setSocials(data.socials || []);
+        }
+      } catch {
+        // quiet catch fallback
+      }
+    }
+    void loadSocials();
+  }, []);
+
   return (
     <footer className="relative overflow-hidden border-t border-[var(--border-color)] bg-[var(--mist)] text-[var(--ink)] transition-colors duration-200">
       <div className="aurora-soft pointer-events-none absolute inset-0 opacity-70" />
       <div className="relative mx-auto max-w-6xl px-6 py-16 md:px-10">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+          {/* Brand Info */}
           <div>
             <Logo size="lg" tagline />
             <p className="mt-6 max-w-xs text-sm leading-relaxed text-ink-soft">
@@ -28,6 +56,7 @@ export function SiteFooter() {
             </p>
           </div>
 
+          {/* Navigation Links */}
           <div>
             <p className="eyebrow">Explore</p>
             <ul className="mt-4 space-y-3 text-sm text-ink-soft">
@@ -41,12 +70,10 @@ export function SiteFooter() {
             </ul>
           </div>
 
+          {/* Hours & Location */}
           <div>
-            <p className="eyebrow">Visit &amp; hours</p>
+            <p className="eyebrow">Visit &amp; Hours</p>
             <ul className="mt-4 space-y-3 text-sm text-ink-soft">
-              {nav.map((item) => (
-                <li key={item.label} className="pt-0">{item.label === "Book an appointment" ? null : null}</li>
-              ))}
               <li>Monday – Saturday</li>
               <li>9:00 am – 8:00 pm</li>
               <li className="pt-2">
@@ -62,8 +89,55 @@ export function SiteFooter() {
               <li>{business.locality}, {business.region}</li>
             </ul>
           </div>
+
+          {/* Social Channels */}
+          <div>
+            <p className="eyebrow">Connect &amp; Socials</p>
+            <p className="mt-4 text-xs text-[var(--ink-soft)] leading-relaxed">
+              Follow Mari Esthetics for latest transformations, skin care tips &amp; promotions.
+            </p>
+
+            {socials.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {socials.map((item) => (
+                  <a
+                    key={item._id}
+                    href={item.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm"
+                  >
+                    <span>{getPlatformIcon(item.platform)}</span>
+                    <span>{item.label}</span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <a
+                  href="https://instagram.com/mariesthetics"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm"
+                >
+                  <span>📸</span>
+                  <span>Instagram</span>
+                </a>
+                <a
+                  href="https://facebook.com/mariesthetics"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm"
+                >
+                  <span>👤</span>
+                  <span>Facebook</span>
+                </a>
+              </div>
+            )}
+          </div>
         </div>
 
+        {/* Bottom Bar */}
         <div className="mt-14 flex flex-col items-start justify-between gap-6 border-t border-[var(--border-color)] pt-6 text-xs text-[var(--ink-soft)] sm:flex-row sm:items-center">
           <div>
             <p>© {new Date().getFullYear()} {business.name}. Edmonton, Alberta.</p>
@@ -77,4 +151,18 @@ export function SiteFooter() {
       </div>
     </footer>
   );
+}
+
+function getPlatformIcon(platform: string) {
+  switch (platform.toLowerCase()) {
+    case "instagram": return "📸";
+    case "facebook": return "👤";
+    case "tiktok": return "🎵";
+    case "whatsapp": return "💬";
+    case "youtube": return "▶️";
+    case "pinterest": return "📌";
+    case "x":
+    case "twitter": return "🐦";
+    default: return "🔗";
+  }
 }
