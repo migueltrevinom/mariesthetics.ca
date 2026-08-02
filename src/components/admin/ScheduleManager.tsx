@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
+import { createEdmontonDate } from "@/lib/timezone";
 
 export interface TimeShift {
   openTime: string;
@@ -217,8 +218,12 @@ export function ScheduleManager() {
     setMessage("");
     setError("");
     try {
-      const startIso = new Date(`${blockDate}T${blockStartTime}:00`).toISOString();
-      const endIso = new Date(`${blockDate}T${blockEndTime}:00`).toISOString();
+      const [yyyy, mm, dd] = blockDate.split("-").map(Number);
+      const [sH, sM] = blockStartTime.split(":").map(Number);
+      const [eH, eM] = blockEndTime.split(":").map(Number);
+
+      const startIso = createEdmontonDate(yyyy, mm, dd, sH, sM).toISOString();
+      const endIso = createEdmontonDate(yyyy, mm, dd, eH, eM).toISOString();
 
       const res = await fetch("/api/admin/schedule/blocks", {
         method: "POST",

@@ -1,5 +1,6 @@
 import { ScheduleRepository } from "../repositories/schedule.repository";
 import { WeeklyHourSetting, DateOverrideSetting, TimeShift } from "@/lib/db/models";
+import { createEdmontonDate, getEdmontonDateParts } from "@/lib/timezone";
 
 export async function getScheduleConfig() {
   const schedule = await ScheduleRepository.getSchedule();
@@ -30,10 +31,10 @@ export async function getEffectiveDaySchedule(dayIso: string) {
     };
   }
 
-  // Parse local day of week
+  // Parse day of week in Edmonton local time
   const [yyyy, mm, dd] = dayIso.split("-").map(Number);
-  const dayDate = new Date(yyyy, mm - 1, dd);
-  const dayOfWeek = dayDate.getDay();
+  const edmontonDate = createEdmontonDate(yyyy, mm, dd, 12, 0);
+  const dayOfWeek = getEdmontonDateParts(edmontonDate).dayOfWeek;
 
   const weeklySetting = schedule.weeklyHours.find((w) => w.dayOfWeek === dayOfWeek);
   let shifts: TimeShift[] = weeklySetting?.shifts || [];

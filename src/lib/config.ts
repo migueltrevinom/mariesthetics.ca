@@ -1,5 +1,8 @@
+import "@/lib/timezone";
+
 export const config = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  timeZone: "America/Edmonton",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "50762639742",
   studioAddress:
     process.env.NEXT_PUBLIC_STUDIO_ADDRESS ??

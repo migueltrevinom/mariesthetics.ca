@@ -300,12 +300,17 @@ export function ServiceEditor({
             <input
               placeholder="e.g. 60"
               type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              min="1"
+              step="1"
               style={{ backgroundColor: "var(--card-bg)" }}
               className="w-full border border-[var(--border-color)] px-3 py-2.5 text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
-              value={form.durationMin}
-              onChange={(e) =>
-                setForm({ ...form, durationMin: Number(e.target.value) })
-              }
+              value={form.durationMin || ""}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "");
+                setForm({ ...form, durationMin: val ? Math.max(1, parseInt(val, 10)) : 0 });
+              }}
             />
           </div>
 
@@ -317,11 +322,19 @@ export function ServiceEditor({
             <input
               placeholder="e.g. 120"
               type="number"
+              inputMode="decimal"
+              pattern="[0-9]*"
+              min="0"
               step="any"
               style={{ backgroundColor: "var(--card-bg)" }}
               className="w-full border border-[var(--border-color)] px-3 py-2.5 text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
               value={priceDollars}
-              onChange={(e) => setPriceDollars(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                // Ensure max one decimal point
+                const cleanVal = val.split(".").slice(0, 2).join(".");
+                setPriceDollars(cleanVal);
+              }}
             />
           </div>
 
@@ -333,11 +346,19 @@ export function ServiceEditor({
             <input
               placeholder="e.g. 25"
               type="number"
+              inputMode="decimal"
+              pattern="[0-9]*"
+              min="0"
               step="any"
               style={{ backgroundColor: "var(--card-bg)" }}
               className="w-full border border-[var(--border-color)] px-3 py-2.5 text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
               value={depositDollars}
-              onChange={(e) => setDepositDollars(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                // Ensure max one decimal point
+                const cleanVal = val.split(".").slice(0, 2).join(".");
+                setDepositDollars(cleanVal);
+              }}
             />
           </div>
 

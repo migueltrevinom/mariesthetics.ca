@@ -18,6 +18,7 @@ import {
   subDays,
   isToday,
 } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { formatCad } from "@/lib/money";
@@ -503,7 +504,7 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                                 {b.guest?.name}
                               </div>
                               <div className="text-[9px] opacity-80 leading-none truncate">
-                                {format(startDate, "h:mm a")} · {b.serviceId?.name}
+                                {formatInTimeZone(startDate, "America/Edmonton", "h:mm a")} · {b.serviceId?.name}
                               </div>
                             </div>
                           );

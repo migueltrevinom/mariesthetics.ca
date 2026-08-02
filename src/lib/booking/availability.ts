@@ -1,7 +1,12 @@
-import { addMinutes, setHours, setMinutes, startOfDay, isBefore, isAfter } from "date-fns";
+import { addMinutes, isBefore, isAfter } from "date-fns";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Service, CalendarBlock } from "@/lib/db/models";
 import { getEffectiveDaySchedule } from "@/app/api/admin/schedule/modules/schedule.module";
+import {
+  createEdmontonDate,
+  parseEdmontonDayIso,
+  getEdmontonDateParts,
+} from "@/lib/timezone";
 
 const SLOT_STEP_MIN = 30;
 const BUFFER_MIN = 30; // Minimum recovery break between appointments
@@ -19,9 +24,9 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
     return { service, slots: [] };
   }
 
-  // Parse local day of target date
+  // Parse target date in Edmonton time
   const [yyyy, mm, dd] = dayIso.split("-").map(Number);
-  const day = startOfDay(new Date(yyyy, mm - 1, dd)); // local time
+  const day = parseEdmontonDayIso(dayIso);
   const dayEnd = addMinutes(day, 24 * 60);
 
   // Fetch existing bookings for the day
@@ -53,8 +58,8 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
     const [openHour, openMin] = shift.openTime.split(":").map(Number);
     const [closeHour, closeMin] = shift.closeTime.split(":").map(Number);
 
-    let cursor = setMinutes(setHours(day, openHour), openMin);
-    const shiftClose = setMinutes(setHours(day, closeHour), closeMin);
+    let cursor = createEdmontonDate(yyyy, mm, dd, openHour, openMin);
+    const shiftClose = createEdmontonDate(yyyy, mm, dd, closeHour, closeMin);
 
     while (true) {
       const proposedEnd = addMinutes(cursor, service.durationMin);
@@ -93,25 +98,20 @@ export async function assertSlotFree(
   await connectDb();
   const now = new Date();
 
-  // 1. Check schedule operating hours & shifts for the start date
-  const yyyy = start.getFullYear();
-  const mm = String(start.getMonth() + 1).padStart(2, "0");
-  const dd = String(start.getDate()).padStart(2, "0");
-  const dayIso = `${yyyy}-${mm}-${dd}`;
+  // 1. Check schedule operating hours & shifts for the start date in Edmonton timezone
+  const { year, month, day: dayNum, isoDate: dayIso } = getEdmontonDateParts(start);
 
   const schedule = await getEffectiveDaySchedule(dayIso);
   if (!schedule.isOpen || !schedule.shifts || schedule.shifts.length === 0) {
     throw new Error("The studio is closed on this date.");
   }
 
-  const day = startOfDay(start);
-
   // Check if slot falls completely inside AT LEAST ONE working shift
   const fitsInShift = schedule.shifts.some((shift) => {
     const [openHour, openMin] = shift.openTime.split(":").map(Number);
     const [closeHour, closeMin] = shift.closeTime.split(":").map(Number);
-    const open = setMinutes(setHours(day, openHour), openMin);
-    const close = setMinutes(setHours(day, closeHour), closeMin);
+    const open = createEdmontonDate(year, month, dayNum, openHour, openMin);
+    const close = createEdmontonDate(year, month, dayNum, closeHour, closeMin);
     return !isBefore(start, open) && !isAfter(end, close);
   });
 
