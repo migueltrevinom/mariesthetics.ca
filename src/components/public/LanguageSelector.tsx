@@ -25,13 +25,19 @@ export function LanguageSelector() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] transition-all shadow-sm select-none"
+        style={{
+          backgroundColor: "var(--card-bg)",
+          color: "var(--ink)",
+          borderColor: "var(--border-color)",
+        }}
+        className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full border hover:border-[#c8a86b] transition-all shadow-sm select-none"
         aria-label="Select Language"
       >
         <span className="text-sm">{currentLang.flag}</span>
         <span className="tracking-wide">{currentLang.label}</span>
         <svg
-          className={`w-3.5 h-3.5 text-[var(--ink-soft)] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className="w-3.5 h-3.5 opacity-70 transition-transform duration-200"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -42,8 +48,18 @@ export function LanguageSelector() {
       </button>
 
       {open && (
-        <div className="absolute right-0 ltr:right-0 rtl:left-0 mt-2 w-48 rounded-2xl border border-[var(--border-color)] dark:border-[#c8a86b]/40 bg-white dark:bg-[#0d1310] text-[var(--ink)] shadow-2xl z-50 py-2 backdrop-blur-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-          <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider border-b border-[var(--border-color)]">
+        <div
+          style={{
+            backgroundColor: "var(--card-bg)",
+            color: "var(--ink)",
+            borderColor: "var(--border-color)",
+          }}
+          className="absolute right-0 ltr:right-0 rtl:left-0 mt-2 w-48 rounded-2xl border shadow-2xl z-50 py-2 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div
+            style={{ borderColor: "var(--border-color)", color: "var(--ink-soft)" }}
+            className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider border-b opacity-80"
+          >
             Select Language
           </div>
           {LANGUAGES.map((lang) => {
@@ -56,18 +72,18 @@ export function LanguageSelector() {
                   setLocale(lang.code as Locale);
                   setOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-medium transition-colors ${
-                  isSelected
-                    ? "bg-[#c8a86b]/20 font-bold text-[#967431] dark:text-[#c8a86b]"
-                    : "text-[var(--ink)] hover:bg-black/5 dark:hover:bg-white/10"
-                }`}
+                style={{
+                  backgroundColor: isSelected ? "rgba(200, 168, 107, 0.18)" : "transparent",
+                  color: isSelected ? "#c8a86b" : "var(--ink)",
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-semibold transition-colors hover:bg-[#c8a86b]/15"
               >
                 <span className="flex items-center gap-2.5">
                   <span className="text-sm">{lang.flag}</span>
                   <span>{lang.label}</span>
                 </span>
                 {isSelected && (
-                  <span className="text-[#967431] dark:text-[#c8a86b] font-bold">✓</span>
+                  <span className="text-[#c8a86b] font-bold">✓</span>
                 )}
               </button>
             );
