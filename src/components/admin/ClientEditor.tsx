@@ -53,6 +53,7 @@ export function ClientEditor({
   } | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Upload states
@@ -433,12 +434,18 @@ export function ClientEditor({
                 {/* A. BOOKINGS LOG TAB */}
                 {activeTab === "bookings" && (
                   <div className="space-y-4">
+                    <p className="text-[11px] text-[var(--ink-soft)] font-medium flex items-center gap-1.5 bg-black/5 dark:bg-white/5 p-2.5 rounded-xl border border-[var(--border-color)]">
+                      <span>🔍</span>
+                      <span>Click any booking card below to inspect appointment details, linked payment transactions, and remaining balance.</span>
+                    </p>
+
                     {details?.bookings && details.bookings.length > 0 ? (
                       <div className="grid gap-3">
                         {details.bookings.map((b) => (
                           <div
                             key={b._id}
-                            className="border border-[var(--border-color)] bg-black/5 dark:bg-black/10 p-4 rounded-xl flex flex-col sm:flex-row justify-between gap-3 text-left"
+                            onClick={() => setSelectedBooking(b)}
+                            className="border border-[var(--border-color)] bg-black/5 dark:bg-black/10 hover:border-[#c8a86b]/60 hover:bg-black/10 dark:hover:bg-white/5 p-4 rounded-xl flex flex-col sm:flex-row justify-between gap-3 text-left cursor-pointer transition-all"
                           >
                             <div>
                               <p className="text-sm font-bold text-[var(--ink)]">
@@ -459,15 +466,15 @@ export function ClientEditor({
                             <div className="flex flex-col items-start sm:items-end justify-between shrink-0">
                               <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
                                 b.status === "confirmed" || b.status === "completed"
-                                  ? "border-green-500/30 bg-green-500/10 text-green-400"
+                                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                                   : b.status === "cancelled"
-                                  ? "border-red-500/30 bg-red-500/10 text-red-400"
+                                  ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
                                   : "border-amber-500/30 bg-amber-500/10 text-amber-400"
                               }`}>
                                 {b.status}
                               </span>
                               
-                              <p className="text-xs font-bold text-[var(--ink)] mt-2">
+                              <p className="text-xs font-bold text-[#c8a86b] mt-2">
                                 Total: CAD ${(b.paymentSummary?.totalCents / 100).toFixed(2)}
                               </p>
                             </div>
@@ -989,6 +996,259 @@ export function ClientEditor({
                 <div className="border border-dashed border-[var(--border-color)] p-4 rounded-2xl text-center text-xs text-[var(--ink-soft)]">
                   No linked booking record found for this transaction.
                 </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Slide-Over Side Drawer for Selected Booking Details */}
+      {selectedBooking && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => setSelectedBooking(null)}
+          />
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[520px] md:w-[580px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-50 border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
+            {/* Drawer Header */}
+            <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between bg-black/5 dark:bg-black/30 shrink-0">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-lg font-[family-name:var(--font-display)] text-[var(--ink)]">
+                    {selectedBooking.serviceId?.name || "Appointment Booking"}
+                  </h3>
+                  <span className={`text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
+                    selectedBooking.status === "confirmed" || selectedBooking.status === "completed"
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                      : selectedBooking.status === "cancelled"
+                      ? "border-rose-500/40 bg-rose-500/10 text-rose-500"
+                      : "border-amber-500/40 bg-amber-500/10 text-amber-500"
+                  }`}>
+                    {selectedBooking.status}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[var(--ink-soft)] mt-1 font-mono">
+                  Booking ID: {selectedBooking._id}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedBooking(null)}
+                className="text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] rounded-xl w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Appointment Schedule & Service Card */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <h4 className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
+                  📅 Appointment Schedule &amp; Treatment
+                </h4>
+
+                <div className="grid grid-cols-2 gap-3 text-xs pt-1">
+                  <div>
+                    <span className="text-[10px] text-[var(--ink-soft)] uppercase font-bold tracking-wider block">
+                      Scheduled Date
+                    </span>
+                    <span className="font-semibold text-[var(--ink)] block mt-0.5">
+                      {new Date(selectedBooking.start).toLocaleDateString("en-CA", { dateStyle: "full" })}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-[var(--ink-soft)] uppercase font-bold tracking-wider block">
+                      Scheduled Time
+                    </span>
+                    <span className="font-mono text-[#c8a86b] font-bold block mt-0.5">
+                      {new Date(selectedBooking.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+
+                  {selectedBooking.serviceId?.durationMin && (
+                    <div>
+                      <span className="text-[10px] text-[var(--ink-soft)] uppercase font-bold tracking-wider block">
+                        Treatment Duration
+                      </span>
+                      <span className="text-[var(--ink)] block mt-0.5">
+                        {selectedBooking.serviceId.durationMin} minutes
+                      </span>
+                    </div>
+                  )}
+
+                  <div>
+                    <span className="text-[10px] text-[var(--ink-soft)] uppercase font-bold tracking-wider block">
+                      Deposit Payment Method
+                    </span>
+                    <span className="capitalize font-semibold text-[var(--ink)] block mt-0.5">
+                      {selectedBooking.depositMethod || "Stripe / Online"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Accounting & Financial Summary Card */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <h4 className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
+                  💵 Accounting &amp; Paid Summary
+                </h4>
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-[var(--ink-soft)]">Total Treatment Price:</span>
+                    <span className="font-bold text-[var(--ink)]">
+                      CAD ${(selectedBooking.paymentSummary?.totalCents / 100 || 0).toFixed(2)}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between text-emerald-500 font-medium">
+                    <span>Paid Deposit / Payments:</span>
+                    <span>
+                      -${(selectedBooking.paymentSummary?.paidCents / 100 || 0).toFixed(2)}
+                    </span>
+                  </div>
+
+                  {selectedBooking.paymentSummary?.discountCents > 0 && (
+                    <div className="flex justify-between text-amber-500 font-medium">
+                      <span>Coupons &amp; Discounts:</span>
+                      <span>
+                        -${(selectedBooking.paymentSummary.discountCents / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between pt-2 border-t border-[var(--border-color)] font-bold text-sm">
+                    <span className="text-[var(--ink)]">Balance Remaining Due:</span>
+                    <span className="text-[#c8a86b]">
+                      CAD ${(selectedBooking.paymentSummary?.balanceDueCents / 100 || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Linked Payment Transactions Section */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <h4 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+                  💳 Linked Payment Transactions ({details?.payments?.filter((p: any) => String(p.bookingId?._id || p.bookingId) === String(selectedBooking._id)).length || 0})
+                </h4>
+
+                {(() => {
+                  const linkedPayments = details?.payments?.filter(
+                    (p: any) => String(p.bookingId?._id || p.bookingId) === String(selectedBooking._id)
+                  ) || [];
+
+                  if (linkedPayments.length === 0) {
+                    return (
+                      <p className="text-xs text-[var(--ink-soft)] italic py-2">
+                        No individual payment transactions logged for this booking yet.
+                      </p>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-3">
+                      {linkedPayments.map((p: any) => (
+                        <div
+                          key={p._id}
+                          className="p-3.5 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] space-y-2 text-xs"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-[#c8a86b]">
+                              CAD ${(p.amountCents / 100).toFixed(2)}
+                            </span>
+                            <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                              p.status === "succeeded"
+                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                                : p.status === "failed"
+                                ? "border-rose-500/40 bg-rose-500/10 text-rose-400"
+                                : "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                            }`}>
+                              {p.status}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-between text-[11px] text-[var(--ink-soft)] gap-2">
+                            <span className="capitalize">
+                              Method: <strong>{p.method}</strong> ({p.kind || "deposit"})
+                            </span>
+                            <span className="font-mono">
+                              {new Date(p.createdAt).toLocaleDateString("en-CA")}
+                            </span>
+                          </div>
+
+                          {p.stripePaymentIntentId && (
+                            <div className="pt-1 flex items-center justify-between gap-2 border-t border-[var(--border-color)]/40">
+                              <span className="text-[10px] text-[var(--ink-soft)] font-mono">
+                                Stripe: <code className="text-[#c8a86b]">{p.stripePaymentIntentId}</code>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(p.stripePaymentIntentId);
+                                  setCopiedId(p._id);
+                                  setTimeout(() => setCopiedId(null), 2000);
+                                }}
+                                className="text-[10px] px-2 py-0.5 rounded bg-[#c8a86b]/15 text-[#c8a86b] font-bold"
+                              >
+                                {copiedId === p._id ? "✓ Copied" : "Copy ID"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Guest Information & Notes */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <h4 className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
+                  👤 Guest Information &amp; Special Notes
+                </h4>
+
+                <div className="space-y-1.5 text-xs text-[var(--ink)]">
+                  <p><strong>Guest Name:</strong> {selectedBooking.guest?.name || form.name}</p>
+                  <p><strong>Email:</strong> {selectedBooking.guest?.email || form.email}</p>
+                  {selectedBooking.guest?.phone && (
+                    <p><strong>Phone:</strong> {selectedBooking.guest.phone}</p>
+                  )}
+                </div>
+
+                {selectedBooking.notes ? (
+                  <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] text-xs text-[var(--ink)]">
+                    <span className="text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider block mb-1">
+                      Custom Appointment Notes:
+                    </span>
+                    <p className="leading-relaxed font-sans">{selectedBooking.notes}</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-[var(--ink-soft)] italic">
+                    No custom appointment notes specified.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Drawer Footer Actions */}
+            <div className="p-4 border-t border-[var(--border-color)] bg-black/5 dark:bg-black/30 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+              <Link
+                href="/admin/bookings"
+                className="btn-ghost text-xs px-4 py-2.5 w-full sm:w-auto text-center"
+              >
+                📅 Open Booking Calendar
+              </Link>
+
+              {selectedBooking.paymentSummary?.balanceDueCents > 0 && (
+                <Link
+                  href={`/admin/payments?bookingId=${selectedBooking._id}&clientId=${form.name}`}
+                  className="btn-primary text-xs px-5 py-2.5 shadow-lg font-bold w-full sm:w-auto text-center flex items-center justify-center gap-1.5"
+                >
+                  <span>💳 Create Payment Link for Balance (${(selectedBooking.paymentSummary.balanceDueCents / 100).toFixed(2)})</span>
+                </Link>
               )}
             </div>
           </div>
