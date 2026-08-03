@@ -500,6 +500,14 @@ export function ClientEditor({
                                   Notes: {b.notes}
                                 </p>
                               )}
+                              {((b.paymentSummary?.discountCents || 0) > 0 || b.couponId) && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-md mt-2">
+                                  <span>🏷️ Coupon / Discount:</span>
+                                  <span className="font-bold font-mono">
+                                    {b.couponId?.code ? b.couponId.code : `-$${((b.paymentSummary?.discountCents || 0) / 100).toFixed(2)}`}
+                                  </span>
+                                </span>
+                              )}
                             </div>
                             <div className="flex flex-col items-start sm:items-end justify-between shrink-0">
                               <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
@@ -513,7 +521,7 @@ export function ClientEditor({
                               </span>
                               
                               <p className="text-xs font-bold text-[#c8a86b] mt-2">
-                                Total: CAD ${(b.paymentSummary?.totalCents / 100).toFixed(2)}
+                                Total: CAD ${((b.paymentSummary?.totalCents || 0) / 100).toFixed(2)}
                               </p>
                             </div>
                           </div>

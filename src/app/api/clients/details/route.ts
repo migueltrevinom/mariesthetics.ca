@@ -27,6 +27,7 @@ async function handleGetDetails(req: Request): Promise<NextResponse> {
     const bookings = await Booking.find({ clientId: id })
       .sort({ start: -1 })
       .populate("serviceId")
+      .populate("couponId")
       .lean();
 
     const bookingIds = bookings.map((b) => b._id);
