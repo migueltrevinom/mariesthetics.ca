@@ -366,12 +366,12 @@ function PaymentLinkContent() {
 
 				{/* BOOKING APPOINTMENT SUMMARY CARD */}
 				{b && bookingStartDate && (
-					<div className="border border-[#c8a86b]/30 bg-black/10 dark:bg-black/30 p-6 rounded-2xl shadow-lg backdrop-blur-md space-y-4 text-left print:hidden">
+					<div className="border border-[#c8a86b]/40 bg-[var(--card-bg)] text-[var(--ink)] p-6 rounded-2xl shadow-xl space-y-4 text-left print:hidden transition-colors duration-200">
 						<div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-							<span className="text-[10px] uppercase font-bold tracking-wider text-[#c8a86b] flex items-center gap-1.5">
+							<span className="text-[10px] uppercase font-bold tracking-wider text-[#b08d4b] dark:text-[#c8a86b] flex items-center gap-1.5">
 								<span>📅 Appointment Details</span>
 							</span>
-							<span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+							<span className="text-xs font-semibold px-2.5 py-0.5 rounded-full border border-emerald-600/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-mono">
 								{b.durationMin} Min Treatment
 							</span>
 						</div>
@@ -380,7 +380,7 @@ function PaymentLinkContent() {
 							<h3 className="font-[family-name:var(--font-display)] text-xl text-[var(--ink)] font-bold">
 								{b.serviceName}
 							</h3>
-							<p className="text-sm font-semibold text-[#c8a86b]">
+							<p className="text-sm font-bold text-[#9e762c] dark:text-[#e2c78c] font-mono">
 								{format(bookingStartDate, "EEEE, MMMM d, yyyy")} at {format(bookingStartDate, "h:mm a")}
 							</p>
 							<p className="text-xs text-[var(--ink-soft)] pt-1 flex items-center gap-1">
@@ -407,10 +407,10 @@ function PaymentLinkContent() {
 								<button
 									type="button"
 									onClick={handleDownloadIcs}
-									className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+									className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
 										isAppleDevice
 											? "bg-[#2f5d4a] hover:bg-[#3b725b] text-white border border-transparent"
-											: "border border-[var(--border-color)] text-[var(--ink-soft)] hover:text-[var(--ink)] bg-[var(--card-bg)]"
+											: "border border-[var(--border-color)] text-[var(--ink)] hover:text-[#c8a86b] hover:border-[#c8a86b] bg-[var(--card-bg)]"
 									}`}
 								>
 									<span></span>
@@ -422,7 +422,7 @@ function PaymentLinkContent() {
 									href={googleCalendarUrl}
 									target="_blank"
 									rel="noreferrer"
-									className="px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs font-semibold text-[var(--ink-soft)] hover:text-[var(--ink)] hover:border-[#c8a86b] flex items-center gap-1.5 transition-all"
+									className="px-3.5 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs font-semibold text-[var(--ink)] hover:text-[#c8a86b] hover:border-[#c8a86b] flex items-center gap-1.5 transition-all shadow-sm"
 								>
 									<span>📅</span>
 									<span>Google Calendar</span>
@@ -433,7 +433,7 @@ function PaymentLinkContent() {
 									href={outlookCalendarUrl}
 									target="_blank"
 									rel="noreferrer"
-									className="px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs font-semibold text-[var(--ink-soft)] hover:text-[var(--ink)] hover:border-[#c8a86b] flex items-center gap-1.5 transition-all"
+									className="px-3.5 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs font-semibold text-[var(--ink)] hover:text-[#c8a86b] hover:border-[#c8a86b] flex items-center gap-1.5 transition-all shadow-sm"
 								>
 									<span>✉</span>
 									<span>Outlook</span>
@@ -444,7 +444,7 @@ function PaymentLinkContent() {
 									<button
 										type="button"
 										onClick={handleDownloadIcs}
-										className="px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs font-semibold text-[var(--ink-soft)] hover:text-[var(--ink)] flex items-center gap-1.5 transition-all cursor-pointer"
+										className="px-3.5 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs font-semibold text-[var(--ink)] hover:text-[#c8a86b] flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
 									>
 										<span>📥</span>
 										<span>Download .ics File</span>
@@ -479,7 +479,7 @@ function PaymentLinkContent() {
 							</div>
 
 							{emailStatus && (
-								<p className={`text-xs font-medium mt-1 ${emailStatus.type === "success" ? "text-emerald-400" : "text-red-400"}`}>
+								<p className={`text-xs font-medium mt-1 ${emailStatus.type === "success" ? "text-emerald-500" : "text-red-500"}`}>
 									{emailStatus.text}
 								</p>
 							)}
