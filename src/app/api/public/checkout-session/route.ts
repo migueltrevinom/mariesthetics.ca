@@ -64,6 +64,50 @@ async function syncBookingOnPaidSession(bookingId: string, amountPaid: number): 
 	return Booking.findById(bookingId).populate("serviceId").lean();
 }
 
+/**
+ * Helper sub-function to auto-sync StripePaymentLink, Payment record, and Booking models when a Checkout session is paid.
+ */
+async function syncPaidCheckoutSession(params: {
+	sessionId: string;
+	session: any;
+	link: any;
+	paymentRecord: any;
+	booking: any;
+}): Promise<{ link: any; paymentRecord: any; booking: any }> {
+	const { sessionId, session, link, paymentRecord, booking } = params;
+	let updatedLink = link;
+	let updatedPaymentRecord = paymentRecord;
+	let updatedBooking = booking;
+
+	// 1. Sync StripePaymentLink if present
+	if (updatedLink && updatedLink.status !== "paid") {
+		await StripePaymentLink.findOneAndUpdate(
+			{ stripeSessionId: sessionId },
+			{ $set: { status: "paid", paidAt: new Date() } }
+		);
+		updatedLink = { ...updatedLink, status: "paid" };
+	}
+
+	// 2. Sync Payment record if present
+	if (updatedPaymentRecord && updatedPaymentRecord.status !== "succeeded") {
+		await Payment.findByIdAndUpdate(updatedPaymentRecord._id, {
+			$set: { status: "succeeded" },
+		});
+		updatedPaymentRecord = { ...updatedPaymentRecord, status: "succeeded" };
+	}
+
+	// 3. Sync Booking status and paymentSummary if present via side function
+	if (updatedBooking) {
+		const amountPaid = session?.amount_total || updatedPaymentRecord?.amountCents || updatedLink?.amountCents || 0;
+		const syncedBooking = await syncBookingOnPaidSession(updatedBooking._id, amountPaid);
+		if (syncedBooking) {
+			updatedBooking = syncedBooking;
+		}
+	}
+
+	return { link: updatedLink, paymentRecord: updatedPaymentRecord, booking: updatedBooking };
+}
+
 export async function GET(req: Request) {
 	try {
 		const { searchParams } = new URL(req.url);
@@ -110,33 +154,18 @@ export async function GET(req: Request) {
 			paymentRecord = await Payment.findOne({ stripeCheckoutSessionId: sessionId }).lean();
 		}
 
-		// If session is paid, auto-sync database states
+		// If session is paid, auto-sync database states via side sub-function
 		if (session && session.payment_status === "paid") {
-			// Sync StripePaymentLink if present
-			if (link && link.status !== "paid") {
-				await StripePaymentLink.findOneAndUpdate(
-					{ stripeSessionId: sessionId },
-					{ $set: { status: "paid", paidAt: new Date() } }
-				);
-				link.status = "paid";
-			}
-
-			// Sync Payment record if present
-			if (paymentRecord && paymentRecord.status !== "succeeded") {
-				await Payment.findByIdAndUpdate(paymentRecord._id, {
-					$set: { status: "succeeded" },
-				});
-				paymentRecord.status = "succeeded";
-			}
-
-			// Sync Booking status and paymentSummary if present via side function
-			if (booking) {
-				const amountPaid = session.amount_total || paymentRecord?.amountCents || link?.amountCents || 0;
-				const updatedBooking = await syncBookingOnPaidSession(booking._id, amountPaid);
-				if (updatedBooking) {
-					booking = updatedBooking;
-				}
-			}
+			const synced = await syncPaidCheckoutSession({
+				sessionId: sessionId!,
+				session,
+				link,
+				paymentRecord,
+				booking,
+			});
+			link = synced.link;
+			paymentRecord = synced.paymentRecord;
+			booking = synced.booking;
 		}
 
 		// Retrieve payment method details
