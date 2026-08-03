@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { MegaMenu, type NavService } from "@/components/public/MegaMenu";
 import { Logo } from "@/components/public/Logo";
 import { LanguageSelector } from "@/components/public/LanguageSelector";
+import { NextAvailablePill } from "@/components/public/NextAvailablePill";
 import { useLanguage } from "@/components/i18n/LanguageContext";
 
 export function SiteHeader({ navServices = [] }: { navServices?: NavService[] }) {
@@ -41,6 +42,10 @@ export function SiteHeader({ navServices = [] }: { navServices?: NavService[] })
           </Link>
 
           <div className="flex items-center gap-3 md:gap-4">
+            <div className="hidden lg:inline-flex">
+              <NextAvailablePill />
+            </div>
+
             <LanguageSelector />
 
             <div className="hidden sm:inline-flex">

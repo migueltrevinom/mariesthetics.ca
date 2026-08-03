@@ -46,11 +46,21 @@ function formatSlotTime(iso: string) {
   return `${hour}:${m === 0 ? "00" : m} ${ampm}`;
 }
 
-export function BookingWizard({ initialServiceId }: { initialServiceId?: string }) {
+export function BookingWizard({
+  initialServiceId,
+  initialServiceSlug,
+  initialDate,
+  initialTime,
+}: {
+  initialServiceId?: string;
+  initialServiceSlug?: string;
+  initialDate?: string;
+  initialTime?: string;
+}) {
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState(initialServiceId ?? "");
   const [activeCategory, setActiveCategory] = useState("all");
-  const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedStart, setSelectedStart] = useState("");
   const [step, setStep] = useState<Step>("service");
@@ -76,14 +86,24 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
     fetch("/api/services")
       .then((r) => r.json())
       .then((data) => {
-        setServices(data.services ?? []);
-        if (initialServiceId) {
-          setServiceId(initialServiceId);
+        const loadedServices: Service[] = data.services ?? [];
+        setServices(loadedServices);
+
+        let targetServiceId = initialServiceId || "";
+        if (!targetServiceId && initialServiceSlug) {
+          const match = loadedServices.find((s: any) => s.slug === initialServiceSlug);
+          if (match) targetServiceId = match._id;
+        }
+
+        if (targetServiceId || initialDate) {
+          if (targetServiceId) setServiceId(targetServiceId);
+          else if (loadedServices.length > 0) setServiceId(loadedServices[0]._id);
+          if (initialDate) setDate(initialDate);
           setStep("slot");
         }
       })
       .catch(() => setError("Could not load services. Is MongoDB connected?"));
-  }, [initialServiceId]);
+  }, [initialServiceId, initialServiceSlug, initialDate]);
 
   useEffect(() => {
     if (!serviceId || step !== "slot") return;
