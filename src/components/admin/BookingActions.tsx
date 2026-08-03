@@ -185,6 +185,28 @@ export function BookingActions({
     }
   }
 
+  const [sendingReviewReq, setSendingReviewReq] = useState(false);
+
+  async function handleSendReviewRequest() {
+    setSendingReviewReq(true);
+    setMessage("");
+    setError("");
+    try {
+      const res = await fetch("/api/reviews/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send review request");
+      setMessage(data.message || "Review invitation sent to client email!");
+    } catch (err: any) {
+      setError(err.message || "Failed to send review request");
+    } finally {
+      setSendingReviewReq(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3 text-sm text-left">
       {/* Notifications */}
@@ -244,6 +266,16 @@ export function BookingActions({
           <span>✓ Mark Appointment Completed</span>
         </button>
       )}
+
+      {/* Send Review Link Trigger */}
+      <button
+        type="button"
+        disabled={loading || sendingReviewReq}
+        onClick={() => void handleSendReviewRequest()}
+        className="w-full border border-[#c8a86b]/40 bg-[#c8a86b]/10 hover:bg-[#c8a86b]/20 text-[#c8a86b] py-2.5 px-4 text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+      >
+        <span>{sendingReviewReq ? "Sending Email..." : "⭐ Send Review Link via Email"}</span>
+      </button>
 
       {/* Balance Payment Link Generator & Actions */}
       {balanceDueCents > 0 && (

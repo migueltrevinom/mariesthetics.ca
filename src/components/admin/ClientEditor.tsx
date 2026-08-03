@@ -50,6 +50,7 @@ export function ClientEditor({
     sessionImages: any[];
     creditCards: any[];
     subscriptions: any[];
+    reviews?: any[];
   } | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
@@ -98,6 +99,37 @@ export function ClientEditor({
   useEffect(() => {
     void fetchDetails();
   }, [fetchDetails]);
+
+  // Handle Save Client Form
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const url = isEdit ? `/api/admin/clients` : `/api/admin/clients`;
+      const method = isEdit ? "PUT" : "POST";
+      const payload = isEdit ? { id: initialClient?.id, ...form } : form;
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save client");
+
+      router.refresh();
+      if (!isEdit) {
+        router.push("/admin/clients");
+      }
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   // Auto-select first service if updated
   useEffect(() => {
@@ -403,6 +435,7 @@ export function ClientEditor({
             {[
               { id: "bookings", label: "Bookings" },
               { id: "payments", label: "Payments" },
+              { id: "reviews", label: "Reviews ⭐" },
               { id: "images", label: "Session Images" },
               { id: "billing", label: "Billing Information" },
               { id: "subscription", label: "Subscription" },
@@ -544,6 +577,63 @@ export function ClientEditor({
                     ) : (
                       <p className="text-xs text-[var(--ink-soft)] italic text-center py-6">
                         No billing payments logged yet.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* C. CLIENT REVIEWS TAB */}
+                {activeTab === "reviews" && (
+                  <div className="space-y-4">
+                    <p className="text-[11px] text-[var(--ink-soft)] font-medium flex items-center gap-1.5 bg-black/5 dark:bg-white/5 p-2.5 rounded-xl border border-[var(--border-color)]">
+                      <span>⭐</span>
+                      <span>All review invitations and submitted feedback linked to this client.</span>
+                    </p>
+
+                    {details?.reviews && details.reviews.length > 0 ? (
+                      <div className="grid gap-3">
+                        {details.reviews.map((rev: any) => (
+                          <div
+                            key={rev._id}
+                            className="border border-[var(--border-color)] bg-black/5 dark:bg-black/10 p-4 rounded-xl flex flex-col sm:flex-row justify-between gap-3 text-left shadow-sm"
+                          >
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-[var(--ink)]">
+                                  {rev.serviceId?.name || "Esthetics Service"}
+                                </span>
+                                <span className="text-xs text-[#c8a86b] font-bold">
+                                  {rev.status === "submitted" ? "★".repeat(rev.rating) : ""}
+                                </span>
+                              </div>
+                              <p className="text-xs text-[var(--ink-soft)] italic">
+                                {rev.comment ? `"${rev.comment}"` : "No comment submitted yet."}
+                              </p>
+                              <p className="text-[10px] text-[var(--ink-soft)] font-mono">
+                                Date: {new Date(rev.submittedAt || rev.createdAt).toLocaleDateString("en-CA")}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 self-start sm:self-center">
+                              <span className={`px-2.5 py-0.5 rounded-full text-[9px] uppercase tracking-wider font-extrabold border ${
+                                rev.status === "submitted"
+                                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                                  : "border-[#c8a86b]/40 bg-[#c8a86b]/10 text-[#c8a86b]"
+                              }`}>
+                                {rev.status}
+                              </span>
+                              {rev.isVisibleOnLanding && (
+                                <span className="px-2 py-0.5 rounded-full text-[9px] uppercase font-bold bg-[#c8a86b]/15 text-[#c8a86b] border border-[#c8a86b]/30">
+                                  Landing Page
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[var(--ink-soft)] italic text-center py-6">
+                        No reviews submitted or pending for this client.
                       </p>
                     )}
                   </div>

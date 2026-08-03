@@ -6,6 +6,7 @@ import { Payment } from "@/lib/db/models/Payment";
 import { ServiceImage } from "@/lib/db/models/ServiceImage";
 import { ClientCreditCard } from "@/lib/db/models/ClientCreditCard";
 import { ClientSubscription } from "@/lib/db/models/ClientSubscription";
+import { Review } from "@/lib/db/models/Review";
 import "@/lib/db/models/Service"; // Ensure Service schema is registered
 import "@/lib/db/models/SubscriptionPlan"; // Ensure SubscriptionPlan schema is registered
 import mongoose from "mongoose";
@@ -55,12 +56,22 @@ async function handleGetDetails(req: Request): Promise<NextResponse> {
       .populate("planId")
       .lean();
 
+    // Fetch client reviews
+    const reviews = await Review.find({
+      $or: [{ clientId: id }, { bookingId: { $in: bookingIds } }],
+    })
+      .sort({ createdAt: -1 })
+      .populate("serviceId")
+      .populate("bookingId")
+      .lean();
+
     return NextResponse.json({
       bookings,
       payments,
       sessionImages,
       creditCards,
       subscriptions,
+      reviews,
     });
   } catch (err: any) {
     console.error("[ClientDetails GET Error]:", err.message);
