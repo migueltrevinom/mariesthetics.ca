@@ -8,9 +8,10 @@ export async function getClients(params: {
   limit: number;
   search: string;
   filter: string;
+  sortBy?: string;
 }) {
   await connectDb();
-  const { page, limit, search, filter } = params;
+  const { page, limit, search, filter, sortBy = "createdAt_desc" } = params;
 
   // Build Mongo query object
   const query: any = {};
@@ -38,12 +39,21 @@ export async function getClients(params: {
     query.subscription = { $ne: null };
   }
 
+  let sortObj: any = { createdAt: -1, _id: -1 };
+  if (sortBy === "createdAt_asc") {
+    sortObj = { createdAt: 1, _id: 1 };
+  } else if (sortBy === "name_asc") {
+    sortObj = { name: 1 };
+  } else if (sortBy === "name_desc") {
+    sortObj = { name: -1 };
+  }
+
   const skip = (page - 1) * limit;
 
   // Execute count and paginated query concurrently
   const [rawClients, total] = await Promise.all([
     Client.find(query)
-      .sort({ createdAt: -1 })
+      .sort(sortObj)
       .skip(skip)
       .limit(limit)
       .populate("subscription")

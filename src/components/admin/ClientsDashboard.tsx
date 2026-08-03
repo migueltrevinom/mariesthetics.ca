@@ -30,6 +30,7 @@ export function ClientsDashboard() {
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("createdAt_desc");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalClients, setTotalClients] = useState(0);
@@ -45,6 +46,7 @@ export function ClientsDashboard() {
         limit: "20",
         search,
         filter,
+        sortBy,
       });
       const res = await fetch(`/api/clients?${query.toString()}`);
       if (!res.ok) throw new Error("Failed to load client directory.");
@@ -57,7 +59,7 @@ export function ClientsDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, filter]);
+  }, [page, search, filter, sortBy]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -197,9 +199,19 @@ export function ClientsDashboard() {
           <table className="w-full text-left border-collapse min-w-[850px]">
             <thead>
               <tr className="border-b border-[var(--border-color)] bg-black/5 dark:bg-black/20 text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider">
-                <th className="py-4 px-6">Client Profile</th>
+                <th className="py-4 px-6 cursor-pointer select-none hover:text-[var(--ink)]" onClick={() => setSortBy(sortBy === "name_asc" ? "name_desc" : "name_asc")}>
+                  <div className="flex items-center gap-1">
+                    <span>Client Profile</span>
+                    {sortBy.startsWith("name") && (<span>{sortBy === "name_asc" ? "↑" : "↓"}</span>)}
+                  </div>
+                </th>
                 <th className="py-4 px-4">Status</th>
-                <th className="py-4 px-4">Joined Date</th>
+                <th className="py-4 px-4 cursor-pointer select-none hover:text-[var(--ink)]" onClick={() => setSortBy(sortBy === "createdAt_desc" ? "createdAt_asc" : "createdAt_desc")}>
+                  <div className="flex items-center gap-1 text-[#c8a86b]">
+                    <span>Joined Date</span>
+                    <span>{sortBy === "createdAt_desc" ? "↓" : "↑"}</span>
+                  </div>
+                </th>
                 <th className="py-4 px-4">Last Booking Date</th>
                 <th className="py-4 px-4">Total Bookings</th>
                 <th className="py-4 px-4">Referral</th>

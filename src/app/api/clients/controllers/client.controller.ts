@@ -17,8 +17,9 @@ export async function handleGetClients(req: Request): Promise<NextResponse> {
     const limit = Math.max(1, parseInt(searchParams.get("limit") || "20"));
     const search = searchParams.get("search") || "";
     const filter = searchParams.get("filter") || "all";
+    const sortBy = searchParams.get("sortBy") || "createdAt_desc";
 
-    const data = await getClients({ page, limit, search, filter });
+    const data = await getClients({ page, limit, search, filter, sortBy });
     return NextResponse.json(data);
   } catch (err: any) {
     console.error("[Client Controller GET Error]:", err.message);
