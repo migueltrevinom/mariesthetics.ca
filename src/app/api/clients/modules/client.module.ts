@@ -1,5 +1,6 @@
 import { connectDb } from "@/lib/db/connect";
 import { Client } from "@/lib/db/models/Client";
+import { Booking } from "@/lib/db/models/Booking";
 import "@/lib/db/models/ClientSubscription"; // Ensure subscription schema is loaded
 
 export async function getClients(params: {
@@ -40,7 +41,7 @@ export async function getClients(params: {
   const skip = (page - 1) * limit;
 
   // Execute count and paginated query concurrently
-  const [clients, total] = await Promise.all([
+  const [rawClients, total] = await Promise.all([
     Client.find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -49,6 +50,29 @@ export async function getClients(params: {
       .lean(),
     Client.countDocuments(query),
   ]);
+
+  const clientIds = rawClients.map((c: any) => c._id);
+  const bookingStats = await Booking.aggregate([
+    { $match: { clientId: { $in: clientIds } } },
+    {
+      $group: {
+        _id: "$clientId",
+        lastBookingDate: { $max: "$start" },
+        totalBookings: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const statsMap = new Map(bookingStats.map((b: any) => [String(b._id), b]));
+
+  const clients = rawClients.map((c: any) => {
+    const s = statsMap.get(String(c._id));
+    return {
+      ...c,
+      lastBookingDate: s?.lastBookingDate ? new Date(s.lastBookingDate).toISOString() : null,
+      totalBookings: s?.totalBookings || 0,
+    };
+  });
 
   return {
     clients,

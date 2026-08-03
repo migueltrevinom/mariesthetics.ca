@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { format } from "date-fns";
 
 type ClientRow = {
   _id: string;
@@ -12,6 +13,9 @@ type ClientRow = {
   banned: boolean;
   referralCode?: string;
   subscription?: any;
+  createdAt?: string;
+  lastBookingDate?: string | null;
+  totalBookings?: number;
 };
 
 const FILTERS = [
@@ -45,7 +49,7 @@ export function ClientsDashboard() {
       const res = await fetch(`/api/clients?${query.toString()}`);
       if (!res.ok) throw new Error("Failed to load client directory.");
       const data = await res.json();
-      setClients(data.clients);
+      setClients(data.clients || []);
       setTotalPages(data.totalPages || 1);
       setTotalClients(data.total || 0);
     } catch (err: any) {
@@ -123,10 +127,10 @@ export function ClientsDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
-            Clients
+            Client Directory
           </h1>
           <p className="mt-2 text-sm text-[var(--ink-soft)] max-w-xl">
-            Directory of client accounts registered via email OTP. Adjust permissions, manage active memberships, or restrict account scopes below.
+            Complete database of client accounts, registration dates, and appointment history. Select any client to view or manage payment links.
           </p>
         </div>
         
@@ -140,7 +144,6 @@ export function ClientsDashboard() {
 
       {/* Search and Filters Segment */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-[var(--border-color)] bg-[var(--card-bg)] rounded-2xl shadow-sm">
-        
         {/* Search box */}
         <div className="relative flex-1 max-w-md w-full">
           <input
@@ -179,98 +182,174 @@ export function ClientsDashboard() {
             </button>
           ))}
         </div>
-
       </div>
 
-      {/* Display listing of clients */}
-      <div className="grid gap-4 w-full">
-        {clients.map((c) => (
-          <div
-            key={c._id}
-            className={`border p-5 rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-200 ${
-              (c.active !== false) && !c.banned
-                ? "border-[var(--border-color)] bg-[var(--card-bg)]"
-                : c.banned
-                ? "border-red-950 bg-red-950/5 opacity-80"
-                : "border-[var(--border-color)]/50 bg-black/10 opacity-70"
-            }`}
-          >
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="font-semibold text-lg text-[var(--ink)] truncate">{c.name}</span>
-                
-                {/* Status badges */}
-                {c.banned && (
-                  <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-400">
-                    Banned
-                  </span>
-                )}
-                {!c.banned && (c.active !== false) && (
-                  <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full border border-green-500/30 bg-green-500/10 text-green-400">
-                    Active
-                  </span>
-                )}
-                {!c.banned && (c.active === false) && (
-                  <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-400">
-                    Inactive
-                  </span>
-                )}
-                {c.subscription && (
-                  <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full border border-[#c8a86b]/40 bg-[#c8a86b]/10 text-[#c8a86b]">
-                    Subscribed Membership
-                  </span>
-                )}
-              </div>
+      {/* Error Alert */}
+      {error && (
+        <div className="p-4 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 text-xs font-semibold">
+          ⚠️ {error}
+        </div>
+      )}
 
-              <p className="text-xs text-[var(--ink-soft)] mt-1.5 font-medium">
-                {c.email} · {c.phone || "No phone number added"}
-              </p>
+      {/* Luxury High-Density Data Table */}
+      <div className="border border-[var(--border-color)] bg-[var(--card-bg)] rounded-3xl shadow-sm overflow-hidden transition-all">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[850px]">
+            <thead>
+              <tr className="border-b border-[var(--border-color)] bg-black/5 dark:bg-black/20 text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider">
+                <th className="py-4 px-6">Client Profile</th>
+                <th className="py-4 px-4">Status</th>
+                <th className="py-4 px-4">Joined Date</th>
+                <th className="py-4 px-4">Last Booking Date</th>
+                <th className="py-4 px-4">Total Bookings</th>
+                <th className="py-4 px-4">Referral</th>
+                <th className="py-4 px-6 text-right">Actions</th>
+              </tr>
+            </thead>
 
-              <p className="text-[10px] text-[var(--ink-soft)]/75 mt-1 font-semibold">
-                Referral Code: <span className="text-[var(--ink)]">{c.referralCode || "—"}</span>
-              </p>
-            </div>
+            <tbody className="divide-y divide-[var(--border-color)] text-xs text-[var(--ink)] font-sans">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-xs text-[var(--ink-soft)] animate-pulse">
+                    Loading clients directory...
+                  </td>
+                </tr>
+              ) : clients.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-xs text-[var(--ink-soft)] italic">
+                    No client profiles found matching your search criteria.
+                  </td>
+                </tr>
+              ) : (
+                clients.map((c) => {
+                  const initials = c.name
+                    ? c.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+                    : "CL";
 
-            {/* Controls */}
-            <div className="flex items-center gap-2 w-full md:w-auto shrink-0 border-t md:border-t-0 border-[var(--border-color)] pt-3 md:pt-0">
-              <Link
-                href={`/admin/clients/${c._id}`}
-                className="flex-1 md:flex-none border border-[var(--border-color)] hover:border-[#c8a86b] hover:text-[var(--ink)] hover:bg-[var(--card-bg)] px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer text-center block"
-              >
-                Edit
-              </Link>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => void toggleBan(c)}
-                className={`flex-1 md:flex-none border px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer text-center ${
-                  c.banned
-                    ? "border-green-800 text-green-400 hover:bg-green-500/10 font-bold"
-                    : "border-red-950 hover:border-red-500 hover:text-red-400 hover:bg-red-500/10 text-red-500/80 font-bold"
-                }`}
-              >
-                {c.banned ? "Unban" : "Ban"}
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => void handleDelete(c._id)}
-                className="flex-1 md:flex-none border border-red-900/50 text-red-400 hover:bg-red-500/10 hover:border-red-500 px-4 py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer text-center"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+                  const joinedFormatted = c.createdAt
+                    ? format(new Date(c.createdAt), "MMM d, yyyy")
+                    : "—";
 
-        {clients.length === 0 && (
-          <p className="text-sm text-[var(--ink-soft)] italic text-center py-12">
-            {loading ? "Loading clients..." : "No clients match your filter or search criteria."}
-          </p>
-        )}
+                  const lastBookingFormatted = c.lastBookingDate
+                    ? format(new Date(c.lastBookingDate), "MMM d, yyyy h:mm a")
+                    : "No bookings yet";
+
+                  return (
+                    <tr
+                      key={c._id}
+                      className={`hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${
+                        c.banned ? "bg-red-950/10 opacity-75" : ""
+                      }`}
+                    >
+                      {/* Client Info */}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <span className="w-9 h-9 rounded-full bg-gradient-to-br from-[#c8a86b]/30 to-[#2f5d4a]/30 text-[#c8a86b] font-bold text-xs flex items-center justify-center border border-[#c8a86b]/30 shrink-0">
+                            {initials}
+                          </span>
+                          <div className="min-w-0">
+                            <span className="font-semibold text-sm text-[var(--ink)] block truncate">
+                              {c.name}
+                            </span>
+                            <span className="text-xs text-[var(--ink-soft)] font-mono block truncate mt-0.5">
+                              {c.email} {c.phone ? `· ${c.phone}` : ""}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1">
+                          {c.banned ? (
+                            <span className="inline-block text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full border border-red-500/30 bg-red-500/10 text-red-500">
+                              Banned
+                            </span>
+                          ) : c.active !== false ? (
+                            <span className="inline-block text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="inline-block text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-500">
+                              Inactive
+                            </span>
+                          )}
+
+                          {c.subscription && (
+                            <span className="inline-block text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full border border-[#c8a86b]/40 bg-[#c8a86b]/10 text-[#c8a86b]">
+                              Subscribed
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Joined Date */}
+                      <td className="py-4 px-4 whitespace-nowrap text-[var(--ink-soft)] font-mono text-[11px]">
+                        {joinedFormatted}
+                      </td>
+
+                      {/* Last Booking Date */}
+                      <td className="py-4 px-4 whitespace-nowrap font-mono text-[11px]">
+                        {c.lastBookingDate ? (
+                          <span className="text-[var(--ink)] font-semibold">{lastBookingFormatted}</span>
+                        ) : (
+                          <span className="text-[var(--ink-soft)]/60 italic">{lastBookingFormatted}</span>
+                        )}
+                      </td>
+
+                      {/* Total Bookings */}
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink)]">
+                          {c.totalBookings || 0} {c.totalBookings === 1 ? "booking" : "bookings"}
+                        </span>
+                      </td>
+
+                      {/* Referral Code */}
+                      <td className="py-4 px-4 whitespace-nowrap font-mono text-xs text-[var(--ink-soft)]">
+                        {c.referralCode || "—"}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="py-4 px-6 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/clients/${c._id}`}
+                            className="border border-[var(--border-color)] hover:border-[#c8a86b] hover:text-[var(--ink)] px-3 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => void toggleBan(c)}
+                            className={`border px-3 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                              c.banned
+                                ? "border-emerald-800 text-emerald-500 hover:bg-emerald-500/10 font-bold"
+                                : "border-rose-950/40 text-rose-500/90 hover:bg-rose-500/10 font-bold"
+                            }`}
+                          >
+                            {c.banned ? "Unban" : "Ban"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => void handleDelete(c._id)}
+                            className="border border-rose-900/40 text-rose-500 hover:bg-rose-500/10 px-3 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Pagination controller */}
+      {/* Pagination Controller */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-4 mt-2">
           <span className="text-xs text-[var(--ink-soft)] font-medium">
