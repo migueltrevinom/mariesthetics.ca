@@ -7,6 +7,7 @@ import { ServiceImage } from "@/lib/db/models/ServiceImage";
 import { ClientCreditCard } from "@/lib/db/models/ClientCreditCard";
 import { ClientSubscription } from "@/lib/db/models/ClientSubscription";
 import { Review } from "@/lib/db/models/Review";
+import { QuizSubmission } from "@/lib/db/models/QuizSubmission";
 import "@/lib/db/models/Service"; // Ensure Service schema is registered
 import "@/lib/db/models/SubscriptionPlan"; // Ensure SubscriptionPlan schema is registered
 import mongoose from "mongoose";
@@ -65,6 +66,13 @@ async function handleGetDetails(req: Request): Promise<NextResponse> {
       .populate("bookingId")
       .lean();
 
+    // Fetch quiz submissions
+    const quizSubmissions = await QuizSubmission.find({ clientId: id })
+      .sort({ createdAt: -1 })
+      .populate("quizId")
+      .populate("recommendedServiceId")
+      .lean();
+
     return NextResponse.json({
       bookings,
       payments,
@@ -72,6 +80,7 @@ async function handleGetDetails(req: Request): Promise<NextResponse> {
       creditCards,
       subscriptions,
       reviews,
+      quizSubmissions,
     });
   } catch (err: any) {
     console.error("[ClientDetails GET Error]:", err.message);

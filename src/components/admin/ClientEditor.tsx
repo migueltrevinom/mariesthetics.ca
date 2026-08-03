@@ -51,6 +51,7 @@ export function ClientEditor({
     creditCards: any[];
     subscriptions: any[];
     reviews?: any[];
+    quizSubmissions?: any[];
   } | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
@@ -436,6 +437,7 @@ export function ClientEditor({
               { id: "bookings", label: "Bookings" },
               { id: "payments", label: "Payments" },
               { id: "reviews", label: "Reviews ⭐" },
+              { id: "quizzes", label: "Quiz Submissions 🧬" },
               { id: "images", label: "Session Images" },
               { id: "billing", label: "Billing Information" },
               { id: "subscription", label: "Subscription" },
@@ -634,6 +636,60 @@ export function ClientEditor({
                     ) : (
                       <p className="text-xs text-[var(--ink-soft)] italic text-center py-6">
                         No reviews submitted or pending for this client.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* CLIENT QUIZ SUBMISSIONS TAB */}
+                {activeTab === "quizzes" && (
+                  <div className="space-y-4">
+                    <p className="text-[11px] text-[var(--ink-soft)] font-medium flex items-center gap-1.5 bg-black/5 dark:bg-white/5 p-2.5 rounded-xl border border-[var(--border-color)]">
+                      <span>🧬</span>
+                      <span>Diagnostic skin quiz answers and service recommendations submitted by this client.</span>
+                    </p>
+
+                    {details?.quizSubmissions && details.quizSubmissions.length > 0 ? (
+                      <div className="grid gap-4">
+                        {details.quizSubmissions.map((sub: any) => (
+                          <div
+                            key={sub._id}
+                            className="border border-[var(--border-color)] bg-black/5 dark:bg-black/10 p-5 rounded-2xl space-y-3 text-left shadow-sm"
+                          >
+                            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                              <div>
+                                <span className="text-xs font-bold text-[var(--ink)]">
+                                  {sub.quizId?.title || "Skin Treatment Diagnostic Quiz"}
+                                </span>
+                                <span className="block text-[10px] font-mono text-[var(--ink-soft)] font-normal">
+                                  Date: {new Date(sub.submittedAt || sub.createdAt).toLocaleDateString("en-CA")}
+                                </span>
+                              </div>
+                              <span className="text-xs font-bold text-[#c8a86b] px-2.5 py-0.5 rounded-full border border-[#c8a86b]/30 bg-[#c8a86b]/10">
+                                Rec: {sub.recommendedServiceId?.name || "Signature Facial"}
+                              </span>
+                            </div>
+
+                            {/* Answers List */}
+                            <div className="space-y-2 pt-1">
+                              <span className="text-[10px] uppercase font-extrabold text-[var(--ink-soft)] tracking-wider block">
+                                Selected Answers:
+                              </span>
+                              <div className="grid gap-2">
+                                {sub.answers?.map((ans: any, aIdx: number) => (
+                                  <div key={aIdx} className="p-2.5 rounded-xl bg-[var(--card-bg)] border border-[var(--border-color)] text-xs text-[var(--ink)] flex items-center justify-between">
+                                    <span className="font-semibold text-[var(--ink-soft)]">Question #{aIdx + 1}</span>
+                                    <span className="font-bold text-[#c8a86b]">{ans.selectedText || ans.optionId}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[var(--ink-soft)] italic text-center py-6">
+                        No quiz submissions recorded for this client yet.
                       </p>
                     )}
                   </div>
