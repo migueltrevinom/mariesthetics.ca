@@ -111,10 +111,18 @@ function PaymentLinkContent() {
 
 	// Device Detection
 	const [isAppleDevice, setIsAppleDevice] = useState(false);
-
-	// Email Sending State
-	const [sendEmailInput, setSendEmailInput] = useState("");
 	const [sendingEmail, setSendingEmail] = useState(false);
+	const [sendEmailInput, setSendEmailInput] = useState("");
+	const [emailMessage, setEmailMessage] = useState("");
+
+	// Reschedule States & 24h Policy
+	const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
+	const [rescheduleDate, setRescheduleDate] = useState("");
+	const [availableSlots, setAvailableSlots] = useState<any[]>([]);
+	const [selectedRescheduleStart, setSelectedRescheduleStart] = useState("");
+	const [rescheduleLoading, setRescheduleLoading] = useState(false);
+	const [rescheduleError, setRescheduleError] = useState("");
+	const [rescheduleSuccess, setRescheduleSuccess] = useState("");
 	const [emailStatus, setEmailStatus] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
 	useEffect(() => {
@@ -221,6 +229,50 @@ function PaymentLinkContent() {
 			setEmailStatus({ type: "error", text: err.message || "Failed to send email." });
 		} finally {
 			setSendingEmail(false);
+		}
+	};
+
+	const fetchRescheduleSlots = async (targetDate: string) => {
+		if (!data?.booking?.id) return;
+		setRescheduleLoading(true);
+		setRescheduleError("");
+		setSelectedRescheduleStart("");
+		try {
+			const res = await fetch(`/api/bookings/availability?date=${targetDate}`);
+			const json = await res.json();
+			if (!res.ok) throw new Error(json.error || "Failed to load availability");
+			setAvailableSlots(json.slots || []);
+		} catch (err: any) {
+			setRescheduleError(err.message || "Could not load available time slots");
+		} finally {
+			setRescheduleLoading(false);
+		}
+	};
+
+	const handlePerformReschedule = async () => {
+		if (!data?.booking?.id || !selectedRescheduleStart) return;
+		setRescheduleLoading(true);
+		setRescheduleError("");
+		setRescheduleSuccess("");
+		try {
+			const res = await fetch(`/api/public/bookings/${data.booking.id}/reschedule`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ newStart: selectedRescheduleStart }),
+			});
+			const json = await res.json();
+			if (!res.ok) {
+				throw new Error(json.error || "Failed to reschedule appointment.");
+			}
+			setRescheduleSuccess("✓ Appointment rescheduled successfully! Updated confirmation email and SMS dispatched.");
+			setTimeout(() => {
+				setIsRescheduleOpen(false);
+				window.location.reload();
+			}, 3000);
+		} catch (err: any) {
+			setRescheduleError(err.message || "Failed to reschedule appointment.");
+		} finally {
+			setRescheduleLoading(false);
 		}
 	};
 
@@ -483,6 +535,167 @@ function PaymentLinkContent() {
 									{emailStatus.text}
 								</p>
 							)}
+						</div>
+
+						{/* RESCHEDULE APPOINTMENT BUTTON & POLICY NOTICE */}
+						<div className="pt-3 border-t border-[var(--border-color)] space-y-2">
+							<span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ink-soft)] block">
+								Appointment Rescheduling &amp; Policy
+							</span>
+							
+							<button
+								type="button"
+								onClick={() => {
+									setIsRescheduleOpen(true);
+									const initialDateStr = bookingStartDate ? format(bookingStartDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+									setRescheduleDate(initialDateStr);
+									void fetchRescheduleSlots(initialDateStr);
+								}}
+								className="w-full py-2.5 px-4 border border-[#c8a86b]/40 bg-[#c8a86b]/10 hover:bg-[#c8a86b]/20 text-[#c8a86b] text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+							>
+								<span>🗓️ Reschedule Appointment</span>
+							</button>
+
+							<p className="text-[11px] text-[var(--ink-soft)] italic">
+								ℹ️ Rescheduling is free of charge up to 24 hours prior to appointment time.
+							</p>
+						</div>
+					</div>
+				)}
+
+				{/* ── CLIENT RESCHEDULE MODAL ── */}
+				{isRescheduleOpen && b && bookingStartDate && (
+					<div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+						<div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 sm:p-8 rounded-3xl max-w-lg w-full text-left space-y-5 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+							<div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
+								<div>
+									<h3 className="text-lg font-bold font-[family-name:var(--font-display)] text-[var(--ink)]">
+										Reschedule Appointment
+									</h3>
+									<p className="text-xs text-[var(--ink-soft)]">{b.serviceName}</p>
+								</div>
+								<button
+									type="button"
+									onClick={() => setIsRescheduleOpen(false)}
+									className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] px-2.5 py-1 rounded-lg"
+								>
+									✕ Close
+								</button>
+							</div>
+
+							{/* 24-HOUR POLICY CHECK */}
+							{(() => {
+								const hoursDiff = (bookingStartDate.getTime() - new Date().getTime()) / 3600000;
+								if (hoursDiff <= 24) {
+									return (
+										<div className="p-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 text-rose-500 space-y-3">
+											<div className="flex items-center gap-2 text-sm font-bold">
+												<span>⚠️ Late Reschedule Policy (Under 24 Hours)</span>
+											</div>
+											<p className="text-xs leading-relaxed text-rose-400">
+												Your appointment is scheduled in less than 24 hours. Per studio policy, rescheduling within 24 hours forfeits your deposit.
+											</p>
+											<p className="text-xs font-semibold text-rose-400">
+												To change your appointment, please book a new time slot and submit a new deposit.
+											</p>
+											<div className="pt-2">
+												<Link
+													href="/book"
+													className="btn-primary w-full text-center block !py-2.5 text-xs font-bold"
+												>
+													Book New Appointment →
+												</Link>
+											</div>
+										</div>
+									);
+								}
+
+								return (
+									<div className="space-y-4">
+										{rescheduleSuccess && (
+											<div className="p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-xs font-bold">
+												{rescheduleSuccess}
+											</div>
+										)}
+										{rescheduleError && (
+											<div className="p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-500 text-xs font-bold">
+												⚠️ {rescheduleError}
+											</div>
+										)}
+
+										<div>
+											<label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
+												Select New Date
+											</label>
+											<input
+												type="date"
+												min={format(new Date(), "yyyy-MM-dd")}
+												value={rescheduleDate}
+												onChange={(e) => {
+													setRescheduleDate(e.target.value);
+													void fetchRescheduleSlots(e.target.value);
+												}}
+												className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+											/>
+										</div>
+
+										<div>
+											<label className="block text-xs font-bold text-[var(--ink-soft)] mb-2 uppercase tracking-wider">
+												Available Time Slots
+											</label>
+
+											{rescheduleLoading ? (
+												<div className="py-6 text-center text-xs text-[var(--ink-soft)] italic animate-pulse">
+													Checking open studio slots...
+												</div>
+											) : availableSlots.length > 0 ? (
+												<div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1">
+													{availableSlots.map((s: any) => {
+														const isSelected = selectedRescheduleStart === s.start;
+														const timeFormatted = format(new Date(s.start), "h:mm a");
+														return (
+															<button
+																key={s.start}
+																type="button"
+																onClick={() => setSelectedRescheduleStart(s.start)}
+																className={`py-2 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+																	isSelected
+																		? "border-[#c8a86b] bg-[#c8a86b]/20 text-[#c8a86b] shadow-sm"
+																		: "border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink-soft)] hover:text-[var(--ink)]"
+																}`}
+															>
+																{timeFormatted}
+															</button>
+														);
+													})}
+												</div>
+											) : (
+												<p className="text-xs text-[var(--ink-soft)] italic py-4 text-center">
+													No available slots on this date. Please select another date.
+												</p>
+											)}
+										</div>
+
+										<div className="pt-4 border-t border-[var(--border-color)] flex gap-2 justify-end">
+											<button
+												type="button"
+												onClick={() => setIsRescheduleOpen(false)}
+												className="px-4 py-2 text-xs border border-[var(--border-color)] rounded-xl text-[var(--ink-soft)] font-semibold hover:text-[var(--ink)]"
+											>
+												Cancel
+											</button>
+											<button
+												type="button"
+												disabled={!selectedRescheduleStart || rescheduleLoading}
+												onClick={() => void handlePerformReschedule()}
+												className="btn-primary text-xs !py-2.5 !px-6 disabled:opacity-40 font-bold cursor-pointer"
+											>
+												{rescheduleLoading ? "Saving..." : "Confirm Reschedule"}
+											</button>
+										</div>
+									</div>
+								);
+							})()}
 						</div>
 					</div>
 				)}

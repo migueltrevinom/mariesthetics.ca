@@ -8,7 +8,7 @@ import { sendEmail } from "@/lib/mailgun";
 
 export interface AdminNotificationOptions {
   bookingId: string;
-  eventType: "creation" | "deposit_paid";
+  eventType: "creation" | "deposit_paid" | "rescheduled";
 }
 
 export async function notifyAdminsOfBooking(options: AdminNotificationOptions): Promise<void> {
@@ -49,6 +49,8 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
     const eventTitle =
       options.eventType === "creation"
         ? `🚨 New Booking Created: ${serviceName}`
+        : options.eventType === "rescheduled"
+        ? `🔄 Appointment Rescheduled: ${serviceName}`
         : `💰 Deposit Payment Confirmed: ${serviceName}`;
 
     // Generate iCal .ics file

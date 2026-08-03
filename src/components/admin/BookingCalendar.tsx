@@ -107,6 +107,58 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
   // Detail sidebar controls
   const [selectedBooking, setSelectedBooking] = useState<BookingItem | null>(null);
 
+  // Drag-and-Drop state
+  const [draggedBookingId, setDraggedBookingId] = useState<string | null>(null);
+  const [reschedulingMessage, setReschedulingMessage] = useState<string>("");
+  const [reschedulingError, setReschedulingError] = useState<string>("");
+
+  const handleDragStart = (e: React.DragEvent, bookingId: string) => {
+    e.dataTransfer.setData("text/plain", bookingId);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggedBookingId(bookingId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDropSlot = async (e: React.DragEvent, targetDate: Date, targetHour?: number) => {
+    e.preventDefault();
+    const bookingId = e.dataTransfer.getData("text/plain") || draggedBookingId;
+    if (!bookingId) return;
+
+    const newStart = new Date(targetDate);
+    if (targetHour !== undefined) {
+      newStart.setHours(targetHour, 0, 0, 0);
+    }
+
+    setReschedulingMessage("Rescheduling appointment...");
+    setReschedulingError("");
+
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ start: newStart.toISOString() }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Time slot conflict or invalid booking hours.");
+      }
+
+      setReschedulingMessage("✓ Appointment rescheduled successfully! Confirmation email and SMS sent to client.");
+      setTimeout(() => setReschedulingMessage(""), 5000);
+      void fetchBookings();
+    } catch (err: any) {
+      setReschedulingError(`⚠️ Reschedule Failed: ${err.message}`);
+      setTimeout(() => setReschedulingError(""), 6000);
+    } finally {
+      setDraggedBookingId(null);
+    }
+  };
+
   // Range determination
   const getRange = (date: Date, currentView: typeof view) => {
     let start: Date;
@@ -185,6 +237,18 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
     <div className="flex flex-col md:flex-row gap-6 w-full text-[var(--ink)]">
       <div className="flex-1 flex flex-col bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl p-5 shadow-sm min-w-0">
         
+        {/* Rescheduling Banners */}
+        {reschedulingMessage && (
+          <div className="mb-4 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-semibold animate-in fade-in duration-200">
+            {reschedulingMessage}
+          </div>
+        )}
+        {reschedulingError && (
+          <div className="mb-4 p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 text-xs font-semibold animate-in fade-in duration-200">
+            {reschedulingError}
+          </div>
+        )}
+
         {/* Mode Tabs */}
         <div className="flex flex-wrap items-center gap-2 mb-5 border-b border-[var(--border-color)] pb-3">
           <button
@@ -310,6 +374,8 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                 return (
                   <div
                     key={day.toISOString()}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => void handleDropSlot(e, day)}
                     onClick={(e) => {
                       // Prevent modal launch if clicking a booking capsule
                       if ((e.target as HTMLElement).closest(".booking-capsule")) return;
@@ -333,6 +399,8 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                       {dayBookings.slice(0, 3).map((b) => (
                         <div
                           key={b._id}
+                          draggable={true}
+                          onDragStart={(e) => handleDragStart(e, b._id)}
                           onClick={() => setSelectedBooking(b)}
                           className="booking-capsule text-[10px] p-1 border rounded-lg truncate cursor-pointer transition-all duration-200 flex flex-col text-left hover:scale-[1.01] hover:brightness-110"
                           style={{
@@ -426,6 +494,15 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                       {/* Hour slots background grid */}
                       <div
                         className="flex-1 relative cursor-pointer"
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => {
+                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          const clickY = e.clientY - rect.top;
+                          const ratio = Math.max(0, Math.min(1, clickY / rect.height));
+                          const hourFraction = ratio * (hours.length - 1);
+                          const targetHour = Math.floor(hourFraction) + hours[0];
+                          void handleDropSlot(e, day, targetHour);
+                        }}
                         onClick={(e) => {
                           if ((e.target as HTMLElement).closest(".week-booking-card")) return;
                           
@@ -470,6 +547,8 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                           return (
                             <div
                               key={b._id}
+                              draggable={true}
+                              onDragStart={(e) => handleDragStart(e, b._id)}
                               onClick={() => setSelectedBooking(b)}
                               className="week-booking-card absolute left-1 right-1 p-2 border rounded-xl overflow-hidden text-left flex flex-col justify-between shadow-sm cursor-pointer transition-all duration-200 hover:scale-[1.01] hover:brightness-110 z-10"
                               style={{
@@ -535,6 +614,15 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
               {/* Day details & Schedule */}
               <div
                 className="relative border-l border-t border-[var(--border-color)] flex-1 min-h-[720px] cursor-pointer"
+                onDragOver={handleDragOver}
+                onDrop={(e) => {
+                  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                  const clickY = e.clientY - rect.top;
+                  const ratio = Math.max(0, Math.min(1, clickY / rect.height));
+                  const hourFraction = ratio * (hours.length - 1);
+                  const targetHour = Math.floor(hourFraction) + hours[0];
+                  void handleDropSlot(e, activeDate, targetHour);
+                }}
                 onClick={(e) => {
                   if ((e.target as HTMLElement).closest(".day-booking-card")) return;
                   
@@ -580,6 +668,8 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                     return (
                       <div
                         key={b._id}
+                        draggable={true}
+                        onDragStart={(e) => handleDragStart(e, b._id)}
                         onClick={() => setSelectedBooking(b)}
                         className="day-booking-card absolute left-4 right-4 p-4 border rounded-xl overflow-hidden text-left flex flex-col justify-between shadow-md cursor-pointer transition-all duration-200 hover:left-3 hover:right-3 hover:brightness-110 z-10"
                         style={{
