@@ -1,3 +1,4 @@
+import { AdminShell } from "@/components/admin/AdminShell";
 import type { Metadata } from "next";
 import { requireManager } from "@/lib/auth/jwt";
 import { ReviewRepository } from "@/app/api/admin/reviews/repositories/review.repository";
@@ -37,5 +38,9 @@ export default async function AdminReviewsPage() {
       : undefined,
   }));
 
-  return <ReviewsManager initialReviews={formattedReviews} />;
+  return (
+    <AdminShell>
+      <ReviewsManager initialReviews={formattedReviews} />
+    </AdminShell>
+  );
 }
