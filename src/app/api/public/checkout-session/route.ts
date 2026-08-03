@@ -8,6 +8,62 @@ import "@/lib/db/models/Service";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Helper function to sync booking status and recalculate paid balance when a Stripe checkout session is completed.
+ */
+async function syncBookingOnPaidSession(bookingId: string, amountPaid: number): Promise<any> {
+	const currentBooking = await Booking.findById(bookingId);
+	if (!currentBooking) return null;
+
+	let updated = false;
+
+	// Confirm held status if necessary
+	if (currentBooking.status === "held") {
+		currentBooking.status = "confirmed";
+		currentBooking.holdExpiresAt = null;
+		updated = true;
+	}
+
+	const summary = currentBooking.paymentSummary ?? {
+		totalCents: 0,
+		depositCents: 0,
+		paidCents: 0,
+		tipCents: 0,
+		discountCents: 0,
+		balanceDueCents: 0,
+	};
+
+	// Recalculate total paid from all succeeded payments for this booking
+	const succeededPayments = await Payment.find({
+		bookingId: currentBooking._id,
+		status: "succeeded",
+	});
+	const totalSucceededCents = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
+	const newPaidCents = Math.max(summary.paidCents, totalSucceededCents, amountPaid);
+
+	if (summary.paidCents !== newPaidCents) {
+		summary.paidCents = newPaidCents;
+		summary.balanceDueCents = Math.max(
+			0,
+			(summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents
+		);
+		currentBooking.paymentSummary = summary;
+		updated = true;
+	}
+
+	if (updated) {
+		await currentBooking.save();
+
+		// Notify admins of deposit payment confirmation with attached .ics file
+		void notifyAdminsOfBooking({
+			bookingId: String(currentBooking._id),
+			eventType: "deposit_paid",
+		});
+	}
+
+	return Booking.findById(bookingId).populate("serviceId").lean();
+}
+
 export async function GET(req: Request) {
 	try {
 		const { searchParams } = new URL(req.url);
@@ -73,55 +129,12 @@ export async function GET(req: Request) {
 				paymentRecord.status = "succeeded";
 			}
 
-			// Sync Booking status and paymentSummary if present
+			// Sync Booking status and paymentSummary if present via side function
 			if (booking) {
-				const currentBooking = await Booking.findById(booking._id);
-				if (currentBooking) {
-					let updated = false;
-					if (currentBooking.status === "held") {
-						currentBooking.status = "confirmed";
-						currentBooking.holdExpiresAt = null;
-						updated = true;
-					}
-
-					const amountPaid = session.amount_total || paymentRecord?.amountCents || link?.amountCents || 0;
-					const summary = currentBooking.paymentSummary ?? {
-						totalCents: 0,
-						depositCents: 0,
-						paidCents: 0,
-						tipCents: 0,
-						discountCents: 0,
-						balanceDueCents: 0,
-					};
-
-					// Recalculate total paid from all succeeded payments for this booking
-					const succeededPayments = await Payment.find({
-						bookingId: currentBooking._id,
-						status: "succeeded",
-					});
-					const totalSucceededCents = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
-					const newPaidCents = Math.max(summary.paidCents, totalSucceededCents, amountPaid);
-
-					if (summary.paidCents !== newPaidCents) {
-						summary.paidCents = newPaidCents;
-						summary.balanceDueCents = Math.max(
-							0,
-							(summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents
-						);
-						currentBooking.paymentSummary = summary;
-						updated = true;
-					}
-
-					if (updated) {
-						await currentBooking.save();
-						booking = await Booking.findById(booking._id).populate("serviceId").lean();
-
-						// Notify admins of deposit payment confirmation with attached .ics file
-						void notifyAdminsOfBooking({
-							bookingId: String(booking._id),
-							eventType: "deposit_paid",
-						});
-					}
+				const amountPaid = session.amount_total || paymentRecord?.amountCents || link?.amountCents || 0;
+				const updatedBooking = await syncBookingOnPaidSession(booking._id, amountPaid);
+				if (updatedBooking) {
+					booking = updatedBooking;
 				}
 			}
 		}
