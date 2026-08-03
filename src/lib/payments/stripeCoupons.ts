@@ -21,6 +21,21 @@ export async function syncCouponToStripe(params: SyncCouponParams): Promise<{
     const stripe = getStripe();
     const cleanCode = params.code.toUpperCase().trim();
 
+    // Check if promo code already exists in Stripe
+    try {
+      const existingPromoCodes = await stripe.promotionCodes.list({ code: cleanCode, limit: 1 });
+      if (existingPromoCodes.data.length > 0) {
+        const existingPromo: any = existingPromoCodes.data[0];
+        const couponId = typeof existingPromo.coupon === "string" ? existingPromo.coupon : existingPromo.coupon?.id || "";
+        return {
+          stripeCouponId: couponId,
+          stripePromotionCodeId: existingPromo.id,
+        };
+      }
+    } catch {
+      // Continue to creation if check fails
+    }
+
     // 1. Create Coupon in Stripe
     const couponParams: any = {
       duration: "once",

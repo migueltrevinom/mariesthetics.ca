@@ -24,7 +24,9 @@ export default async function AdminPromotionsPage() {
     redemptionCount: c.redemptionCount || 0,
     expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString() : null,
     stripeCouponId: c.stripeCouponId || "",
+    stripePromotionCodeId: c.stripePromotionCodeId || "",
     active: Boolean(c.active),
+    createdAt: c.createdAt ? new Date(c.createdAt).toISOString() : undefined,
   }));
 
   const formattedGiftCards = rawGiftCards.map((g: any) => ({
