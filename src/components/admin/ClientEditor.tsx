@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { COUNTRY_CODES } from "@/lib/constants/countryCodes";
 
 export type ClientRow = {
   id?: string;
@@ -371,18 +372,15 @@ export function ClientEditor({
             <div className="flex gap-2">
               <select
                 style={{ backgroundColor: "var(--card-bg)" }}
-                className="w-28 border border-[var(--border-color)] px-2.5 py-2.5 text-xs font-semibold text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
+                className="w-36 border border-[var(--border-color)] px-2.5 py-2.5 text-xs font-semibold text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
                 value={form.countryCode || "+1"}
                 onChange={(e) => setForm({ ...form, countryCode: e.target.value })}
               >
-                <option value="+1">🇨🇦 +1 (CA)</option>
-                <option value="+1">🇺🇸 +1 (US)</option>
-                <option value="+44">🇬🇧 +44 (UK)</option>
-                <option value="+52">🇲🇽 +52 (MX)</option>
-                <option value="+63">🇵🇭 +63 (PH)</option>
-                <option value="+34">🇪🇸 +34 (ES)</option>
-                <option value="+33">🇫🇷 +33 (FR)</option>
-                <option value="+61">🇦🇺 +61 (AU)</option>
+                {COUNTRY_CODES.map((c, i) => (
+                  <option key={`${c.code}-${i}`} value={c.code}>
+                    {c.label}
+                  </option>
+                ))}
               </select>
               <input
                 placeholder="e.g. 7801234567"
