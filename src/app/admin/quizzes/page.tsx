@@ -1,3 +1,4 @@
+import { AdminShell } from "@/components/admin/AdminShell";
 import type { Metadata } from "next";
 import { requireManager } from "@/lib/auth/jwt";
 import { fetchAdminQuizzes } from "@/app/api/admin/quizzes/modules/quiz.module";
@@ -45,5 +46,9 @@ export default async function AdminQuizzesPage() {
     })),
   }));
 
-  return <QuizzesManager initialQuizzes={formattedQuizzes} services={formattedServices} />;
+  return (
+    <AdminShell>
+      <QuizzesManager initialQuizzes={formattedQuizzes} services={formattedServices} />
+    </AdminShell>
+  );
 }

@@ -46,6 +46,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const [formTitle, setFormTitle] = useState("");
@@ -53,6 +54,16 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
   const [formDesc, setFormDesc] = useState("");
   const [formActive, setFormActive] = useState(true);
   const [questions, setQuestions] = useState<QuizQuestionItem[]>([]);
+
+  const showMsg = (msg: string) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(""), 4000);
+  };
+
+  const showErr = (msg: string) => {
+    setError(msg);
+    setTimeout(() => setError(""), 5000);
+  };
 
   function handleOpenCreate() {
     setEditingId(null);
@@ -102,20 +113,31 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
     ]);
   }
 
-  function handleAddOption(qIndex: number) {
+  function handleAddOption(qIdx: number) {
     setQuestions((prev) => {
       const next = [...prev];
-      const targetQ = { ...next[qIndex] };
+      const targetQ = { ...next[qIdx] };
+      const currentOpts = targetQ.options || [];
       targetQ.options = [
-        ...targetQ.options,
-        { optionId: `o_${Date.now()}`, optionText: "New Option", icon: "✨", recommendedServiceId: services[0]?._id || "" },
+        ...currentOpts,
+        {
+          optionId: `o_${Date.now()}_${currentOpts.length + 1}`,
+          optionText: "New Choice Option",
+          icon: "🌿",
+          recommendedServiceId: services[0]?._id || "",
+        },
       ];
-      next[qIndex] = targetQ;
+      next[qIdx] = targetQ;
       return next;
     });
   }
 
   async function handleSaveQuiz() {
+    if (!formTitle.trim() || !formSlug.trim()) {
+      setError("Title and URL Slug are required.");
+      return;
+    }
+
     setSaving(true);
     setError("");
     try {
@@ -146,6 +168,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
       }
 
       setIsModalOpen(false);
+      showMsg(editingId ? "Quiz updated successfully!" : "Quiz created successfully!");
       router.refresh();
     } catch (err: any) {
       setError(err.message || "An error occurred");
@@ -162,115 +185,167 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
       if (!res.ok) throw new Error(data.error || "Failed to delete quiz");
 
       setQuizzes((prev) => prev.filter((q) => q._id !== id));
+      showMsg("Quiz deleted.");
       router.refresh();
     } catch (err: any) {
-      alert(err.message || "Failed to delete quiz");
+      showErr(err.message || "Failed to delete quiz");
     }
   }
 
+  async function toggleActive(quiz: QuizItem) {
+    try {
+      const res = await fetch(`/api/admin/quizzes/${quiz._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: quiz.title,
+          slug: quiz.slug,
+          description: quiz.description,
+          active: !quiz.active,
+          questions: quiz.questions,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to toggle status");
+      setQuizzes((prev) =>
+        prev.map((q) => (q._id === quiz._id ? { ...q, active: !q.active } : q))
+      );
+      showMsg(`Quiz "${quiz.title}" status updated.`);
+      router.refresh();
+    } catch (err: any) {
+      showErr(err.message || "Failed to update status");
+    }
+  }
+
+  const inputCls =
+    "w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] transition-colors";
+
   return (
-    <div className="w-full text-left space-y-8">
-      {/* Title & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[var(--border-color)] pb-6">
+    <div className="space-y-6 text-[var(--ink)]">
+      {/* Top Banner Header matching Categories & Promotions */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-[family-name:var(--font-display)] text-4xl text-[var(--ink)]">
-            Diagnostic Skin Quizzes
+          <h1 className="text-2xl font-bold font-[family-name:var(--font-display)]">
+            🧪 Diagnostic Skin Quizzes
           </h1>
-          <p className="mt-2 text-sm text-[var(--ink-soft)]">
-            Configure dynamic treatment finder questions, options, and recommended service mappings.
+          <p className="text-xs text-[var(--ink-soft)] mt-1">
+            Configure dynamic treatment finder questions, option choices, and recommended service mappings for website clients.
           </p>
         </div>
-
         <button
           type="button"
           onClick={handleOpenCreate}
-          className="btn-primary py-2.5 px-6 text-xs font-bold shadow-md cursor-pointer shrink-0"
+          className="btn-primary text-xs !py-2.5 !px-5 font-bold flex items-center gap-1.5 cursor-pointer"
         >
-          + Create New Quiz
+          <span>+</span> Create New Quiz
         </button>
       </div>
 
-      {/* Quizzes Table */}
-      <div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm overflow-x-auto">
-        <table className="w-full text-left text-sm text-[var(--ink)]">
-          <thead className="text-[var(--ink-soft)]/75 border-b border-[var(--border-color)]">
-            <tr>
-              <th className="py-2.5 pr-4 font-bold text-xs uppercase">Quiz Title</th>
-              <th className="py-2.5 pr-4 font-bold text-xs uppercase">Slug</th>
-              <th className="py-2.5 pr-4 font-bold text-xs uppercase">Questions</th>
-              <th className="py-2.5 pr-4 font-bold text-xs uppercase">Status</th>
-              <th className="py-2.5 text-right font-bold text-xs uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {quizzes.map((q) => (
-              <tr key={q._id} className="border-b border-[var(--border-color)]/50 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                <td className="py-3 pr-4 font-semibold text-xs text-[var(--ink)]">
-                  {q.title}
-                  {q.description && (
-                    <span className="block text-[11px] text-[var(--ink-soft)] font-normal truncate max-w-[200px]">
-                      {q.description}
-                    </span>
-                  )}
-                </td>
-                <td className="py-3 pr-4 font-mono text-xs text-[#c8a86b]">
-                  {q.slug}
-                </td>
-                <td className="py-3 pr-4 text-xs font-bold font-mono">
-                  {q.questions?.length || 0} Questions
-                </td>
-                <td className="py-3 pr-4 text-xs font-bold">
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-extrabold border ${
-                      q.active
-                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
-                        : "border-gray-500/40 bg-gray-500/10 text-gray-400"
-                    }`}
-                  >
-                    {q.active ? "Active" : "Draft"}
-                  </span>
-                </td>
-                <td className="py-3 text-right text-xs space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => handleOpenEdit(q)}
-                    className="px-3 py-1 rounded-lg border border-[var(--border-color)] text-xs font-semibold text-[var(--ink)] hover:border-[#c8a86b] transition-all cursor-pointer"
-                  >
-                    ✏️ Edit Builder
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete(q._id)}
-                    className="px-2.5 py-1 rounded-lg border border-rose-500/30 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
-                  >
-                    🗑️ Delete
-                  </button>
-                </td>
+      {/* Notifications */}
+      {message && (
+        <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-semibold animate-in fade-in duration-200">
+          ✓ {message}
+        </div>
+      )}
+      {error && !isModalOpen && (
+        <div className="p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 text-xs font-semibold animate-in fade-in duration-200">
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Standardized Admin Quizzes Grid Table */}
+      <div className="border border-[var(--border-color)] bg-[var(--card-bg)] rounded-2xl overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="border-b border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink-soft)] uppercase font-bold tracking-wider text-[10px]">
+                <th className="p-4">Quiz Title</th>
+                <th className="p-4">URL Slug</th>
+                <th className="p-4">Questions</th>
+                <th className="p-4">Status</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {quizzes.length === 0 && (
-          <p className="py-8 text-center text-xs text-[var(--ink-soft)] italic">
-            No quizzes created yet. Click "+ Create New Quiz" to build one!
-          </p>
-        )}
+            </thead>
+            <tbody className="divide-y divide-[var(--border-color)]">
+              {quizzes.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-8 text-center text-[var(--ink-soft)] italic">
+                    No quizzes created yet. Click "+ Create New Quiz" to build one!
+                  </td>
+                </tr>
+              ) : (
+                quizzes.map((q) => (
+                  <tr key={q._id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="p-4 font-bold text-sm text-[var(--ink)]">
+                      <div>{q.title}</div>
+                      {q.description && (
+                        <div className="text-[11px] text-[var(--ink-soft)] font-normal truncate max-w-xs mt-0.5">
+                          {q.description}
+                        </div>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      <span className="px-2 py-1 rounded-md bg-black/10 dark:bg-white/10 font-mono text-[10px] text-[#c8a86b] font-semibold">
+                        {q.slug}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <span className="px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-bold text-[11px]">
+                        {q.questions?.length || 0} Question{q.questions?.length === 1 ? "" : "s"}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        type="button"
+                        onClick={() => void toggleActive(q)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                          q.active
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                            : "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                        }`}
+                      >
+                        {q.active ? "● Active (Published)" : "○ Draft"}
+                      </button>
+                    </td>
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(q)}
+                        className="px-3 py-1.5 border border-[#c8a86b]/50 bg-[#c8a86b]/10 text-[#c8a86b] rounded-xl text-xs font-bold hover:bg-[#c8a86b]/20 transition-all cursor-pointer"
+                      >
+                        ✏️ Edit Builder
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDelete(q._id)}
+                        className="px-3 py-1.5 border border-rose-500/30 text-rose-500 hover:bg-rose-500/10 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* QUIZ BUILDER WIZARD MODAL */}
+      {/* ── QUIZ BUILDER WIZARD MODAL ── */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl border border-[var(--border-color)] bg-[var(--background)] p-6 sm:p-8 rounded-3xl shadow-2xl text-left max-h-[90vh] overflow-y-auto space-y-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[120] flex items-center justify-center p-4">
+          <div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 sm:p-8 rounded-3xl max-w-3xl w-full text-left space-y-5 shadow-2xl relative max-h-[85vh] overflow-y-auto animate-in fade-in duration-200">
             <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
-              <h2 className="text-2xl font-[family-name:var(--font-display)] font-bold text-[var(--ink)]">
-                {editingId ? "Edit Quiz Builder" : "Create New Diagnostic Quiz"}
-              </h2>
+              <h3 className="text-lg font-bold font-[family-name:var(--font-display)] text-[var(--ink)] flex items-center gap-2">
+                <span>🧪</span>
+                <span>{editingId ? "Edit Quiz Builder" : "Create New Diagnostic Quiz"}</span>
+              </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-[var(--ink-soft)] hover:text-[var(--ink)] text-sm cursor-pointer p-1"
+                className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] px-2.5 py-1 rounded-lg cursor-pointer"
               >
-                ✕
+                ✕ Close
               </button>
             </div>
 
@@ -283,7 +358,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
             {/* General Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[var(--ink-soft)] block mb-1">
+                <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
                   Quiz Title *
                 </label>
                 <input
@@ -291,12 +366,12 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="e.g. Find Your Ideal Skincare Treatment"
-                  className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3.5 py-2 text-xs text-[var(--ink)] rounded-xl focus:outline-none focus:border-[#c8a86b] font-medium"
+                  className={inputCls}
                 />
               </div>
 
               <div>
-                <label className="text-[10px] uppercase font-bold tracking-wider text-[var(--ink-soft)] block mb-1">
+                <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
                   URL Slug *
                 </label>
                 <input
@@ -304,57 +379,57 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                   value={formSlug}
                   onChange={(e) => setFormSlug(e.target.value)}
                   placeholder="e.g. skin-treatment-finder"
-                  className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3.5 py-2 text-xs text-[var(--ink)] rounded-xl focus:outline-none focus:border-[#c8a86b] font-mono"
+                  className={`${inputCls} font-mono`}
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-bold tracking-wider text-[var(--ink-soft)] block mb-1">
-                Description
+              <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
+                Description / Subtitle
               </label>
               <textarea
                 rows={2}
                 value={formDesc}
                 onChange={(e) => setFormDesc(e.target.value)}
                 placeholder="Brief summary shown on quiz introduction card..."
-                className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3.5 py-2 text-xs text-[var(--ink)] rounded-xl focus:outline-none focus:border-[#c8a86b]"
+                className={inputCls}
               />
             </div>
 
             {/* Questions Manager */}
             <div className="space-y-6 pt-2">
               <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-2">
-                <h3 className="text-sm uppercase font-extrabold tracking-wider text-[#c8a86b]">
-                  Questions ({questions.length})
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#c8a86b] flex items-center gap-2">
+                  <span>Questions Builder ({questions.length})</span>
                 </h3>
                 <button
                   type="button"
                   onClick={handleAddQuestion}
-                  className="text-xs font-bold text-[#c8a86b] hover:underline cursor-pointer"
+                  className="px-3 py-1.5 border border-[#c8a86b]/40 bg-[#c8a86b]/10 text-[#c8a86b] text-xs font-bold rounded-xl hover:bg-[#c8a86b]/20 transition-all cursor-pointer"
                 >
-                  + Add Question
+                  ＋ Add Question
                 </button>
               </div>
 
               {questions.map((q, qIdx) => (
-                <div key={q.questionId || qIdx} className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-4">
-                  <div className="flex items-center justify-between gap-2">
+                <div key={q.questionId || qIdx} className="p-4 rounded-2xl border border-[var(--border-color)] bg-black/5 dark:bg-white/[0.02] space-y-4">
+                  <div className="flex items-center justify-between gap-2 border-b border-[var(--border-color)]/50 pb-2">
                     <span className="text-xs font-mono font-bold text-[#c8a86b]">
                       Question #{qIdx + 1}
                     </span>
                     <button
                       type="button"
                       onClick={() => setQuestions((prev) => prev.filter((_, idx) => idx !== qIdx))}
-                      className="text-xs text-rose-500 hover:underline cursor-pointer"
+                      className="text-xs text-rose-500 hover:text-rose-400 font-semibold cursor-pointer"
                     >
-                      Remove Question
+                      🗑️ Remove Question
                     </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-[var(--ink-soft)] block mb-1">
+                      <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
                         Question Title
                       </label>
                       <input
@@ -368,12 +443,12 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                             return next;
                           });
                         }}
-                        className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 text-xs text-[var(--ink)] rounded-xl focus:outline-none focus:border-[#c8a86b]"
+                        className={inputCls}
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] uppercase font-bold text-[var(--ink-soft)] block mb-1">
+                      <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
                         Subtitle / Hint
                       </label>
                       <input
@@ -387,7 +462,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                             return next;
                           });
                         }}
-                        className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2 text-xs text-[var(--ink)] rounded-xl focus:outline-none focus:border-[#c8a86b]"
+                        className={inputCls}
                       />
                     </div>
                   </div>
@@ -401,9 +476,9 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                       <button
                         type="button"
                         onClick={() => handleAddOption(qIdx)}
-                        className="text-[11px] font-semibold text-[#c8a86b] hover:underline cursor-pointer"
+                        className="text-xs font-bold text-[#c8a86b] hover:underline cursor-pointer"
                       >
-                        + Add Choice Option
+                        ＋ Add Choice Option
                       </button>
                     </div>
 
@@ -426,7 +501,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                                 return next;
                               });
                             }}
-                            className="w-full border border-[var(--border-color)] bg-[var(--background)] px-2 py-1.5 text-xs text-[var(--ink)] rounded-lg text-center"
+                            className="w-full border border-[var(--border-color)] bg-[var(--background)] px-2 py-1.5 text-xs text-[var(--ink)] rounded-lg text-center font-bold"
                           />
                         </div>
 
@@ -447,7 +522,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                                 return next;
                               });
                             }}
-                            className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3 py-1.5 text-xs text-[var(--ink)] rounded-lg"
+                            className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3 py-1.5 text-xs text-[var(--ink)] rounded-lg font-medium"
                           />
                         </div>
 
@@ -489,7 +564,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                                 return next;
                               });
                             }}
-                            className="text-xs text-rose-500 hover:text-rose-600 p-1 cursor-pointer"
+                            className="text-xs text-rose-500 hover:text-rose-600 p-1 cursor-pointer font-bold"
                           >
                             ✕
                           </button>
@@ -501,11 +576,11 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
               ))}
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border-color)]">
+            <div className="flex justify-end gap-2 pt-4 border-t border-[var(--border-color)]">
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-5 py-2.5 border border-[var(--border-color)] text-xs font-bold text-[var(--ink-soft)] rounded-xl cursor-pointer hover:text-[var(--ink)]"
+                className="px-4 py-2 text-xs border border-[var(--border-color)] rounded-xl text-[var(--ink-soft)] font-semibold hover:text-[var(--ink)] cursor-pointer"
               >
                 Cancel
               </button>
@@ -513,7 +588,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
                 type="button"
                 disabled={saving}
                 onClick={() => void handleSaveQuiz()}
-                className="btn-primary py-2.5 px-6 text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
+                className="btn-primary text-xs !py-2.5 !px-6 disabled:opacity-40 font-bold cursor-pointer"
               >
                 {saving ? "Saving Quiz..." : "💾 Save Quiz Configuration"}
               </button>
