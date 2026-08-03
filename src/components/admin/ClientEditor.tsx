@@ -52,6 +52,8 @@ export function ClientEditor({
     subscriptions: any[];
   } | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Upload states
   const [profileUploading, setProfileUploading] = useState(false);
@@ -483,6 +485,11 @@ export function ClientEditor({
                 {/* B. PAYMENTS HISTORY TAB */}
                 {activeTab === "payments" && (
                   <div className="space-y-4">
+                    <p className="text-[11px] text-[var(--ink-soft)] font-medium flex items-center gap-1.5 bg-black/5 dark:bg-white/5 p-2.5 rounded-xl border border-[var(--border-color)]">
+                      <span>🔍</span>
+                      <span>Click any payment row below to inspect full Stripe identifiers, payment method details, and linked booking info.</span>
+                    </p>
+
                     {details?.payments && details.payments.length > 0 ? (
                       <div className="overflow-x-auto border border-[var(--border-color)] rounded-xl">
                         <table className="w-full border-collapse text-xs text-[var(--ink)]">
@@ -497,19 +504,23 @@ export function ClientEditor({
                           </thead>
                           <tbody>
                             {details.payments.map((p) => (
-                              <tr key={p._id} className="border-b border-[var(--border-color)] hover:bg-black/5 dark:hover:bg-white/5">
-                                <td className="p-3 font-semibold">CAD ${(p.amountCents / 100).toFixed(2)}</td>
+                              <tr
+                                key={p._id}
+                                onClick={() => setSelectedPayment(p)}
+                                className="border-b border-[var(--border-color)] hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+                              >
+                                <td className="p-3 font-semibold text-[#c8a86b]">CAD ${(p.amountCents / 100).toFixed(2)}</td>
                                 <td className="p-3 capitalize">{p.method}</td>
                                 <td className="p-3 capitalize">{p.kind}</td>
-                                <td className="p-3">
+                                <td className="p-3 font-mono">
                                   {new Date(p.createdAt).toLocaleDateString("en-CA")}
                                 </td>
                                 <td className="p-3 text-right">
                                   <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
                                     p.status === "succeeded"
-                                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
                                       : p.status === "failed"
-                                      ? "border-red-500/30 bg-red-500/10 text-red-400"
+                                      ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
                                       : "border-amber-500/30 bg-amber-500/10 text-amber-400"
                                   }`}>
                                     {p.status}
@@ -742,6 +753,246 @@ export function ClientEditor({
             )}
           </div>
         </div>
+      )}
+      {/* Slide-Over Side Drawer for Selected Payment Details */}
+      {selectedPayment && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => setSelectedPayment(null)}
+          />
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] md:w-[560px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-50 border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
+            {/* Drawer Header */}
+            <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between bg-black/5 dark:bg-black/30 shrink-0">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-lg font-[family-name:var(--font-display)] text-[var(--ink)]">
+                    Payment Transaction
+                  </h3>
+                  <span className={`text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
+                    selectedPayment.status === "succeeded"
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500"
+                      : selectedPayment.status === "failed"
+                      ? "border-rose-500/40 bg-rose-500/10 text-rose-500"
+                      : "border-amber-500/40 bg-amber-500/10 text-amber-500"
+                  }`}>
+                    {selectedPayment.status}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[var(--ink-soft)] mt-1 font-mono">
+                  ID: {selectedPayment._id}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedPayment(null)}
+                className="text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] rounded-xl w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {/* Amount & Method Header Card */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
+                    Total Payment Amount
+                  </span>
+                  <span className="text-2xl font-[family-name:var(--font-display)] text-[#c8a86b] font-bold">
+                    CAD ${(selectedPayment.amountCents / 100).toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[var(--border-color)] text-xs">
+                  <div>
+                    <span className="text-[10px] text-[var(--ink-soft)] uppercase font-bold tracking-wider block">
+                      Payment Method
+                    </span>
+                    <span className="font-semibold capitalize text-[var(--ink)] block mt-0.5">
+                      {selectedPayment.method === "stripe" ? "💳 Stripe Credit Card" : selectedPayment.method === "etransfer" ? "🏦 Interac e-Transfer" : "💵 Cash / Studio"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-[var(--ink-soft)] uppercase font-bold tracking-wider block">
+                      Payment Purpose
+                    </span>
+                    <span className="font-semibold capitalize text-[var(--ink)] block mt-0.5">
+                      {selectedPayment.kind || "Deposit"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-[var(--ink-soft)] uppercase font-bold tracking-wider block">
+                      Date &amp; Time
+                    </span>
+                    <span className="font-mono text-[var(--ink-soft)] text-[11px] block mt-0.5">
+                      {new Date(selectedPayment.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stripe Details */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <h4 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+                  💳 Stripe Identifiers &amp; Proof
+                </h4>
+
+                {selectedPayment.stripePaymentIntentId ? (
+                  <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider block">
+                      Stripe Payment Intent ID
+                    </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <code className="text-xs text-[#c8a86b] font-mono break-all">
+                        {selectedPayment.stripePaymentIntentId}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedPayment.stripePaymentIntentId);
+                          setCopiedId("intent");
+                          setTimeout(() => setCopiedId(null), 2000);
+                        }}
+                        className="text-[10px] px-2.5 py-1 rounded-lg bg-[#c8a86b]/15 text-[#c8a86b] font-bold hover:bg-[#c8a86b]/25 transition-colors shrink-0"
+                      >
+                        {copiedId === "intent" ? "✓ Copied" : "Copy ID"}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {selectedPayment.stripeCheckoutSessionId ? (
+                  <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider block">
+                      Stripe Checkout Session ID
+                    </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <code className="text-xs text-[#c8a86b] font-mono break-all">
+                        {selectedPayment.stripeCheckoutSessionId}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedPayment.stripeCheckoutSessionId);
+                          setCopiedId("session");
+                          setTimeout(() => setCopiedId(null), 2000);
+                        }}
+                        className="text-[10px] px-2.5 py-1 rounded-lg bg-[#c8a86b]/15 text-[#c8a86b] font-bold hover:bg-[#c8a86b]/25 transition-colors shrink-0"
+                      >
+                        {copiedId === "session" ? "✓ Copied" : "Copy ID"}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {!selectedPayment.stripePaymentIntentId && !selectedPayment.stripeCheckoutSessionId && (
+                  <p className="text-xs text-[var(--ink-soft)] italic">
+                    Manual transaction (e-Transfer or Cash). No Stripe Intent ID associated.
+                  </p>
+                )}
+
+                {selectedPayment.proofUrl && (
+                  <div className="pt-2">
+                    <span className="text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider block mb-1">
+                      e-Transfer Proof Document
+                    </span>
+                    <a
+                      href={selectedPayment.proofUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-[#c8a86b] hover:underline font-mono truncate block"
+                    >
+                      View Proof Image ↗
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Linked Booking Information */}
+              {selectedPayment.bookingId ? (
+                <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
+                    <h4 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+                      📅 Linked Appointment Booking
+                    </h4>
+                    <span className="text-[9px] uppercase font-extrabold px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                      {selectedPayment.bookingId.status || "CONFIRMED"}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-[var(--ink-soft)]">Service Treatment:</span>
+                      <span className="font-semibold text-[var(--ink)]">
+                        {selectedPayment.bookingId.serviceId?.name || "Esthetics Treatment"}
+                      </span>
+                    </div>
+
+                    {selectedPayment.bookingId.serviceId?.durationMin && (
+                      <div className="flex justify-between">
+                        <span className="text-[var(--ink-soft)]">Duration:</span>
+                        <span className="text-[var(--ink)]">
+                          {selectedPayment.bookingId.serviceId.durationMin} minutes
+                        </span>
+                      </div>
+                    )}
+
+                    {selectedPayment.bookingId.start && (
+                      <div className="flex justify-between">
+                        <span className="text-[var(--ink-soft)]">Scheduled Time:</span>
+                        <span className="font-mono text-[#c8a86b]">
+                          {new Date(selectedPayment.bookingId.start).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Financial Summary */}
+                  {selectedPayment.bookingId.paymentSummary && (
+                    <div className="p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-[var(--border-color)] space-y-1.5 pt-2 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-[var(--ink-soft)]">Service Total:</span>
+                        <span className="font-bold text-[var(--ink)]">
+                          ${(selectedPayment.bookingId.paymentSummary.totalCents / 100).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-emerald-500 font-medium">
+                        <span>Deposit Paid:</span>
+                        <span>
+                          -${(selectedPayment.bookingId.paymentSummary.paidCents / 100).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between pt-1.5 border-t border-[var(--border-color)] font-bold text-[var(--ink)]">
+                        <span>Balance Due:</span>
+                        <span>
+                          ${(selectedPayment.bookingId.paymentSummary.balanceDueCents / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-2">
+                    <Link
+                      href="/admin/bookings"
+                      className="btn-primary text-xs w-full py-2.5 shadow-md text-center block"
+                    >
+                      📅 Open Booking in Calendar
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="border border-dashed border-[var(--border-color)] p-4 rounded-2xl text-center text-xs text-[var(--ink-soft)]">
+                  No linked booking record found for this transaction.
+                </div>
+              )}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
