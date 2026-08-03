@@ -94,8 +94,16 @@ export async function GET(req: Request) {
 						balanceDueCents: 0,
 					};
 
-					if (summary.paidCents === 0 && amountPaid > 0) {
-						summary.paidCents = amountPaid;
+					// Recalculate total paid from all succeeded payments for this booking
+					const succeededPayments = await Payment.find({
+						bookingId: currentBooking._id,
+						status: "succeeded",
+					});
+					const totalSucceededCents = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
+					const newPaidCents = Math.max(summary.paidCents, totalSucceededCents, amountPaid);
+
+					if (summary.paidCents !== newPaidCents) {
+						summary.paidCents = newPaidCents;
 						summary.balanceDueCents = Math.max(
 							0,
 							(summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents

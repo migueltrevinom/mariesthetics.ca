@@ -20,9 +20,7 @@ export function BookingActions({
   const [emailing, setEmailing] = useState(false);
   const [note, setNote] = useState("");
   const [adjustAmount, setAdjustAmount] = useState("");
-  const [adjustMethod, setAdjustMethod] = useState<"cash" | "etransfer" | "stripe">(
-    "cash"
-  );
+  const [adjustMethod, setAdjustMethod] = useState<"cash" | "etransfer">("cash");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -296,12 +294,11 @@ export function BookingActions({
             className="border border-[var(--border-color)] px-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl flex-1 cursor-pointer"
             value={adjustMethod}
             onChange={(e) =>
-              setAdjustMethod(e.target.value as "cash" | "etransfer" | "stripe")
+              setAdjustMethod(e.target.value as "cash" | "etransfer")
             }
           >
             <option value="cash" className="bg-[var(--card-bg)] text-[var(--ink)]">💵 Cash</option>
             <option value="etransfer" className="bg-[var(--card-bg)] text-[var(--ink)]">🏦 e-Transfer</option>
-            <option value="stripe" className="bg-[var(--card-bg)] text-[var(--ink)]">💳 Stripe</option>
           </select>
           <button
             type="button"

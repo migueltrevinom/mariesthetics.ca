@@ -33,7 +33,13 @@ async function applySucceededPayment(meta: {
   if (meta.kind === "tip") {
     summary.tipCents = (summary.tipCents ?? 0) + payment.amountCents;
   } else {
-    summary.paidCents = (summary.paidCents ?? 0) + payment.amountCents;
+    // Recalculate total paid from all succeeded payments for this booking
+    const succeededPayments = await Payment.find({
+      bookingId: booking._id,
+      status: "succeeded",
+    });
+    const totalSucceeded = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
+    summary.paidCents = Math.max(summary.paidCents ?? 0, totalSucceeded);
     summary.balanceDueCents = Math.max(
       0,
       (summary.totalCents ?? 0) -
