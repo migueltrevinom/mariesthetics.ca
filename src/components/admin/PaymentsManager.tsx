@@ -851,7 +851,8 @@ export function PaymentsManager({
 						</div>
 					</div>
 				)}
-				{activeTab === "transactions" ? (
+
+				{activeTab === "transactions" && (
 					<>
 						<table className="w-full text-left text-sm text-[var(--ink)]">
 							<thead className="text-[var(--ink-soft)]/75">
@@ -893,7 +894,9 @@ export function PaymentsManager({
 							<p className="mt-6 text-sm text-[var(--ink-soft)]">No payments yet.</p>
 						)}
 					</>
-				) : (
+				)}
+
+				{activeTab === "links" && (
 					<>
 						<table className="w-full text-left text-sm text-[var(--ink)]">
 							<thead className="text-[var(--ink-soft)]/75">
