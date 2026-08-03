@@ -1,3 +1,4 @@
+import { AdminShell } from "@/components/admin/AdminShell";
 import type { Metadata } from "next";
 import { requireManager } from "@/lib/auth/jwt";
 import { fetchCoupons, fetchGiftCards } from "@/app/api/admin/promotions/modules/promotion.module";
@@ -39,5 +40,9 @@ export default async function AdminPromotionsPage() {
     createdAt: g.createdAt ? new Date(g.createdAt).toISOString() : undefined,
   }));
 
-  return <PromotionsManager initialCoupons={formattedCoupons} initialGiftCards={formattedGiftCards} />;
+  return (
+    <AdminShell>
+      <PromotionsManager initialCoupons={formattedCoupons} initialGiftCards={formattedGiftCards} />
+    </AdminShell>
+  );
 }
