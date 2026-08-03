@@ -18,6 +18,7 @@ export interface TranslationItem {
     ar?: string;
     es?: string;
   };
+  updatedBy?: string;
   updatedAt?: string;
 }
 
@@ -33,11 +34,11 @@ const PAGES = [
 ];
 
 const LOCALES = [
-  { code: "en", label: "English", flag: "🇨🇦" },
-  { code: "tl", label: "Tagalog", flag: "🇵🇭" },
-  { code: "pa", label: "ਪੰਜਾਬੀ", flag: "🇮🇳" },
-  { code: "ar", label: "العربية", flag: "🇸🇦", dir: "rtl" },
-  { code: "es", label: "Español", flag: "🇲🇽" },
+  { code: "en", label: "English", flag: "🇨🇦", keyName: "en" },
+  { code: "tl", label: "Tagalog", flag: "🇵🇭", keyName: "tl" },
+  { code: "pa", label: "ਪੰਜਾਬੀ", flag: "🇮🇳", keyName: "pa" },
+  { code: "ar", label: "العربية", flag: "🇸🇦", keyName: "ar", dir: "rtl" },
+  { code: "es", label: "Español", flag: "🇲🇽", keyName: "es" },
 ];
 
 export function TranslationsManager({
@@ -56,9 +57,11 @@ export function TranslationsManager({
   const [selectedPage, setSelectedPage] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Editor Modal / Card
-  const [showEditor, setShowEditor] = useState(false);
+  // Side Drawer & Diff Review States
+  const [showDrawer, setShowDrawer] = useState(false);
+  const [showDiffModal, setShowDiffModal] = useState(false);
   const [editingItem, setEditingItem] = useState<TranslationItem | null>(null);
+
   const [editPage, setEditPage] = useState("general");
   const [editKey, setEditKey] = useState("");
   const [editTranslations, setEditTranslations] = useState<{
@@ -91,7 +94,7 @@ export function TranslationsManager({
     setEditTranslations({ en: "", tl: "", pa: "", ar: "", es: "" });
     setError("");
     setMessage("");
-    setShowEditor(true);
+    setShowDrawer(true);
   };
 
   const handleEdit = (item: TranslationItem) => {
@@ -107,15 +110,20 @@ export function TranslationsManager({
     });
     setError("");
     setMessage("");
-    setShowEditor(true);
+    setShowDrawer(true);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleProceedToDiff = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editPage.trim() || !editKey.trim()) {
       setError("Page category and Key are required.");
       return;
     }
+    setError("");
+    setShowDiffModal(true);
+  };
+
+  const handleConfirmSave = async () => {
     setSaving(true);
     setError("");
     setMessage("");
@@ -134,8 +142,10 @@ export function TranslationsManager({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save copy translation");
 
-      setMessage(`Saved translation key "${editKey}" successfully!`);
-      setShowEditor(false);
+      setMessage(`Successfully updated translation key "${editKey}"!`);
+      setShowDiffModal(false);
+      setShowDrawer(false);
+      setEditingItem(null);
       void fetchTranslations();
     } catch (err: any) {
       setError(err.message || "Failed to save translation");
@@ -168,10 +178,8 @@ export function TranslationsManager({
         }
       };
 
-      // Extract keys from English dictionary first
       extractKeys(en);
 
-      // Populate translations for all 5 languages
       for (const lang of ["en", "tl", "pa", "ar", "es"]) {
         const dict = dicts[lang];
         if (!dict) continue;
@@ -250,7 +258,7 @@ export function TranslationsManager({
             Multi-Language Copies &amp; Translations
           </h1>
           <p className="text-xs text-[var(--ink-soft)] mt-1">
-            Manage UI copy across English, Tagalog, Punjabi, Arabic, and Spanish. Changes update instantly on your live site.
+            Manage UI copy across English, Tagalog, Punjabi, Arabic, and Spanish. Updates reflect immediately on your live site.
           </p>
         </div>
 
@@ -263,15 +271,13 @@ export function TranslationsManager({
           >
             {seeding ? "Seeding..." : "⚡ Seed Default JSON Copies"}
           </button>
-          {!showEditor && (
-            <button
-              type="button"
-              onClick={handleOpenNew}
-              className="btn-primary inline-flex items-center gap-2 text-xs px-5 py-2.5 shadow-md"
-            >
-              <span>＋ Add Copy Key</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleOpenNew}
+            className="btn-primary inline-flex items-center gap-2 text-xs px-5 py-2.5 shadow-md"
+          >
+            <span>＋ Add Copy Key</span>
+          </button>
         </div>
       </div>
 
@@ -289,117 +295,256 @@ export function TranslationsManager({
         </div>
       )}
 
-      {/* Editor Modal / Card */}
-      {showEditor && (
-        <div className="border border-[#c8a86b]/40 bg-[var(--card-bg)] p-6 sm:p-8 rounded-3xl shadow-xl space-y-6 transition-all animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-4">
-            <div>
-              <h2 className="text-lg font-[family-name:var(--font-display)] text-[var(--ink)]">
-                {editingItem ? `Edit Copy Key: ${editKey}` : "Create New Copy Key"}
-              </h2>
-              <p className="text-xs text-[var(--ink-soft)] mt-0.5">
-                Fill in translations for Edmonton&apos;s community languages.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setShowEditor(false);
-                setEditingItem(null);
-              }}
-              className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] rounded-xl px-3 py-1.5 transition-colors"
-            >
-              ✕ Cancel
-            </button>
-          </div>
-
-          <form onSubmit={handleSave} className="space-y-6">
-            <div className="grid gap-5 sm:grid-cols-2">
+      {/* Slide-Over Side Drawer Backdrop & Container */}
+      {showDrawer && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+            onClick={() => setShowDrawer(false)}
+          />
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[540px] md:w-[620px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-50 border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
+            {/* Drawer Header */}
+            <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between bg-black/5 dark:bg-black/20 shrink-0">
               <div>
-                <label className="block text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
-                  Page Section Category
-                </label>
-                <select
-                  style={{ backgroundColor: "var(--card-bg)" }}
-                  className="w-full border border-[var(--border-color)] px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors cursor-pointer"
-                  value={editPage}
-                  onChange={(e) => setEditPage(e.target.value)}
-                >
-                  {PAGES.filter(p => p.value !== "all").map(p => (
-                    <option key={p.value} value={p.value} className="bg-[var(--card-bg)] text-[var(--ink)]">
-                      {p.label} ({p.value})
-                    </option>
-                  ))}
-                </select>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-[family-name:var(--font-display)] text-[var(--ink)]">
+                    {editingItem ? "Edit Translation Key" : "New Translation Key"}
+                  </h2>
+                  {editKey && (
+                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-[#c8a86b]/15 text-[#c8a86b]">
+                      {editKey}
+                    </span>
+                  )}
+                </div>
+                {editingItem?.updatedBy && (
+                  <p className="text-[11px] text-[var(--ink-soft)] mt-1">
+                    👤 Last edited by: <strong className="text-[var(--ink)]">{editingItem.updatedBy}</strong>
+                    {editingItem.updatedAt && (
+                      <span className="ml-1 opacity-75">
+                        · {new Date(editingItem.updatedAt).toLocaleString()}
+                      </span>
+                    )}
+                  </p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
-                  Translation Key Name
-                </label>
-                <input
-                  placeholder="e.g. hero.title1 or booking.selectDate"
-                  style={{ backgroundColor: "var(--card-bg)" }}
-                  className="w-full border border-[var(--border-color)] px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl font-mono transition-colors"
-                  value={editKey}
-                  onChange={(e) => setEditKey(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* 5 Language Inputs */}
-            <div className="space-y-4 pt-2 border-t border-[var(--border-color)]">
-              <h3 className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
-                Language Translations (5 Edmonton Demographics)
-              </h3>
-
-              <div className="grid gap-4">
-                {LOCALES.map((l) => (
-                  <div key={l.code} className="space-y-1">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-[var(--ink)]">
-                      <span>{l.flag}</span>
-                      <span>{l.label} ({l.code})</span>
-                    </label>
-                    <textarea
-                      rows={2}
-                      dir={l.dir || "ltr"}
-                      placeholder={`Enter copy text in ${l.label}...`}
-                      style={{ backgroundColor: "var(--card-bg)" }}
-                      className="w-full border border-[var(--border-color)] px-4 py-2.5 text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
-                      value={(editTranslations as any)[l.code] || ""}
-                      onChange={(e) =>
-                        setEditTranslations({
-                          ...editTranslations,
-                          [l.code]: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="pt-4 border-t border-[var(--border-color)] flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  setShowEditor(false);
-                  setEditingItem(null);
-                }}
-                className="btn-ghost text-xs px-5 py-2.5"
+                onClick={() => setShowDrawer(false)}
+                className="text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] rounded-xl w-8 h-8 flex items-center justify-center transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer Scrollable Body */}
+            <form id="translation-drawer-form" onSubmit={handleProceedToDiff} className="flex-1 overflow-y-auto p-6 space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                    Page Section Category
+                  </label>
+                  <select
+                    style={{ backgroundColor: "var(--card-bg)" }}
+                    className="w-full border border-[var(--border-color)] px-4 py-2.5 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors cursor-pointer"
+                    value={editPage}
+                    onChange={(e) => setEditPage(e.target.value)}
+                  >
+                    {PAGES.filter(p => p.value !== "all").map(p => (
+                      <option key={p.value} value={p.value} className="bg-[var(--card-bg)] text-[var(--ink)]">
+                        {p.label} ({p.value})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
+                    Translation Key Name
+                  </label>
+                  <input
+                    placeholder="e.g. hero.title1 or booking.selectDate"
+                    style={{ backgroundColor: "var(--card-bg)" }}
+                    className="w-full border border-[var(--border-color)] px-4 py-2.5 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl font-mono transition-colors"
+                    value={editKey}
+                    onChange={(e) => setEditKey(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* 5 Language Inputs */}
+              <div className="space-y-4 pt-4 border-t border-[var(--border-color)]">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold text-[var(--ink-soft)] uppercase tracking-wider">
+                    Copy Translations (5 Languages)
+                  </h3>
+                  <span className="text-[10px] text-[var(--ink-soft)]">
+                    English acts as default fallback
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {LOCALES.map((l) => {
+                    const val = (editTranslations as any)[l.code] || "";
+                    return (
+                      <div key={l.code} className="space-y-1.5 bg-black/5 dark:bg-black/20 p-3.5 rounded-2xl border border-[var(--border-color)]">
+                        <div className="flex items-center justify-between text-xs font-semibold text-[var(--ink)]">
+                          <span className="flex items-center gap-2">
+                            <span>{l.flag}</span>
+                            <span>{l.label} ({l.code})</span>
+                          </span>
+                          <span className="text-[10px] text-[var(--ink-soft)] font-mono">
+                            {val.length} chars
+                          </span>
+                        </div>
+                        <textarea
+                          rows={2}
+                          dir={l.dir || "ltr"}
+                          placeholder={`Enter copy text in ${l.label}...`}
+                          style={{ backgroundColor: "var(--card-bg)" }}
+                          className="w-full border border-[var(--border-color)] px-3.5 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors font-sans leading-relaxed"
+                          value={val}
+                          onChange={(e) =>
+                            setEditTranslations({
+                              ...editTranslations,
+                              [l.code]: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </form>
+
+            {/* Drawer Footer Actions */}
+            <div className="p-4 border-t border-[var(--border-color)] bg-black/5 dark:bg-black/20 flex items-center justify-between shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowDrawer(false)}
+                className="btn-ghost text-xs px-4 py-2.5"
               >
                 Cancel
               </button>
+
               <button
                 type="submit"
-                disabled={saving}
-                className="btn-primary text-xs px-8 py-3 shadow-lg"
+                form="translation-drawer-form"
+                className="btn-primary text-xs px-6 py-2.5 shadow-lg flex items-center gap-2"
               >
-                {saving ? "Saving Changes..." : editingItem ? "Update Copy Translation" : "Save Copy Translation"}
+                <span>Review &amp; Compare Changes</span>
+                <span>→</span>
               </button>
             </div>
-          </form>
+          </div>
+        </>
+      )}
+
+      {/* Before vs After Diff Review Modal */}
+      {showDiffModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl bg-[var(--card-bg)] text-[var(--ink)] border border-[#c8a86b]/40 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-[var(--border-color)] bg-black/5 dark:bg-black/30 flex items-center justify-between shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-bold text-[var(--ink)]">
+                    🔍 Review Copy Changes (Before vs. After)
+                  </h3>
+                </div>
+                <p className="text-xs text-[var(--ink-soft)] mt-1">
+                  Key: <code className="text-[#c8a86b] font-bold">{editKey}</code> · Category: <strong>{editPage}</strong>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowDiffModal(false)}
+                className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
+                Confirm your proposed text edits below. Compare what was previously saved in database vs. your new copy.
+              </p>
+
+              <div className="space-y-4">
+                {LOCALES.map((l) => {
+                  const originalVal = (editingItem?.translations as any)?.[l.code] || "";
+                  const newVal = (editTranslations as any)[l.code] || "";
+                  const isChanged = originalVal !== newVal;
+
+                  return (
+                    <div key={l.code} className="border border-[var(--border-color)] rounded-2xl p-4 space-y-2 bg-black/5 dark:bg-black/20">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-xs font-bold text-[var(--ink)]">
+                          <span>{l.flag}</span>
+                          <span>{l.label}</span>
+                        </span>
+                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+                          isChanged
+                            ? "bg-amber-500/20 text-amber-500 border border-amber-500/30"
+                            : "bg-black/10 dark:bg-white/10 text-[var(--ink-soft)]"
+                        }`}>
+                          {isChanged ? "Modified" : "Unchanged"}
+                        </span>
+                      </div>
+
+                      {isChanged ? (
+                        <div className="space-y-2 pt-1">
+                          {/* Before */}
+                          <div className="p-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300 text-xs">
+                            <span className="text-[10px] uppercase font-bold text-rose-500 block mb-0.5">
+                              - BEFORE (Current DB):
+                            </span>
+                            <p dir={l.dir || "ltr"} className="font-sans">
+                              {originalVal || <span className="italic opacity-60">(Empty)</span>}
+                            </p>
+                          </div>
+
+                          {/* After */}
+                          <div className="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs">
+                            <span className="text-[10px] uppercase font-bold text-emerald-500 block mb-0.5">
+                              + AFTER (Proposed New Copy):
+                            </span>
+                            <p dir={l.dir || "ltr"} className="font-sans font-medium">
+                              {newVal || <span className="italic opacity-60">(Empty)</span>}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-2.5 rounded-xl border border-[var(--border-color)] bg-black/5 dark:bg-black/30 text-xs text-[var(--ink-soft)] font-sans">
+                          {newVal || <span className="italic opacity-50">(Empty)</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-[var(--border-color)] bg-black/5 dark:bg-black/30 flex items-center justify-between shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowDiffModal(false)}
+                className="btn-ghost text-xs px-4 py-2.5"
+              >
+                ✏️ Back to Editing
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmSave}
+                disabled={saving}
+                className="btn-primary text-xs px-6 py-2.5 shadow-lg font-bold"
+              >
+                {saving ? "Saving Changes..." : "✓ Confirm & Save to Database"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -438,7 +583,7 @@ export function TranslationsManager({
           </div>
         </div>
 
-        {/* Translation Cards */}
+        {/* Translation Cards List */}
         {loading ? (
           <div className="text-center py-12 text-xs text-[var(--ink-soft)] animate-pulse border border-[var(--border-color)] rounded-2xl">
             Loading translation keys...
@@ -458,29 +603,42 @@ export function TranslationsManager({
                 key={item._id || item.key}
                 className="border border-[var(--border-color)] bg-[var(--card-bg)] p-5 rounded-2xl space-y-4 shadow-sm hover:border-[#c8a86b]/40 transition-all text-left"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-[#c8a86b]/15 text-[#c8a86b] border border-[#c8a86b]/30">
-                      {item.key}
-                    </span>
-                    <span className="text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider">
-                      Page: {item.page}
-                    </span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-color)] pb-3">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-[#c8a86b]/15 text-[#c8a86b] border border-[#c8a86b]/30">
+                        {item.key}
+                      </span>
+                      <span className="text-[10px] uppercase font-bold text-[var(--ink-soft)] tracking-wider">
+                        Page: {item.page}
+                      </span>
+                    </div>
+
+                    {item.updatedBy && (
+                      <p className="text-[11px] text-[var(--ink-soft)] mt-1.5">
+                        👤 Last edited by: <strong className="text-[var(--ink)]">{item.updatedBy}</strong>
+                        {item.updatedAt && (
+                          <span className="ml-1 opacity-75">
+                            · {new Date(item.updatedAt).toLocaleString()}
+                          </span>
+                        )}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto">
                     <button
                       type="button"
                       onClick={() => handleEdit(item)}
-                      className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] rounded-xl px-3.5 py-1.5 transition-colors font-medium"
+                      className="text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] rounded-xl px-4 py-2 transition-colors font-semibold flex items-center gap-1.5"
                     >
-                      Edit Copy
+                      <span>✏️ Edit Copy</span>
                     </button>
                     {item._id && (
                       <button
                         type="button"
                         onClick={() => handleDelete(item._id!, item.key)}
-                        className="text-xs text-rose-500 hover:text-rose-600 border border-rose-500/20 rounded-xl px-3 py-1.5 transition-colors font-medium"
+                        className="text-xs text-rose-500 hover:text-rose-600 border border-rose-500/20 rounded-xl px-3.5 py-2 transition-colors font-semibold"
                       >
                         Delete
                       </button>

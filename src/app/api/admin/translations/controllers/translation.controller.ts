@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth/jwt";
 import {
   getAllTranslations,
   saveTranslation,
@@ -17,7 +18,17 @@ export async function handleGetAllTranslations() {
 
 export async function handleSaveTranslation(req: Request, data: any) {
   try {
-    const translation = await saveTranslation(data);
+    const session = await getSession();
+    const updatedBy = session
+      ? session.name
+        ? `${session.name} (${session.email})`
+        : session.email
+      : data.updatedBy || "Manager";
+
+    const translation = await saveTranslation({
+      ...data,
+      updatedBy,
+    });
     return NextResponse.json({ translation });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to save translation" }, { status: 500 });
@@ -26,7 +37,19 @@ export async function handleSaveTranslation(req: Request, data: any) {
 
 export async function handleSeedTranslations(req: Request, data: any) {
   try {
-    const count = await seedTranslations(data.items || []);
+    const session = await getSession();
+    const updatedBy = session
+      ? session.name
+        ? `${session.name} (${session.email})`
+        : session.email
+      : "System Seed";
+
+    const items = (data.items || []).map((item: any) => ({
+      ...item,
+      updatedBy,
+    }));
+
+    const count = await seedTranslations(items);
     return NextResponse.json({ message: `Seeded ${count} default translation keys into database`, count });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to seed translations" }, { status: 500 });

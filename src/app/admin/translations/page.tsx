@@ -17,6 +17,7 @@ export default async function AdminTranslationsPage() {
       ar: String(t.translations?.ar || ""),
       es: String(t.translations?.es || ""),
     },
+    updatedBy: t.updatedBy ? String(t.updatedBy) : undefined,
     updatedAt: t.updatedAt ? new Date(t.updatedAt).toISOString() : undefined,
   }));
 
