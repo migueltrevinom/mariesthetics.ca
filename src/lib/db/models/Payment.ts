@@ -27,6 +27,7 @@ const PaymentSchema = new Schema(
     },
     stripePaymentIntentId: { type: String, default: "" },
     stripeCheckoutSessionId: { type: String, default: "" },
+    referenceNumber: { type: String, default: "" },
     proofUrl: { type: String, default: "" },
     note: { type: String, default: "" },
     confirmedBy: { type: Schema.Types.ObjectId, ref: "Manager", default: null },

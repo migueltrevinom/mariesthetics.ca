@@ -53,34 +53,170 @@ interface BookingOption {
 	};
 }
 
+interface EtransferPaymentItem {
+	_id: string;
+	createdAt: string;
+	kind: string;
+	amountCents: number;
+	status: string;
+	referenceNumber?: string;
+	note?: string;
+	proofUrl?: string;
+	booking?: {
+		_id: string;
+		start: string;
+		guestName?: string;
+		guestEmail?: string;
+		serviceName?: string;
+	} | null;
+}
+
+interface EtransferSettingsItem {
+	accountName: string;
+	email: string;
+	phone: string;
+	autoDepositEnabled: boolean;
+	instructions: string;
+	updatedBy?: string;
+}
+
 interface PaymentsManagerProps {
 	initialPayments: PaymentItem[];
 	initialPaymentLinks: StripePaymentLinkItem[];
+	initialEtransfers?: EtransferPaymentItem[];
+	initialEtransferSettings?: EtransferSettingsItem;
 }
 
-export function PaymentsManager({ initialPayments, initialPaymentLinks }: PaymentsManagerProps) {
+export function PaymentsManager({
+	initialPayments,
+	initialPaymentLinks,
+	initialEtransfers = [],
+	initialEtransferSettings = {
+		accountName: "Mari Esthetics / Marinelle Tala",
+		email: "mari@mariesthetics.ca",
+		phone: "+1 7809133081",
+		autoDepositEnabled: true,
+		instructions: "Please include your appointment date and full name in the e-Transfer note.",
+	},
+}: PaymentsManagerProps) {
 	const [payments] = useState<PaymentItem[]>(initialPayments);
 	const [paymentLinks, setPaymentLinks] = useState<StripePaymentLinkItem[]>(initialPaymentLinks);
+	const [etransfers, setEtransfers] = useState<EtransferPaymentItem[]>(initialEtransfers);
+	const [etSettings, setEtSettings] = useState<EtransferSettingsItem>(initialEtransferSettings);
 
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const tabParam = searchParams.get("tab");
 
 	// Navigation Tabs
-	const [activeTab, setActiveTab] = useState<"transactions" | "links">("transactions");
+	const [activeTab, setActiveTab] = useState<"transactions" | "links" | "etransfers">("transactions");
 
 	useEffect(() => {
 		if (tabParam === "links") {
 			setActiveTab("links");
+		} else if (tabParam === "etransfers") {
+			setActiveTab("etransfers");
 		} else {
 			setActiveTab("transactions");
 		}
 	}, [tabParam]);
 
-	const handleTabChange = (tab: "transactions" | "links") => {
+	const handleTabChange = (tab: "transactions" | "links" | "etransfers") => {
 		setActiveTab(tab);
 		router.replace(`/admin/payments?tab=${tab}`);
 	};
+
+	// e-Transfer Settings States
+	const [savingSettings, setSavingSettings] = useState(false);
+	const [settingsMsg, setSettingsMsg] = useState("");
+	const [settingsErr, setSettingsErr] = useState("");
+
+	// Manual e-Transfer Recording Form States
+	const [manualEtName, setManualEtName] = useState("");
+	const [manualEtEmail, setManualEtEmail] = useState("");
+	const [manualEtAmount, setManualEtAmount] = useState("");
+	const [manualEtRef, setManualEtRef] = useState("");
+	const [manualEtKind, setManualEtKind] = useState<"deposit" | "balance" | "tip" | "adjustment">("balance");
+	const [manualEtBookingId, setManualEtBookingId] = useState("");
+	const [manualEtNote, setManualEtNote] = useState("");
+	const [recordingEt, setRecordingEt] = useState(false);
+	const [recordEtMsg, setRecordEtMsg] = useState("");
+	const [recordEtErr, setRecordEtErr] = useState("");
+
+	async function handleSaveEtransferSettings() {
+		setSavingSettings(true);
+		setSettingsMsg("");
+		setSettingsErr("");
+		try {
+			const res = await fetch("/api/admin/payments/etransfer-settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(etSettings),
+			});
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error || "Failed to save settings");
+			setSettingsMsg("e-Transfer account details saved successfully!");
+		} catch (err: any) {
+			setSettingsErr(err.message || "Failed to save settings");
+		} finally {
+			setSavingSettings(false);
+		}
+	}
+
+	async function handleRecordEtransfer() {
+		if (!manualEtAmount || Number(manualEtAmount) <= 0) {
+			setRecordEtErr("Please enter a valid amount.");
+			return;
+		}
+		setRecordingEt(true);
+		setRecordEtMsg("");
+		setRecordEtErr("");
+		try {
+			const res = await fetch("/api/admin/payments/record-etransfer", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					amountCad: Number(manualEtAmount),
+					referenceNumber: manualEtRef,
+					bookingId: manualEtBookingId,
+					kind: manualEtKind,
+					note: manualEtNote,
+					clientName: manualEtName,
+					clientEmail: manualEtEmail,
+				}),
+			});
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error || "Failed to record e-Transfer");
+			
+			setRecordEtMsg("Manual e-Transfer recorded successfully!");
+			setManualEtAmount("");
+			setManualEtRef("");
+			setManualEtNote("");
+			setManualEtName("");
+			setManualEtEmail("");
+			setManualEtBookingId("");
+			
+			if (data.payment) {
+				setEtransfers((prev) => [
+					{
+						_id: String(data.payment._id),
+						createdAt: new Date().toISOString(),
+						kind: data.payment.kind,
+						amountCents: data.payment.amountCents,
+						status: "succeeded",
+						referenceNumber: data.payment.referenceNumber,
+						note: data.payment.note,
+					},
+					...prev,
+				]);
+			}
+			router.refresh();
+		} catch (err: any) {
+			setRecordEtErr(err.message || "Failed to record e-Transfer");
+		} finally {
+			setRecordingEt(false);
+		}
+	}
 
 	// Modal States
 	const [isOpen, setIsOpen] = useState(false);
@@ -399,10 +535,322 @@ export function PaymentsManager({ initialPayments, initialPaymentLinks }: Paymen
 				>
 					Stripe Payment Links
 				</button>
+				<button
+					type="button"
+					onClick={() => handleTabChange("etransfers")}
+					className={`pb-3 px-4 border-b-2 cursor-pointer transition-all duration-200 flex items-center gap-2 ${
+						activeTab === "etransfers"
+							? "border-[#c8a86b] text-[#c8a86b] font-semibold"
+							: "border-transparent text-[var(--ink-soft)] hover:text-[var(--ink)]"
+					}`}
+				>
+					<span>🏦 Interac e-Transfers</span>
+				</button>
 			</div>
 
 			{/* Table Content */}
 			<div className="mt-6 overflow-x-auto">
+				{activeTab === "etransfers" && (
+					<div className="space-y-8 mt-4 text-left">
+						{/* 1. STUDIO E-TRANSFER RECEIVING ACCOUNT DETAILS CARD */}
+						<div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm space-y-6">
+							<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4">
+								<div>
+									<h2 className="text-xl font-[family-name:var(--font-display)] text-[var(--ink)] flex items-center gap-2">
+										<span>🏦 Studio Interac e-Transfer Receiving Account</span>
+									</h2>
+									<p className="text-xs text-[var(--ink-soft)] mt-1">
+										Configure your official full name, email, and phone number linked to your studio e-Transfer receiving account.
+									</p>
+								</div>
+								<button
+									type="button"
+									disabled={savingSettings}
+									onClick={() => void handleSaveEtransferSettings()}
+									className="btn-primary py-2.5 px-5 text-xs font-bold shadow-md shrink-0 cursor-pointer disabled:opacity-50"
+								>
+									{savingSettings ? "Saving..." : "💾 Save Account Details"}
+								</button>
+							</div>
+
+							{settingsMsg && (
+								<div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-xs font-semibold">
+									✓ {settingsMsg}
+								</div>
+							)}
+							{settingsErr && (
+								<div className="p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 text-xs font-semibold">
+									⚠️ {settingsErr}
+								</div>
+							)}
+
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Full Name Linked to Account
+									</label>
+									<input
+										type="text"
+										value={etSettings.accountName}
+										onChange={(e) => setEtSettings({ ...etSettings, accountName: e.target.value })}
+										placeholder="e.g. Marinelle Tala / Mari Esthetics"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] font-medium"
+									/>
+								</div>
+
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										e-Transfer Email Address
+									</label>
+									<input
+										type="email"
+										value={etSettings.email}
+										onChange={(e) => setEtSettings({ ...etSettings, email: e.target.value })}
+										placeholder="e.g. mari@mariesthetics.ca"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] font-mono"
+									/>
+								</div>
+
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										e-Transfer Phone Number
+									</label>
+									<input
+										type="tel"
+										value={etSettings.phone}
+										onChange={(e) => setEtSettings({ ...etSettings, phone: e.target.value })}
+										placeholder="e.g. +1 7809133081"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] font-mono"
+									/>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+								<div className="space-y-3">
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block">
+										Auto-Deposit Configuration
+									</label>
+									<label className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border-color)] bg-black/5 dark:bg-black/20 cursor-pointer">
+										<input
+											type="checkbox"
+											checked={etSettings.autoDepositEnabled}
+											onChange={(e) => setEtSettings({ ...etSettings, autoDepositEnabled: e.target.checked })}
+											className="w-4 h-4 accent-[#c8a86b] rounded cursor-pointer"
+										/>
+										<span className="text-xs font-semibold text-[var(--ink)]">
+											⚡ Interac Auto-Deposit Enabled (No security password required)
+										</span>
+									</label>
+								</div>
+
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Client Payment Memo / Instructions
+									</label>
+									<textarea
+										rows={2}
+										value={etSettings.instructions}
+										onChange={(e) => setEtSettings({ ...etSettings, instructions: e.target.value })}
+										placeholder="e.g. Please include your appointment date and full name in the e-Transfer note."
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+									/>
+								</div>
+							</div>
+
+							{/* Live Customer Preview */}
+							<div className="p-4 rounded-xl border border-[#c8a86b]/30 bg-[#c8a86b]/5 space-y-1.5">
+								<span className="text-[10px] uppercase font-bold tracking-wider text-[#c8a86b] block">
+									🔍 Live Checkout Preview (What clients see when paying via e-Transfer)
+								</span>
+								<div className="text-xs text-[var(--ink)] space-y-1 font-mono">
+									<p><strong>Account Name:</strong> {etSettings.accountName}</p>
+									<p><strong>Email:</strong> {etSettings.email}</p>
+									<p><strong>Phone:</strong> {etSettings.phone}</p>
+									<p><strong>Status:</strong> {etSettings.autoDepositEnabled ? "⚡ Auto-Deposit Enabled" : "🔒 Password Required"}</p>
+									<p className="italic text-[var(--ink-soft)] font-sans">"{etSettings.instructions}"</p>
+								</div>
+							</div>
+						</div>
+
+						{/* 2. RECORD MANUAL E-TRANSFER CARD */}
+						<div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm space-y-5">
+							<div>
+								<h2 className="text-xl font-[family-name:var(--font-display)] text-[var(--ink)]">
+									📝 Record Manual Interac e-Transfer
+								</h2>
+								<p className="text-xs text-[var(--ink-soft)] mt-1">
+									Manually log e-Transfers received directly in bank account.
+								</p>
+							</div>
+
+							{recordEtMsg && (
+								<div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-xs font-semibold">
+									✓ {recordEtMsg}
+								</div>
+							)}
+							{recordEtErr && (
+								<div className="p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 text-xs font-semibold">
+									⚠️ {recordEtErr}
+								</div>
+							)}
+
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Sender / Client Name
+									</label>
+									<input
+										type="text"
+										value={manualEtName}
+										onChange={(e) => setManualEtName(e.target.value)}
+										placeholder="e.g. Sarah Johns"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+									/>
+								</div>
+
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Client Email
+									</label>
+									<input
+										type="email"
+										value={manualEtEmail}
+										onChange={(e) => setManualEtEmail(e.target.value)}
+										placeholder="e.g. sarah@verifik.co"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] font-mono"
+									/>
+								</div>
+
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Amount ($ CAD) *
+									</label>
+									<input
+										type="number"
+										step="0.01"
+										value={manualEtAmount}
+										onChange={(e) => setManualEtAmount(e.target.value)}
+										placeholder="e.g. 90.00"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] font-mono font-bold"
+									/>
+								</div>
+
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Interac Ref / Confirmation #
+									</label>
+									<input
+										type="text"
+										value={manualEtRef}
+										onChange={(e) => setManualEtRef(e.target.value)}
+										placeholder="e.g. CA12345678"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] font-mono"
+									/>
+								</div>
+							</div>
+
+							<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+								<div>
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Payment Type
+									</label>
+									<select
+										value={manualEtKind}
+										onChange={(e: any) => setManualEtKind(e.target.value)}
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] cursor-pointer"
+									>
+										<option value="balance">Remaining Balance</option>
+										<option value="deposit">Deposit ($30.00)</option>
+										<option value="tip">Gratuity / Tip</option>
+										<option value="adjustment">Manual Adjustment</option>
+									</select>
+								</div>
+
+								<div className="sm:col-span-2">
+									<label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
+										Notes / Details
+									</label>
+									<input
+										type="text"
+										value={manualEtNote}
+										onChange={(e) => setManualEtNote(e.target.value)}
+										placeholder="e.g. Verified in RBC online banking app"
+										className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+									/>
+								</div>
+							</div>
+
+							<div className="flex justify-end pt-2">
+								<button
+									type="button"
+									disabled={recordingEt || !manualEtAmount}
+									onClick={() => void handleRecordEtransfer()}
+									className="btn-primary py-2.5 px-6 text-xs font-bold shadow-md cursor-pointer disabled:opacity-50"
+								>
+									{recordingEt ? "Recording..." : "+ Record e-Transfer Payment"}
+								</button>
+							</div>
+						</div>
+
+						{/* 3. INTERAC E-TRANSFERS DATA TABLE */}
+						<div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 rounded-2xl shadow-sm space-y-4">
+							<h2 className="text-xl font-[family-name:var(--font-display)] text-[var(--ink)]">
+								📋 e-Transfer History ({etransfers.length})
+							</h2>
+
+							<div className="overflow-x-auto">
+								<table className="w-full text-left text-sm text-[var(--ink)]">
+									<thead className="text-[var(--ink-soft)]/75 border-b border-[var(--border-color)]">
+										<tr>
+											<th className="py-2.5 pr-4 font-bold text-xs uppercase">Date</th>
+											<th className="py-2.5 pr-4 font-bold text-xs uppercase">Client / Sender</th>
+											<th className="py-2.5 pr-4 font-bold text-xs uppercase">Interac Ref #</th>
+											<th className="py-2.5 pr-4 font-bold text-xs uppercase">Kind</th>
+											<th className="py-2.5 pr-4 font-bold text-xs uppercase">Amount</th>
+											<th className="py-2.5 font-bold text-xs uppercase">Status</th>
+										</tr>
+									</thead>
+									<tbody>
+										{etransfers.map((et) => (
+											<tr key={et._id} className="border-b border-[var(--border-color)]/50 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+												<td className="py-3 pr-4 text-xs font-mono text-[var(--ink-soft)]">
+													{format(new Date(et.createdAt), "PP p")}
+												</td>
+												<td className="py-3 pr-4 font-semibold text-xs text-[var(--ink)]">
+													{et.booking?.guestName || "Studio Client"}
+													{et.booking?.guestEmail && (
+														<span className="block text-[11px] font-mono text-[var(--ink-soft)] font-normal">
+															{et.booking.guestEmail}
+														</span>
+													)}
+												</td>
+												<td className="py-3 pr-4 font-mono text-xs text-[#c8a86b]">
+													{et.referenceNumber || et.note?.slice(0, 15) || "—"}
+												</td>
+												<td className="py-3 pr-4 font-semibold text-xs capitalize">
+													{et.kind}
+												</td>
+												<td className="py-3 pr-4 font-bold text-xs font-mono">
+													{formatCad(et.amountCents)}
+												</td>
+												<td className="py-3 text-xs font-bold">
+													<span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-extrabold border border-emerald-500/40 bg-emerald-500/10 text-emerald-500">
+														{et.status}
+													</span>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+								{etransfers.length === 0 && (
+									<p className="py-8 text-center text-xs text-[var(--ink-soft)] italic">
+										No e-Transfers recorded yet.
+									</p>
+								)}
+							</div>
+						</div>
+					</div>
+				)}
 				{activeTab === "transactions" ? (
 					<>
 						<table className="w-full text-left text-sm text-[var(--ink)]">
