@@ -13,6 +13,7 @@ import { ServicesPreview } from "@/components/public/sections/ServicesPreview";
 import { HowItWorks } from "@/components/public/sections/HowItWorks";
 import { MembershipBand } from "@/components/public/sections/MembershipBand";
 import { Testimonials } from "@/components/public/sections/Testimonials";
+import { SocialReels } from "@/components/public/sections/SocialReels";
 import { Faq } from "@/components/public/sections/Faq";
 import { CtaBand } from "@/components/public/sections/CtaBand";
 
@@ -80,6 +81,7 @@ export default async function HomePage() {
       <HowItWorks />
       <MembershipBand plans={plans} />
       <Testimonials />
+      <SocialReels />
       <Faq />
       <CtaBand />
       <JsonLd

@@ -23,4 +23,6 @@ export { Review, type ReviewDoc } from "./Review";
 export { Quiz, type QuizDoc } from "./Quiz";
 export { QuizSubmission, type QuizSubmissionDoc } from "./QuizSubmission";
 export { GiftCard, type GiftCardDoc } from "./GiftCard";
+export { SocialReel, type SocialReelDoc } from "./SocialReel";
+export { SiteSettings, type SiteSettingsDoc, getOrCreateSettings, updateSettings } from "./SiteSettings";
 
