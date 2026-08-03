@@ -9,7 +9,53 @@ import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
 const bodySchema = z.object({
   bookingId: z.string().min(1),
   amountCents: z.number().int().positive().optional(),
+  forceNew: z.boolean().optional(),
 });
+
+export async function GET(req: Request) {
+  try {
+    await requireManager();
+    const { searchParams } = new URL(req.url);
+    const bookingId = searchParams.get("bookingId");
+
+    if (!bookingId) {
+      return NextResponse.json({ error: "bookingId is required" }, { status: 400 });
+    }
+
+    await connectDb();
+
+    if (!isStripeConfigured()) {
+      return NextResponse.json({ url: null });
+    }
+
+    // Find latest pending balance payment for this booking
+    const existingPayment = await Payment.findOne({
+      bookingId,
+      kind: "balance",
+      method: "stripe",
+      status: "pending",
+    }).sort({ createdAt: -1 });
+
+    if (existingPayment?.stripeCheckoutSessionId) {
+      try {
+        const stripe = getStripe();
+        const session = await stripe.checkout.sessions.retrieve(existingPayment.stripeCheckoutSessionId);
+        if (session && session.status === "open" && session.url) {
+          return NextResponse.json({ url: session.url, paymentId: existingPayment._id });
+        }
+      } catch (e) {
+        console.warn("[Stripe Session Retrieve Warning]:", e);
+      }
+    }
+
+    return NextResponse.json({ url: null });
+  } catch (err: any) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    return NextResponse.json({ error: "Failed to fetch balance link" }, { status: 500 });
+  }
+}
 
 export async function POST(req: Request) {
   try {
@@ -36,6 +82,29 @@ export async function POST(req: Request) {
     }
 
     const stripe = getStripe();
+
+    // Check for an existing open pending session if forceNew is not set
+    if (!body.forceNew) {
+      const existingPayment = await Payment.findOne({
+        bookingId: booking._id,
+        kind: "balance",
+        method: "stripe",
+        amountCents: amount,
+        status: "pending",
+      }).sort({ createdAt: -1 });
+
+      if (existingPayment?.stripeCheckoutSessionId) {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(existingPayment.stripeCheckoutSessionId);
+          if (session && session.status === "open" && session.url) {
+            return NextResponse.json({ url: session.url, paymentId: existingPayment._id });
+          }
+        } catch (e) {
+          // ignore and create new
+        }
+      }
+    }
+
     const payment = await Payment.create({
       bookingId: booking._id,
       kind: "balance",

@@ -575,7 +575,7 @@ export function BookingWizard({ initialServiceId }: { initialServiceId?: string 
               </label>
               <input
                 type="tel"
-                placeholder="(780) 555-0199"
+                placeholder="(780)1112223"
                 className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}

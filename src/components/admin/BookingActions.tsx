@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatCad } from "@/lib/money";
 
 export function BookingActions({
@@ -17,6 +17,7 @@ export function BookingActions({
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [fetchingLink, setFetchingLink] = useState(false);
   const [emailing, setEmailing] = useState(false);
   const [note, setNote] = useState("");
   const [adjustAmount, setAdjustAmount] = useState("");
@@ -27,6 +28,30 @@ export function BookingActions({
   // Payment Link State
   const [paymentUrl, setPaymentUrl] = useState("");
   const [copied, setCopied] = useState(false);
+
+  // Auto-fetch existing active payment link for this booking on mount
+  useEffect(() => {
+    let isMounted = true;
+    if (bookingId && balanceDueCents > 0) {
+      setFetchingLink(true);
+      fetch(`/api/payments/balance?bookingId=${bookingId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted && data.url) {
+            setPaymentUrl(data.url);
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (isMounted) setFetchingLink(false);
+        });
+    } else {
+      setPaymentUrl("");
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [bookingId, balanceDueCents]);
 
   async function confirmEtransfer(approve: boolean) {
     setLoading(true);
@@ -77,7 +102,7 @@ export function BookingActions({
     }
   }
 
-  async function generateBalanceLink() {
+  async function generateBalanceLink(forceNew = false) {
     setLoading(true);
     setError("");
     setMessage("");
@@ -85,13 +110,13 @@ export function BookingActions({
       const res = await fetch("/api/payments/balance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId }),
+        body: JSON.stringify({ bookingId, forceNew }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate payment link");
       if (data.url) {
         setPaymentUrl(data.url);
-        setMessage("Stripe payment link generated!");
+        setMessage(forceNew ? "New Stripe payment link created!" : "Stripe payment link retrieved!");
       }
     } catch (err: any) {
       setError(err.message || "Failed to generate payment link");
@@ -232,25 +257,38 @@ export function BookingActions({
             </span>
           </div>
 
-          {!paymentUrl ? (
+          {fetchingLink ? (
+            <div className="py-2.5 px-4 rounded-xl bg-black/10 dark:bg-white/5 border border-[var(--border-color)] text-xs text-[var(--ink-soft)] italic animate-pulse text-center">
+              Checking for existing payment link...
+            </div>
+          ) : !paymentUrl ? (
             <button
               type="button"
               disabled={loading}
-              onClick={() => void generateBalanceLink()}
+              onClick={() => void generateBalanceLink(false)}
               className="w-full bg-[#2f5d4a] hover:bg-[#3b725b] text-white py-2.5 px-4 text-xs font-bold rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               <span>💳 Generate Stripe Payment Link ({formatCad(balanceDueCents)})</span>
             </button>
           ) : (
             <div className="space-y-2.5 animate-in fade-in duration-200">
-              <div className="p-2 rounded-xl bg-black/10 dark:bg-black/30 border border-[var(--border-color)]">
+              <div className="p-2 rounded-xl bg-black/10 dark:bg-black/30 border border-[var(--border-color)] flex items-center justify-between gap-2">
                 <input
                   type="text"
                   readOnly
                   value={paymentUrl}
                   style={{ backgroundColor: "transparent" }}
-                  className="w-full text-xs font-mono text-[#c8a86b] focus:outline-none select-all"
+                  className="w-full text-xs font-mono text-[#c8a86b] focus:outline-none select-all truncate"
                 />
+                <button
+                  type="button"
+                  title="Generate a new fresh payment link"
+                  disabled={loading}
+                  onClick={() => void generateBalanceLink(true)}
+                  className="text-[10px] text-[var(--ink-soft)] hover:text-[#c8a86b] underline whitespace-nowrap shrink-0"
+                >
+                  🔄 New Link
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-2">

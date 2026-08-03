@@ -43,10 +43,7 @@ async function syncBookingOnPaidSession(bookingId: string, amountPaid: number): 
 
 	if (summary.paidCents !== newPaidCents) {
 		summary.paidCents = newPaidCents;
-		summary.balanceDueCents = Math.max(
-			0,
-			(summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents
-		);
+		summary.balanceDueCents = Math.max(0, (summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents);
 		currentBooking.paymentSummary = summary;
 		updated = true;
 	}
@@ -81,10 +78,7 @@ async function syncPaidCheckoutSession(params: {
 
 	// 1. Sync StripePaymentLink if present
 	if (updatedLink && updatedLink.status !== "paid") {
-		await StripePaymentLink.findOneAndUpdate(
-			{ stripeSessionId: sessionId },
-			{ $set: { status: "paid", paidAt: new Date() } }
-		);
+		await StripePaymentLink.findOneAndUpdate({ stripeSessionId: sessionId }, { $set: { status: "paid", paidAt: new Date() } });
 		updatedLink = { ...updatedLink, status: "paid" };
 	}
 
@@ -199,38 +193,41 @@ export async function GET(req: Request) {
 				description: link?.description || (serviceObj ? `${serviceObj.name} — Reservation Deposit` : "Esthetics Treatment Deposit"),
 				kind: link?.kind || paymentRecord?.kind || "deposit",
 				clientEmail: link?.clientEmail || booking?.guest?.email || session?.customer_details?.email || "",
-				createdAt: link?.createdAt ? new Date(link.createdAt).toISOString() : paymentRecord?.createdAt ? new Date(paymentRecord.createdAt).toISOString() : new Date().toISOString(),
+				createdAt: link?.createdAt
+					? new Date(link.createdAt).toISOString()
+					: paymentRecord?.createdAt
+						? new Date(paymentRecord.createdAt).toISOString()
+						: new Date().toISOString(),
 				bookingDate: booking?.start ? new Date(booking.start).toISOString() : null,
 				bookingServiceName: serviceObj?.name || null,
 			},
-			booking: booking ? {
-				id: String(booking._id),
-				start: booking.start ? new Date(booking.start).toISOString() : null,
-				end: booking.end ? new Date(booking.end).toISOString() : null,
-				status: booking.status,
-				guestName: booking.guest?.name || "",
-				guestEmail: booking.guest?.email || "",
-				guestPhone: booking.guest?.phone || "",
-				serviceName: serviceObj?.name || "",
-				durationMin: serviceObj?.durationMin || 60,
-				totalCents: booking.paymentSummary?.totalCents || serviceObj?.priceCents || 0,
-				depositCents: booking.paymentSummary?.depositCents || amountCents,
-				paidCents: booking.paymentSummary?.paidCents || amountCents,
-				balanceDueCents: booking.paymentSummary?.balanceDueCents || 0,
-			} : null,
+			booking: booking
+				? {
+						id: String(booking._id),
+						start: booking.start ? new Date(booking.start).toISOString() : null,
+						end: booking.end ? new Date(booking.end).toISOString() : null,
+						status: booking.status,
+						guestName: booking.guest?.name || "",
+						guestEmail: booking.guest?.email || "",
+						guestPhone: booking.guest?.phone || "",
+						serviceName: serviceObj?.name || "",
+						durationMin: serviceObj?.durationMin || 60,
+						totalCents: booking.paymentSummary?.totalCents || serviceObj?.priceCents || 0,
+						depositCents: booking.paymentSummary?.depositCents || amountCents,
+						paidCents: booking.paymentSummary?.paidCents || amountCents,
+						balanceDueCents: booking.paymentSummary?.balanceDueCents || 0,
+					}
+				: null,
 			provider: {
 				name: "Marinelle Tala",
 				businessName: "Mari Esthetics",
 				address: "1211 Gillespie Crescent NW, Edmonton, AB",
 				email: "mari@mariesthetics.ca",
-				phone: "+1 (780) 555-0199",
+				phone: "+1 7809133081",
 			},
 		});
 	} catch (err: any) {
 		console.error("Failed to load checkout session details", err);
-		return NextResponse.json(
-			{ error: err.message || "Failed to retrieve payment receipt details" },
-			{ status: 500 }
-		);
+		return NextResponse.json({ error: err.message || "Failed to retrieve payment receipt details" }, { status: 500 });
 	}
 }
