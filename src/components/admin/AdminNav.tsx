@@ -77,6 +77,15 @@ const links = [
     ),
   },
   {
+    href: "/admin/promotions",
+    label: "Coupons & Gifts",
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V6a2 2 0 10-2 2h2zm0 13C10.832 21 2 20 2 12c0-3.314 2.686-6 6-6h8c3.314 0 6 2.686 6 6 0 8-8.832 9-10 9z" />
+      </svg>
+    ),
+  },
+  {
     href: "/admin/socials",
     label: "Socials",
     icon: (

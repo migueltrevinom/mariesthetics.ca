@@ -22,4 +22,5 @@ export { EtransferSettings, type EtransferSettingsDoc } from "./EtransferSetting
 export { Review, type ReviewDoc } from "./Review";
 export { Quiz, type QuizDoc } from "./Quiz";
 export { QuizSubmission, type QuizSubmissionDoc } from "./QuizSubmission";
+export { GiftCard, type GiftCardDoc } from "./GiftCard";
 
