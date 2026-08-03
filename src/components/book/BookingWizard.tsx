@@ -66,6 +66,7 @@ export function BookingWizard({
   const [step, setStep] = useState<Step>("service");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
   const [phone, setPhone] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [depositMethod, setDepositMethod] = useState<"stripe" | "etransfer">("stripe");
@@ -129,7 +130,7 @@ export function BookingWizard({
           serviceId,
           start: selectedStart,
           depositMethod,
-          guest: { name, email, phone },
+          guest: { name, email, countryCode, phone },
           couponCode: couponCode || undefined,
         }),
       });
@@ -591,15 +592,31 @@ export function BookingWizard({
             </div>
             <div>
               <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Phone Number (optional)
+                Phone Number (For SMS reminders)
               </label>
-              <input
-                type="tel"
-                placeholder="(780)1112223"
-                className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="w-28 border border-[var(--border-color)] bg-[var(--background)] px-3 py-3 rounded-xl text-sm font-semibold text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                >
+                  <option value="+1">🇨🇦 +1 (CA)</option>
+                  <option value="+1">🇺🇸 +1 (US)</option>
+                  <option value="+44">🇬🇧 +44 (UK)</option>
+                  <option value="+52">🇲🇽 +52 (MX)</option>
+                  <option value="+63">🇵🇭 +63 (PH)</option>
+                  <option value="+34">🇪🇸 +34 (ES)</option>
+                  <option value="+33">🇫🇷 +33 (FR)</option>
+                  <option value="+61">🇦🇺 +61 (AU)</option>
+                </select>
+                <input
+                  type="tel"
+                  placeholder="780 913 3081"
+                  className="flex-1 border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">

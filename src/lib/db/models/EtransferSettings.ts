@@ -4,7 +4,8 @@ const EtransferSettingsSchema = new Schema(
   {
     accountName: { type: String, required: true, default: "Mari Esthetics / Marinelle Tala" },
     email: { type: String, required: true, default: "mari@mariesthetics.ca" },
-    phone: { type: String, required: true, default: "+1 7809133081" },
+    countryCode: { type: String, default: "+1" },
+    phone: { type: String, required: true, default: "7809133081" },
     autoDepositEnabled: { type: Boolean, default: true },
     instructions: {
       type: String,

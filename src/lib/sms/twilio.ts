@@ -1,20 +1,12 @@
 import { config } from "@/lib/config";
 
 /**
- * Format Canadian/North American phone numbers into E.164 standard (+1XXXXXXXXXX).
+ * Format countryCode (e.g. "+1") and national phone number into E.164 standard.
  */
-export function formatCanadianPhoneNumber(phone: string): string {
+export function formatPhoneNumber(countryCode = "+1", phone = ""): string {
+  const code = countryCode.trim().startsWith("+") ? countryCode.trim() : `+${countryCode.trim()}`;
   const digits = phone.replace(/\D/g, "");
-  if (digits.length === 10) {
-    return `+1${digits}`;
-  }
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return `+${digits}`;
-  }
-  if (phone.startsWith("+")) {
-    return phone;
-  }
-  return `+1${digits}`;
+  return `${code}${digits}`;
 }
 
 export function isTwilioConfigured(): boolean {
@@ -22,7 +14,8 @@ export function isTwilioConfigured(): boolean {
 }
 
 export interface SendSmsParams {
-  to: string;
+  countryCode?: string;
+  phone: string;
   body: string;
 }
 
@@ -41,14 +34,14 @@ export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
     return { success: false, error: "Twilio credentials not configured" };
   }
 
-  const formattedTo = formatCanadianPhoneNumber(params.to);
+  const destinationNumber = formatPhoneNumber(params.countryCode || "+1", params.phone);
   const accountSid = config.twilioAccountSid;
   const authToken = config.twilioAuthToken;
 
   const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
 
   const bodyData = new URLSearchParams();
-  bodyData.append("To", formattedTo);
+  bodyData.append("To", destinationNumber);
   bodyData.append("Body", params.body);
 
   if (config.twilioMessagingServiceSid) {

@@ -8,6 +8,7 @@ export type ClientRow = {
   id?: string;
   name: string;
   email: string;
+  countryCode?: string;
   phone: string;
   active: boolean;
   banned: boolean;
@@ -33,6 +34,7 @@ export function ClientEditor({
   const [form, setForm] = useState<Omit<ClientRow, "id">>({
     name: "",
     email: "",
+    countryCode: "+1",
     phone: "",
     active: true,
     banned: false,
@@ -73,6 +75,7 @@ export function ClientEditor({
       setForm({
         name: initialClient.name,
         email: initialClient.email,
+        countryCode: initialClient.countryCode || "+1",
         phone: initialClient.phone || "",
         active: initialClient.active !== false,
         banned: Boolean(initialClient.banned),
@@ -365,14 +368,31 @@ export function ClientEditor({
             <label className="block text-xs font-semibold text-[var(--ink-soft)] uppercase tracking-wider mb-1.5">
               Phone Number
             </label>
-            <input
-              placeholder="e.g. 780-123-4567"
-              type="text"
-              style={{ backgroundColor: "var(--card-bg)" }}
-              className="w-full border border-[var(--border-color)] px-3 py-2.5 text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            />
+            <div className="flex gap-2">
+              <select
+                style={{ backgroundColor: "var(--card-bg)" }}
+                className="w-28 border border-[var(--border-color)] px-2.5 py-2.5 text-xs font-semibold text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
+                value={form.countryCode || "+1"}
+                onChange={(e) => setForm({ ...form, countryCode: e.target.value })}
+              >
+                <option value="+1">🇨🇦 +1 (CA)</option>
+                <option value="+1">🇺🇸 +1 (US)</option>
+                <option value="+44">🇬🇧 +44 (UK)</option>
+                <option value="+52">🇲🇽 +52 (MX)</option>
+                <option value="+63">🇵🇭 +63 (PH)</option>
+                <option value="+34">🇪🇸 +34 (ES)</option>
+                <option value="+33">🇫🇷 +33 (FR)</option>
+                <option value="+61">🇦🇺 +61 (AU)</option>
+              </select>
+              <input
+                placeholder="e.g. 7801234567"
+                type="text"
+                style={{ backgroundColor: "var(--card-bg)" }}
+                className="flex-1 border border-[var(--border-color)] px-3 py-2.5 text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              />
+            </div>
           </div>
 
           {/* Active Status Checkbox */}

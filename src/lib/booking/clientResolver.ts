@@ -1,11 +1,12 @@
 import { connectDb } from "@/lib/db/connect";
 import { Client, Booking } from "@/lib/db/models";
 
-export async function findOrCreateClientForGuest(guest: { name: string; email: string; phone?: string }): Promise<any> {
+export async function findOrCreateClientForGuest(guest: { name: string; email: string; countryCode?: string; phone?: string }): Promise<any> {
 	await connectDb();
 	if (!guest || !guest.email) return null;
 
 	const normalizedEmail = guest.email.toLowerCase().trim();
+	const countryCode = guest.countryCode ? guest.countryCode.trim() : "+1";
 	const normalizedPhone = guest.phone ? guest.phone.trim() : "";
 	const clientName = guest.name ? guest.name.trim() : "Guest Client";
 
@@ -21,6 +22,7 @@ export async function findOrCreateClientForGuest(guest: { name: string; email: s
 		let modified = false;
 		if (!client.phone && normalizedPhone) {
 			client.phone = normalizedPhone;
+			client.countryCode = countryCode;
 			modified = true;
 		}
 		if (client.name !== clientName && clientName) {
@@ -38,6 +40,7 @@ export async function findOrCreateClientForGuest(guest: { name: string; email: s
 		client = await Client.create({
 			name: clientName,
 			email: normalizedEmail,
+			countryCode,
 			phone: normalizedPhone,
 			active: true,
 			banned: false,

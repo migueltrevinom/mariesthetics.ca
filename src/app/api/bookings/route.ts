@@ -21,7 +21,8 @@ const createSchema = z.object({
 		.object({
 			name: z.string().min(1),
 			email: z.string().email(),
-			phone: z.string().optional(),
+			countryCode: z.string().optional().default("+1"),
+			phone: z.string().optional().default(""),
 		})
 		.optional(),
 	couponCode: z.string().optional(),
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
 				guest = {
 					name: session.name,
 					email: session.email,
+					countryCode: "+1",
 					phone: "",
 				};
 			}
@@ -115,6 +117,7 @@ export async function POST(req: Request) {
 				guest = {
 					name: client.name,
 					email: client.email,
+					countryCode: client.countryCode || "+1",
 					phone: client.phone || "",
 				};
 				clientId = String(client._id);

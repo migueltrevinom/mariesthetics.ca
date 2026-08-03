@@ -50,6 +50,7 @@ export async function runAppointmentRemindersJob(): Promise<ScheduledJobResult> 
 
   for (const booking of bookings24h) {
     result.processedCount++;
+    const countryCode = booking.guest?.countryCode || "+1";
     const phone = booking.guest?.phone;
     const name = booking.guest?.name || "Valued Client";
     const serviceName = (booking.serviceId as any)?.name || "Esthetics Treatment";
@@ -62,7 +63,7 @@ export async function runAppointmentRemindersJob(): Promise<ScheduledJobResult> 
 
     const message = `✨ Hi ${name}! Reminder for your ${serviceName} at Mari Esthetics on ${dateFormatted} at ${timeFormatted}.\n\nStudio Address: 1211 Gillespie Cres NW, Edmonton, AB.\nSee booking: ${config.appUrl}/payment-link`;
 
-    const smsRes = await sendSms({ to: phone, body: message });
+    const smsRes = await sendSms({ countryCode, phone, body: message });
     if (smsRes.success) {
       result.remindersSent24h++;
       booking.reminder24hSent = true;
@@ -84,6 +85,7 @@ export async function runAppointmentRemindersJob(): Promise<ScheduledJobResult> 
 
   for (const booking of bookings2h) {
     result.processedCount++;
+    const countryCode = booking.guest?.countryCode || "+1";
     const phone = booking.guest?.phone;
     const name = booking.guest?.name || "Valued Client";
     const serviceName = (booking.serviceId as any)?.name || "Esthetics Treatment";
@@ -95,7 +97,7 @@ export async function runAppointmentRemindersJob(): Promise<ScheduledJobResult> 
 
     const message = `⏱️ Hi ${name}! Your ${serviceName} at Mari Esthetics starts in 2 hours (${timeFormatted}).\n\nStudio Address: 1211 Gillespie Cres NW, Edmonton, AB.\nSee you soon!`;
 
-    const smsRes = await sendSms({ to: phone, body: message });
+    const smsRes = await sendSms({ countryCode, phone, body: message });
     if (smsRes.success) {
       result.remindersSent2h++;
       booking.reminder2hSent = true;

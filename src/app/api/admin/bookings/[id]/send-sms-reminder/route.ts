@@ -18,6 +18,7 @@ export const POST = withManagerAuth(
         return NextResponse.json({ error: "Booking not found" }, { status: 404 });
       }
 
+      const countryCode = booking.guest?.countryCode || "+1";
       const phone = booking.guest?.phone;
       if (!phone) {
         return NextResponse.json({ error: "Client phone number is missing on this booking" }, { status: 400 });
@@ -34,14 +35,14 @@ export const POST = withManagerAuth(
 
       const message = `✨ Hi ${name}! Reminder for your ${serviceName} at Mari Esthetics on ${dateFormatted} at ${timeFormatted}.\n\nStudio Address: 1211 Gillespie Cres NW, Edmonton, AB.\nSee details: ${config.appUrl}/payment-link`;
 
-      const smsRes = await sendSms({ to: phone, body: message });
+      const smsRes = await sendSms({ countryCode, phone, body: message });
       if (!smsRes.success) {
         return NextResponse.json({ error: smsRes.error || "Failed to send SMS" }, { status: 500 });
       }
 
       return NextResponse.json({
         success: true,
-        message: `Instant SMS reminder sent to ${phone}`,
+        message: `Instant SMS reminder sent to ${countryCode} ${phone}`,
         messageId: smsRes.messageId,
       });
     } catch (err: any) {
