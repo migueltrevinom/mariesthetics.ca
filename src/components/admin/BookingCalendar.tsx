@@ -56,6 +56,7 @@ interface BookingItem {
     totalCents: number;
     depositCents: number;
     paidCents: number;
+    discountCents?: number;
     balanceDueCents: number;
   };
 }
@@ -752,6 +753,14 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                       {formatCad(selectedBooking.paymentSummary?.totalCents ?? 0)}
                     </span>
                   </div>
+                  {(selectedBooking.paymentSummary?.discountCents ?? 0) > 0 && (
+                    <div className="flex justify-between text-amber-500 font-semibold">
+                      <span>Discount / Promo Applied:</span>
+                      <span>
+                        -{formatCad(selectedBooking.paymentSummary?.discountCents ?? 0)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-emerald-500 font-medium">
                     <span>Paid Deposit:</span>
                     <span>

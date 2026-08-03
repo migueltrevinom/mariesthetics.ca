@@ -201,19 +201,48 @@ export async function POST(req: Request) {
 		let couponId = null;
 
 		if (body.couponCode) {
+			const cleanCode = body.couponCode.toUpperCase().trim();
+
+			// 1. Try finding a Discount Coupon
 			const coupon = await Coupon.findOne({
-				code: body.couponCode.toUpperCase(),
+				code: cleanCode,
 				active: true,
 			});
+
 			if (
 				coupon &&
-				(!coupon.expiresAt || coupon.expiresAt > new Date()) &&
+				(!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) &&
 				(coupon.maxRedemptions == null || coupon.redemptionCount < coupon.maxRedemptions)
 			) {
 				const discounted = applyDiscount(priceCents, coupon.type, coupon.value);
 				discountCents = priceCents - discounted;
 				priceCents = discounted;
 				couponId = coupon._id;
+
+				// Increment redemption count
+				coupon.redemptionCount = (coupon.redemptionCount || 0) + 1;
+				await coupon.save();
+			} else {
+				// 2. Try finding a Digital Gift Card
+				const { GiftCard } = await import("@/lib/db/models/GiftCard");
+				const giftCard = await GiftCard.findOne({
+					code: cleanCode,
+					active: true,
+				});
+
+				if (
+					giftCard &&
+					(!giftCard.expiryDate || new Date(giftCard.expiryDate) > new Date()) &&
+					giftCard.remainingBalanceCents > 0
+				) {
+					const availableCents = giftCard.remainingBalanceCents;
+					discountCents = Math.min(availableCents, priceCents);
+					priceCents = priceCents - discountCents;
+
+					// Deduct from gift card balance
+					giftCard.remainingBalanceCents = Math.max(0, giftCard.remainingBalanceCents - discountCents);
+					await giftCard.save();
+				}
 			}
 		}
 
