@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatCad } from "@/lib/money";
 
@@ -34,6 +34,37 @@ export function ServiceList({ services }: ServiceListProps) {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({
+    facials: "Facials",
+    lashes: "Lashes",
+    permanentMakeUp: "Permanent Make-Up",
+    general: "General",
+  });
+  const [categoriesList, setCategoriesList] = useState<{ value: string; label: string }[]>([
+    { value: "all", label: "All Categories" },
+    { value: "facials", label: "Facials" },
+    { value: "lashes", label: "Lashes" },
+    { value: "permanentMakeUp", label: "Permanent Make-Up" },
+    { value: "general", label: "General" },
+  ]);
+
+  useEffect(() => {
+    fetch("/api/public/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.categories) && data.categories.length > 0) {
+          const map: Record<string, string> = {};
+          const list = [{ value: "all", label: "All Categories" }];
+          data.categories.forEach((c: any) => {
+            map[c.slug] = c.name;
+            list.push({ value: c.slug, label: c.name });
+          });
+          setCategoryMap(map);
+          setCategoriesList(list);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   async function remove(id: string) {
     if (!window.confirm("Are you sure you want to delete this service permanently? This action cannot be undone.")) {
@@ -125,7 +156,7 @@ export function ServiceList({ services }: ServiceListProps) {
 
         {/* Category Pills Filters */}
         <div className="flex flex-wrap gap-1.5 overflow-x-auto py-1 scrollbar-none">
-          {CATEGORIES.map((cat) => (
+          {categoriesList.map((cat) => (
             <button
               key={cat.value}
               type="button"
@@ -173,11 +204,7 @@ export function ServiceList({ services }: ServiceListProps) {
                 <div className="flex items-center gap-2.5">
                   <span className="font-semibold text-lg text-[var(--ink)] truncate">{row.name}</span>
                   <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full border border-[#c8a86b]/40 bg-[#c8a86b]/5 text-[#c8a86b]">
-                    {row.category === "permanentMakeUp"
-                      ? "Permanent Make-Up"
-                      : row.category === "facials"
-                      ? "Facial"
-                      : "Lashes"}
+                    {categoryMap[row.category] || row.category}
                   </span>
                 </div>
                 

@@ -15,7 +15,7 @@ export const createServiceSchema = z.object({
 	durationMin: z.number().int().min(15, "Duration must be at least 15 minutes"),
 	priceCents: z.number().int().min(0, "Price cannot be negative"),
 	depositCents: z.number().int().min(0, "Deposit cannot be negative"),
-	category: z.enum(["lashes", "permanentMakeUp", "facials"]),
+	category: z.string().min(1, "Category is required"),
 	sortOrder: z.number().int().optional().default(0),
 	active: z.boolean().optional().default(true),
 	photos: z.array(z.string().url("Please enter valid image URLs")).max(5, "Maximum of 5 photos allowed").optional().default([]),

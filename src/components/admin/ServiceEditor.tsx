@@ -82,6 +82,24 @@ export function ServiceEditor({
   const [mappedProducts, setMappedProducts] = useState<any[]>([]);
   const [genLoading, setGenLoading] = useState(false);
 
+  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([
+    { name: "Facials", slug: "facials" },
+    { name: "Lashes", slug: "lashes" },
+    { name: "Permanent Make-Up (Brows)", slug: "permanentMakeUp" },
+    { name: "General", slug: "general" },
+  ]);
+
+  useEffect(() => {
+    fetch("/api/public/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.categories) && data.categories.length > 0) {
+          setCategories(data.categories.map((c: any) => ({ name: c.name, slug: c.slug })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const loadMappedProducts = async (serviceId: string) => {
     try {
       const res = await fetch(`/api/admin/products?serviceId=${serviceId}`);
@@ -307,9 +325,11 @@ export function ServiceEditor({
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
             >
-              <option value="facials" className="bg-[var(--card-bg)] text-[var(--ink)]">Facials</option>
-              <option value="lashes" className="bg-[var(--card-bg)] text-[var(--ink)]">Lashes</option>
-              <option value="permanentMakeUp" className="bg-[var(--card-bg)] text-[var(--ink)]">Permanent Make-Up (Brows)</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug} className="bg-[var(--card-bg)] text-[var(--ink)]">
+                  {c.name}
+                </option>
+              ))}
             </select>
           </div>
 

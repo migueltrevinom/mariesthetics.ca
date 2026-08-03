@@ -25,4 +25,5 @@ export { QuizSubmission, type QuizSubmissionDoc } from "./QuizSubmission";
 export { GiftCard, type GiftCardDoc } from "./GiftCard";
 export { SocialReel, type SocialReelDoc } from "./SocialReel";
 export { SiteSettings, type SiteSettingsDoc, getOrCreateSettings, updateSettings } from "./SiteSettings";
+export { Category, type CategoryDoc } from "./Category";
 

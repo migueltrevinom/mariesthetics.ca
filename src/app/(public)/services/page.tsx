@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { connectDb } from "@/lib/db/connect";
-import { Promotion, Service, ServiceImage, SubscriptionPlan } from "@/lib/db/models";
+import { Category, Promotion, Service, ServiceImage, SubscriptionPlan } from "@/lib/db/models";
 import { formatCad } from "@/lib/money";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Reveal } from "@/components/public/Reveal";
@@ -28,7 +28,7 @@ export const metadata: Metadata = buildMetadata({
   ],
 });
 
-type Svc = {
+type ServiceItem = {
   _id: string;
   name: string;
   description: string;
@@ -37,6 +37,10 @@ type Svc = {
   depositCents: number;
   category: string;
   photos: string[];
+  slug: string;
+  metaTitle: string;
+  metaDescription: string;
+  keywords: string;
 };
 
 type Plan = {
@@ -50,18 +54,26 @@ type Plan = {
 
 type Promo = { _id: string; title: string; description: string };
 
+type CategoryItem = {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+};
+
 const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
+  facials: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800",
   facial: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800",
   lashes: "https://images.unsplash.com/photo-1583001809873-a1284d563572?auto=format&fit=crop&q=80&w=800",
+  permanentMakeUp: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
   brows: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
-  waxing: "https://images.unsplash.com/photo-1512290900673-7002fa43878b?auto=format&fit=crop&q=80&w=800",
   general: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
 };
 
 async function getData() {
   try {
     await connectDb();
-    const [services, promotions, plans, serviceImages] = await Promise.all([
+    const [services, promotions, plans, serviceImages, categories] = await Promise.all([
       Service.find({ active: true }).sort({ sortOrder: 1 }).lean(),
       Promotion.find({
         active: true,
@@ -70,6 +82,7 @@ async function getData() {
       }).lean(),
       SubscriptionPlan.find({ active: true }).lean(),
       ServiceImage.find({ isPrivate: false }).lean(),
+      Category.find({ active: true }).sort({ sortOrder: 1, name: 1 }).lean(),
     ]);
 
     const imageMap = new Map<string, string[]>();
@@ -94,7 +107,7 @@ async function getData() {
           category: String(s.category ?? "general"),
           photos: uploadedPhotos,
         };
-      }) as Svc[],
+      }) as ServiceItem[],
       promotions: promotions.map((p: any) => ({
         _id: String(p._id),
         title: String(p.title),
@@ -108,22 +121,25 @@ async function getData() {
         priceCents: Number(p.priceCents),
         billingNote: p.billingNote ? String(p.billingNote) : undefined,
       })) as Plan[],
+      categories: categories.map((c: any) => ({
+        _id: String(c._id),
+        name: String(c.name),
+        slug: String(c.slug),
+        description: String(c.description ?? ""),
+      })) as CategoryItem[],
     };
   } catch {
-    return { offline: true, services: [], promotions: [], plans: [] };
+    return { offline: true, services: [], promotions: [], plans: [], categories: [] };
   }
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  facial: "Facials & Skin Treatments",
-  lashes: "Lash Lifts & Tints",
-  brows: "Brow Sculpting & Lamination",
-  waxing: "Body Waxing & Smooth Skin",
-  general: "Specialized Treatments",
-};
-
 export default async function ServicesPage() {
-  const { services, promotions, plans, offline } = await getData();
+  const { services, promotions, plans, categories: dbCategories, offline } = await getData();
+
+  const categoryMap: Record<string, CategoryItem> = {};
+  dbCategories.forEach((c) => {
+    categoryMap[c.slug] = c;
+  });
 
   const categories = Array.from(new Set(services.map((s) => s.category)));
 
@@ -147,7 +163,7 @@ export default async function ServicesPage() {
             <div className="reveal reveal-delay-3 mt-10 flex flex-wrap items-center gap-2.5">
               {categories.map((c) => (
                 <a key={c} href={`#${c}`} className="chip font-medium shadow-sm hover:scale-105 transition-all">
-                  {CATEGORY_LABELS[c] ?? c}
+                  {categoryMap[c]?.name || c}
                 </a>
               ))}
               {plans.length > 0 && (
@@ -170,7 +186,9 @@ export default async function ServicesPage() {
         {/* Category Sections */}
         {categories.map((category) => {
           const categoryServices = services.filter((s) => s.category === category);
-          const categoryTitle = CATEGORY_LABELS[category] ?? category;
+          const catObj = categoryMap[category];
+          const categoryTitle = catObj?.name || category;
+          const categoryDesc = catObj?.description || "";
 
           return (
             <section key={category} id={category} className="scroll-mt-28 space-y-8">
@@ -183,6 +201,11 @@ export default async function ServicesPage() {
                   <h2 className="display text-3xl sm:text-4xl text-[var(--ink)] mt-1">
                     {categoryTitle}
                   </h2>
+                  {categoryDesc && (
+                    <p className="text-xs text-[var(--ink-soft)] mt-1 max-w-xl">
+                      {categoryDesc}
+                    </p>
+                  )}
                 </div>
                 <p className="text-xs text-[var(--ink-soft)] font-medium">
                   {categoryServices.length} treatment{categoryServices.length === 1 ? "" : "s"} available

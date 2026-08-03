@@ -23,19 +23,20 @@ type Slot = { start: string; end: string };
 type Step = "service" | "slot" | "details" | "pay" | "done";
 
 const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
+  facials: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800",
   facial: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800",
   lashes: "https://images.unsplash.com/photo-1583001809873-a1284d563572?auto=format&fit=crop&q=80&w=800",
+  permanentMakeUp: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
   brows: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
-  waxing: "https://images.unsplash.com/photo-1512290900673-7002fa43878b?auto=format&fit=crop&q=80&w=800",
   general: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
+const DEFAULT_CATEGORY_LABELS: Record<string, string> = {
   all: "All Treatments",
-  facial: "Facials",
+  facials: "Facials",
   lashes: "Lashes",
-  brows: "Brows",
-  waxing: "Waxing",
+  permanentMakeUp: "Permanent Make-Up",
+  general: "General",
 };
 
 function formatSlotTime(iso: string) {
@@ -61,6 +62,23 @@ export function BookingWizard({
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState(initialServiceId ?? "");
   const [activeCategory, setActiveCategory] = useState("all");
+  const [categoryLabels, setCategoryLabels] = useState<Record<string, string>>(DEFAULT_CATEGORY_LABELS);
+
+  useEffect(() => {
+    fetch("/api/public/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.categories) && data.categories.length > 0) {
+          const map: Record<string, string> = { all: "All Treatments" };
+          data.categories.forEach((c: any) => {
+            map[c.slug] = c.name;
+          });
+          setCategoryLabels(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const [date, setDate] = useState(initialDate || format(new Date(), "yyyy-MM-dd"));
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedStart, setSelectedStart] = useState("");
@@ -314,7 +332,7 @@ export function BookingWizard({
                       : ""
                   }`}
                 >
-                  {CATEGORY_LABELS[c] ?? c}
+                  {categoryLabels[c] ?? c}
                 </button>
               ))}
             </div>

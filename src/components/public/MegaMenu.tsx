@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { whatsappUrl } from "@/lib/config";
 import { business } from "@/lib/seo";
 import { formatCad } from "@/lib/money";
@@ -14,18 +14,22 @@ export type NavService = {
   priceCents: number;
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
+type CategoryMeta = { name: string; slug: string; description: string };
+
+const DEFAULT_CATEGORY_LABELS: Record<string, string> = {
+  facials: "Facials",
   facial: "Facials",
   lashes: "Lashes",
+  permanentMakeUp: "Permanent Make-Up",
   brows: "Brows",
   general: "More",
 };
 
-const CATEGORY_ORDER = ["facial", "lashes", "brows", "general"];
-
-const CATEGORY_BLURB: Record<string, string> = {
+const DEFAULT_CATEGORY_BLURB: Record<string, string> = {
+  facials: "Custom facials & dermaplaning",
   facial: "Custom facials & dermaplaning",
   lashes: "Lifts & lash maintenance",
+  permanentMakeUp: "Shaping, tint & definition",
   brows: "Shaping, tint & definition",
   general: "Everything else we offer",
 };
@@ -38,23 +42,25 @@ const exploreLinks = [
   { href: "/login", label: "Client login" },
 ];
 
-function groupByCategory(services: NavService[]) {
+function groupByCategory(services: NavService[], categoryMetaMap: Map<string, CategoryMeta>) {
   const map = new Map<string, NavService[]>();
   for (const svc of services) {
-    const key = CATEGORY_LABELS[svc.category] ? svc.category : "general";
+    const key = svc.category || "general";
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(svc);
   }
-  const ordered = [...map.entries()].sort(
-    (a, b) => CATEGORY_ORDER.indexOf(a[0]) - CATEGORY_ORDER.indexOf(b[0]),
-  );
-  return ordered.map(([category, items]) => ({
-    category,
-    label: CATEGORY_LABELS[category] ?? "More",
-    blurb: CATEGORY_BLURB[category] ?? "Explore our menu",
-    count: items.length,
-    from: Math.min(...items.map((i) => i.priceCents)),
-  }));
+
+  const entries = [...map.entries()];
+  return entries.map(([category, items]) => {
+    const meta = categoryMetaMap.get(category);
+    return {
+      category,
+      label: meta?.name ?? DEFAULT_CATEGORY_LABELS[category] ?? category,
+      blurb: meta?.description || DEFAULT_CATEGORY_BLURB[category] || "Explore our treatment menu",
+      count: items.length,
+      from: Math.min(...items.map((i) => i.priceCents)),
+    };
+  });
 }
 
 export function MegaMenu({
@@ -67,6 +73,22 @@ export function MegaMenu({
   navServices: NavService[];
 }) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  const [categoryMetaMap, setCategoryMetaMap] = useState<Map<string, CategoryMeta>>(new Map());
+
+  useEffect(() => {
+    fetch("/api/public/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.categories)) {
+          const map = new Map<string, CategoryMeta>();
+          data.categories.forEach((c: any) => {
+            map.set(c.slug, c);
+          });
+          setCategoryMetaMap(map);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -81,7 +103,7 @@ export function MegaMenu({
     };
   }, [open, onClose]);
 
-  const categories = groupByCategory(navServices);
+  const categories = groupByCategory(navServices, categoryMetaMap);
   const tiles = categories.length > 0 ? categories : null;
 
   return (
