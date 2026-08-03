@@ -1,3 +1,4 @@
+import { AdminShell } from "@/components/admin/AdminShell";
 import { getAllSocialLinks } from "@/app/api/admin/socials/modules/socialLink.module";
 import { SocialsManager } from "@/components/admin/SocialsManager";
 
@@ -14,5 +15,9 @@ export default async function AdminSocialsPage() {
     sortOrder: Number(s.sortOrder ?? 0),
   }));
 
-  return <SocialsManager initialSocials={socials} />;
+  return (
+    <AdminShell>
+      <SocialsManager initialSocials={socials} />
+    </AdminShell>
+  );
 }

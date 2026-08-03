@@ -1,3 +1,4 @@
+import { AdminShell } from "@/components/admin/AdminShell";
 import { getAllTranslations } from "@/app/api/admin/translations/modules/translation.module";
 import { TranslationsManager } from "@/components/admin/TranslationsManager";
 
@@ -19,5 +20,9 @@ export default async function AdminTranslationsPage() {
     updatedAt: t.updatedAt ? new Date(t.updatedAt).toISOString() : undefined,
   }));
 
-  return <TranslationsManager initialTranslations={translations} />;
+  return (
+    <AdminShell>
+      <TranslationsManager initialTranslations={translations} />
+    </AdminShell>
+  );
 }
