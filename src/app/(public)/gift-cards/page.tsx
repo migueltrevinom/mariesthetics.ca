@@ -1,9 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-const PRESET_AMOUNTS = [50, 100, 150, 200];
+const DEFAULT_PRESETS = [
+  { label: "$50 CAD", amount: 50 },
+  { label: "$100 CAD", amount: 100 },
+  { label: "$150 CAD", amount: 150 },
+  { label: "$200 CAD", amount: 200 },
+];
 
 export default function GiftCardsPage() {
   const searchParams = useSearchParams();
@@ -13,6 +18,7 @@ export default function GiftCardsPage() {
   const [selectedAmount, setSelectedAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isCustom, setIsCustom] = useState<boolean>(false);
+  const [services, setServices] = useState<any[]>([]);
 
   const [recipientName, setRecipientName] = useState<string>("");
   const [recipientEmail, setRecipientEmail] = useState<string>("");
@@ -22,6 +28,17 @@ export default function GiftCardsPage() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.services) {
+          setServices(data.services);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const effectiveAmount = isCustom
     ? parseFloat(customAmount) || 0
@@ -113,23 +130,54 @@ export default function GiftCardsPage() {
               </div>
             )}
 
-            {/* Amount Selectors */}
+            {/* Treatment Service Shortcuts */}
+            {services.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block">
+                  ✨ Quick Treatment Value Shortcuts:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {services.map((s) => {
+                    const priceCad = s.priceCents / 100;
+                    return (
+                      <button
+                        key={s._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedAmount(priceCad);
+                          setIsCustom(false);
+                        }}
+                        className={`py-1.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          !isCustom && selectedAmount === priceCad
+                            ? "border-[#c8a86b] bg-[#c8a86b]/20 text-[#c8a86b] shadow-sm"
+                            : "border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                        }`}
+                      >
+                        {s.name} (${priceCad} CAD)
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Standard Amount Selectors */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {PRESET_AMOUNTS.map((amt) => (
+              {DEFAULT_PRESETS.map((preset) => (
                 <button
-                  key={amt}
+                  key={preset.amount}
                   type="button"
                   onClick={() => {
-                    setSelectedAmount(amt);
+                    setSelectedAmount(preset.amount);
                     setIsCustom(false);
                   }}
                   className={`py-3 px-4 rounded-2xl border text-sm font-extrabold transition-all cursor-pointer ${
-                    !isCustom && selectedAmount === amt
+                    !isCustom && selectedAmount === preset.amount
                       ? "border-[#c8a86b] bg-[#c8a86b]/15 text-[#c8a86b] shadow-md scale-105"
                       : "border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink)] hover:border-[#c8a86b]/50"
                   }`}
                 >
-                  ${amt} CAD
+                  {preset.label}
                 </button>
               ))}
             </div>
