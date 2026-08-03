@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { backfillUnlinkedBookingClients } from "@/lib/booking/clientResolver";
 import {
   getClients,
   createClient,
@@ -8,6 +9,9 @@ import {
 
 export async function handleGetClients(req: Request): Promise<NextResponse> {
   try {
+    // Auto-backfill unlinked guest bookings (e.g. Sarah Johns) into Clients collection
+    await backfillUnlinkedBookingClients();
+
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
     const limit = Math.max(1, parseInt(searchParams.get("limit") || "20"));

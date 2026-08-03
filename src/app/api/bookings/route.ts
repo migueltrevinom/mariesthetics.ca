@@ -10,6 +10,7 @@ import { config } from "@/lib/config";
 import { getSession } from "@/lib/auth/jwt";
 import { AuthError, requireManager } from "@/lib/auth/jwt";
 import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { findOrCreateClientForGuest } from "@/lib/booking/clientResolver";
 
 const createSchema = z.object({
 	serviceId: z.string().min(1),
@@ -122,6 +123,12 @@ export async function POST(req: Request) {
 
 		if (!guest) {
 			return NextResponse.json({ error: "Guest details are required" }, { status: 400 });
+		}
+
+		// Automatically link or create Client document for guest in Clients collection
+		const resolvedClient = await findOrCreateClientForGuest(guest);
+		if (resolvedClient) {
+			clientId = String(resolvedClient._id);
 		}
 
 		// Enforce booking limits on clients (1/day, 2/week, 5/month)
