@@ -443,9 +443,12 @@ export function ClientEditor({
                       <div className="grid gap-3">
                         {details.bookings.map((b) => (
                           <div
-                            key={b._id}
-                            onClick={() => setSelectedBooking(b)}
-                            className="border border-[var(--border-color)] bg-black/5 dark:bg-black/10 hover:border-[#c8a86b]/60 hover:bg-black/10 dark:hover:bg-white/5 p-4 rounded-xl flex flex-col sm:flex-row justify-between gap-3 text-left cursor-pointer transition-all"
+                            key={b._id || b.id}
+                            onClick={() => {
+                              console.log("[ClientEditor] Booking clicked:", b);
+                              setSelectedBooking(b);
+                            }}
+                            className="border border-[var(--border-color)] bg-black/5 dark:bg-black/10 hover:border-[#c8a86b] hover:bg-black/10 dark:hover:bg-white/10 p-4 rounded-xl flex flex-col sm:flex-row justify-between gap-3 text-left cursor-pointer transition-all shadow-sm"
                           >
                             <div>
                               <p className="text-sm font-bold text-[var(--ink)]">
@@ -765,10 +768,10 @@ export function ClientEditor({
       {selectedPayment && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] transition-opacity"
             onClick={() => setSelectedPayment(null)}
           />
-          <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] md:w-[560px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-50 border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] md:w-[560px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-[100] border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
             {/* Drawer Header */}
             <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between bg-black/5 dark:bg-black/30 shrink-0">
               <div>
@@ -1006,10 +1009,10 @@ export function ClientEditor({
       {selectedBooking && (
         <>
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] transition-opacity"
             onClick={() => setSelectedBooking(null)}
           />
-          <div className="fixed inset-y-0 right-0 w-full sm:w-[520px] md:w-[580px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-50 border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[520px] md:w-[580px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-[100] border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
             {/* Drawer Header */}
             <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between bg-black/5 dark:bg-black/30 shrink-0">
               <div>
