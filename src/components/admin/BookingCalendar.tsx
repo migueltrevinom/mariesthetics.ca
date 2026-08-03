@@ -640,138 +640,159 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
     )}
   </div>
 
-      {/* --- SIDEBAR / DETAIL DRAWER --- */}
+      {/* --- SLIDE-OVER BOOKING DETAIL SIDE DRAWER --- */}
       {selectedBooking && (
-        <div className="w-full md:w-80 flex flex-col bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl p-5 shadow-lg shrink-0">
-          <div className="flex items-center justify-between pb-3 border-b border-[var(--border-color)]">
-            <h3 className="font-semibold text-lg">Booking Details</h3>
-            <button
-              type="button"
-              onClick={() => setSelectedBooking(null)}
-              className="text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer text-sm font-bold"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="mt-4 space-y-4 text-sm text-left">
-            <div>
-              <label className="text-[9px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
-                Service
-              </label>
-              <p className="text-base font-semibold leading-tight">{selectedBooking.serviceId?.name}</p>
-              <p className="text-xs text-[var(--ink-soft)] mt-0.5">
-                {selectedBooking.serviceId?.durationMin} minutes duration
-              </p>
-            </div>
-
-            <div className="border-t border-[var(--border-color)] pt-3">
-              <label className="text-[9px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
-                Guest Information
-              </label>
-              <p className="font-semibold text-[var(--ink)]">{selectedBooking.guest?.name}</p>
-              <p className="text-xs text-[var(--ink-soft)]">{selectedBooking.guest?.email}</p>
-              {selectedBooking.guest?.phone && (
-                <p className="text-xs text-[var(--ink-soft)] mt-0.5">{selectedBooking.guest?.phone}</p>
-              )}
-            </div>
-
-            <div className="border-t border-[var(--border-color)] pt-3 grid grid-cols-2 gap-2">
+        <>
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] transition-opacity"
+            onClick={() => setSelectedBooking(null)}
+          />
+          <div className="fixed inset-y-0 right-0 w-full sm:w-[500px] md:w-[560px] bg-[var(--card-bg)] text-[var(--ink)] shadow-2xl z-[100] border-l border-[var(--border-color)] flex flex-col h-full overflow-hidden transition-transform animate-in slide-in-from-right duration-300">
+            {/* Drawer Header */}
+            <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between bg-black/5 dark:bg-black/30 shrink-0">
               <div>
-                <label className="text-[9px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
-                  Scheduled
-                </label>
-                <p className="font-medium text-xs">
-                  {format(new Date(selectedBooking.start), "PP")}
-                </p>
-                <p className="text-xs text-[var(--ink-soft)] mt-0.5">
-                  {format(new Date(selectedBooking.start), "h:mm a")}
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-lg font-[family-name:var(--font-display)] text-[var(--ink)]">
+                    {selectedBooking.serviceId?.name || "Booking Details"}
+                  </h3>
+                  <span
+                    className="inline-block text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-0.5 rounded-full border border-current bg-black/10"
+                    style={{
+                      color:
+                        selectedBooking.status === "held"
+                          ? "var(--blush)"
+                          : selectedBooking.status === "confirmed"
+                          ? "#9dceb8"
+                          : selectedBooking.status === "completed"
+                          ? "var(--gold-bright)"
+                          : "var(--ink-soft)",
+                    }}
+                  >
+                    {selectedBooking.status}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[var(--ink-soft)] mt-1 font-mono">
+                  Booking ID: {selectedBooking._id}
                 </p>
               </div>
-              <div>
-                <label className="text-[9px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
-                  Status
+
+              <button
+                type="button"
+                onClick={() => setSelectedBooking(null)}
+                className="text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] border border-[var(--border-color)] rounded-xl w-8 h-8 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Drawer Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 text-left">
+              {/* Service & Duration Card */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-2">
+                <label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block">
+                  Treatment Service
                 </label>
-                <span
-                  className="inline-block text-[10px] uppercase font-bold tracking-wide px-2 py-0.5 rounded border border-current mt-0.5 bg-black/10"
-                  style={{
-                    color:
-                      selectedBooking.status === "held"
-                        ? "var(--blush)"
-                        : selectedBooking.status === "confirmed"
-                        ? "#9dceb8"
-                        : selectedBooking.status === "completed"
-                        ? "var(--gold-bright)"
-                        : "var(--ink-soft)",
-                  }}
-                >
-                  {selectedBooking.status}
-                </span>
+                <p className="text-base font-bold text-[var(--ink)]">{selectedBooking.serviceId?.name}</p>
+                <p className="text-xs text-[var(--ink-soft)] font-medium">
+                  ⏱ Duration: {selectedBooking.serviceId?.durationMin || 60} minutes
+                </p>
               </div>
-            </div>
 
-            <div className="border-t border-[var(--border-color)] pt-3">
-              <label className="text-[9px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
-                Notes
-              </label>
-              <p className="text-xs text-[var(--ink-soft)] leading-relaxed italic">
-                {selectedBooking.notes ? `"${selectedBooking.notes}"` : "(No custom notes)"}
-              </p>
-            </div>
+              {/* Guest Info Card */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-2">
+                <label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block">
+                  Guest Information
+                </label>
+                <p className="font-bold text-sm text-[var(--ink)]">{selectedBooking.guest?.name}</p>
+                <p className="text-xs text-[var(--ink-soft)] font-mono">{selectedBooking.guest?.email}</p>
+                {selectedBooking.guest?.phone && (
+                  <p className="text-xs text-[var(--ink-soft)] font-mono">{selectedBooking.guest?.phone}</p>
+                )}
+              </div>
 
-            <div className="border-t border-[var(--border-color)] pt-3">
-              <label className="text-[9px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-1">
-                Accounting & Paid Summary
-              </label>
-              <table className="w-full text-xs text-[var(--ink-soft)]">
-                <tbody>
-                  <tr>
-                    <td className="py-1">Total Pricing:</td>
-                    <td className="py-1 text-right text-[var(--ink)] font-medium">
+              {/* Scheduled Time & Status Card */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
+                    Scheduled Date
+                  </label>
+                  <p className="font-semibold text-[var(--ink)]">
+                    {format(new Date(selectedBooking.start), "eeee, MMM d, yyyy")}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
+                    Scheduled Time
+                  </label>
+                  <p className="font-mono text-[#c8a86b] font-bold">
+                    {format(new Date(selectedBooking.start), "h:mm a")}
+                  </p>
+                </div>
+              </div>
+
+              {/* Appointment Notes */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-1.5">
+                <label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block">
+                  Custom Notes
+                </label>
+                <p className="text-xs text-[var(--ink-soft)] leading-relaxed italic font-sans">
+                  {selectedBooking.notes ? `"${selectedBooking.notes}"` : "(No custom notes specified)"}
+                </p>
+              </div>
+
+              {/* Accounting Summary Card */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block">
+                  💵 Accounting &amp; Paid Summary
+                </label>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-[var(--ink-soft)]">Total Pricing:</span>
+                    <span className="font-bold text-[var(--ink)]">
                       {formatCad(selectedBooking.paymentSummary?.totalCents ?? 0)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-1">Paid Deposit:</td>
-                    <td className="py-1 text-right text-[var(--ink)] font-medium">
-                      {formatCad(selectedBooking.paymentSummary?.paidCents ?? 0)}
-                    </td>
-                  </tr>
-                  <tr className="border-t border-[var(--border-color)] font-semibold text-[var(--ink)]">
-                    <td className="py-1.5">Balance Due:</td>
-                    <td className="py-1.5 text-right">
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-emerald-500 font-medium">
+                    <span>Paid Deposit:</span>
+                    <span>
+                      -{formatCad(selectedBooking.paymentSummary?.paidCents ?? 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-[var(--border-color)] font-bold text-sm">
+                    <span className="text-[var(--ink)]">Balance Due:</span>
+                    <span className="text-[#c8a86b]">
                       {formatCad(selectedBooking.paymentSummary?.balanceDueCents ?? 0)}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-            <div className="border-t border-[var(--border-color)] pt-4 flex flex-col gap-2">
-              <label className="text-[9px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block mb-0.5">
-                Actions
-              </label>
-              <BookingActions
-                bookingId={selectedBooking._id}
-                status={selectedBooking.status}
-                balanceDueCents={selectedBooking.paymentSummary?.balanceDueCents ?? 0}
-                onUpdate={() => {
-                  void fetchBookings();
-                  // Re-fetch detail sidebar info dynamically
-                  setTimeout(async () => {
-                    try {
-                      const res = await fetch(`/api/bookings/${selectedBooking._id}`);
-                      if (res.ok) {
-                        const { booking } = await res.json();
-                        if (booking) setSelectedBooking(booking);
-                      }
-                    } catch (e) {}
-                  }, 100);
-                }}
-              />
+              {/* Actions Section */}
+              <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-3">
+                <label className="text-[10px] uppercase tracking-wider text-[var(--ink-soft)] font-bold block">
+                  Booking Actions
+                </label>
+                <BookingActions
+                  bookingId={selectedBooking._id}
+                  status={selectedBooking.status}
+                  balanceDueCents={selectedBooking.paymentSummary?.balanceDueCents ?? 0}
+                  onUpdate={() => {
+                    void fetchBookings();
+                    setTimeout(async () => {
+                      try {
+                        const res = await fetch(`/api/bookings/${selectedBooking._id}`);
+                        if (res.ok) {
+                          const { booking } = await res.json();
+                          if (booking) setSelectedBooking(booking);
+                        }
+                      } catch (e) {}
+                    }, 100);
+                  }}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* Manual Booking Modal Trigger */}
