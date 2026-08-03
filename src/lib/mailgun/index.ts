@@ -12,14 +12,15 @@ export interface AttachmentOption {
 export interface SendEmailOptions {
   to: string;
   subject: string;
-  templateName: "otp" | "booking-confirmation" | "admin-booking-notification";
-  data: Record<string, any>;
+  templateName?: "otp" | "booking-confirmation" | "admin-booking-notification" | "payment-link";
+  html?: string;
+  data?: Record<string, any>;
   attachment?: AttachmentOption;
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const { to, subject, templateName, data, attachment } = options;
+    const { to, subject, templateName, html: rawHtml, data = {}, attachment } = options;
 
     if (!config.mailgunApiKey) {
       console.warn("[Mailgun] MAILGUN_API_KEY is not set. Logging email content to console instead:");
@@ -27,16 +28,14 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       return { success: true, messageId: "dev-stub-id" };
     }
 
-    // 1. Resolve template path and read file
-    const templatePath = path.join(process.cwd(), "src/lib/mailgun/templates", `${templateName}.ejs`);
-    if (!fs.existsSync(templatePath)) {
-      throw new Error(`Email template not found: ${templatePath}`);
+    let html = rawHtml || "";
+    if (!html && templateName) {
+      const templatePath = path.join(process.cwd(), "src/lib/mailgun/templates", `${templateName}.ejs`);
+      if (fs.existsSync(templatePath)) {
+        const templateContent = fs.readFileSync(templatePath, "utf-8");
+        html = ejs.render(templateContent, data);
+      }
     }
-
-    const templateContent = fs.readFileSync(templatePath, "utf-8");
-
-    // 2. Render EJS template
-    const html = ejs.render(templateContent, data);
 
     // 3. Prepare Mailgun API request
     const authHeader = "Basic " + Buffer.from(`api:${config.mailgunApiKey}`).toString("base64");
