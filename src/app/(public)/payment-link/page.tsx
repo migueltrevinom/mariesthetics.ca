@@ -12,6 +12,7 @@ interface BookingDetails {
 	start: string | null;
 	end: string | null;
 	status: string;
+	allowLateReschedule?: boolean;
 	guestName: string;
 	guestEmail: string;
 	guestPhone: string;
@@ -583,10 +584,12 @@ function PaymentLinkContent() {
 								</button>
 							</div>
 
-							{/* 24-HOUR POLICY CHECK */}
+							{/* 24-HOUR POLICY CHECK & MANAGER COURTESY OVERRIDE */}
 							{(() => {
 								const hoursDiff = (bookingStartDate.getTime() - new Date().getTime()) / 3600000;
-								if (hoursDiff <= 24) {
+								const isBypassed = Boolean(b.allowLateReschedule);
+
+								if (hoursDiff <= 24 && !isBypassed) {
 									return (
 										<div className="p-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 text-rose-500 space-y-3">
 											<div className="flex items-center gap-2 text-sm font-bold">
@@ -612,6 +615,12 @@ function PaymentLinkContent() {
 
 								return (
 									<div className="space-y-4">
+										{isBypassed && hoursDiff <= 24 && (
+											<div className="p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-400 text-xs font-semibold flex items-center gap-2">
+												<span>✨</span>
+												<span>Manager Courtesy: The 24-hour rescheduling policy has been waived for your appointment.</span>
+											</div>
+										)}
 										{rescheduleSuccess && (
 											<div className="p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-xs font-bold">
 												{rescheduleSuccess}

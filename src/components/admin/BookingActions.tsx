@@ -8,17 +8,20 @@ export function BookingActions({
   bookingId,
   status,
   balanceDueCents,
+  allowLateReschedule = false,
   onUpdate,
 }: {
   bookingId: string;
   status: string;
   balanceDueCents: number;
+  allowLateReschedule?: boolean;
   onUpdate?: () => void;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [fetchingLink, setFetchingLink] = useState(false);
   const [emailing, setEmailing] = useState(false);
+  const [isLateRescheduleAllowed, setIsLateRescheduleAllowed] = useState(allowLateReschedule);
   const [note, setNote] = useState("");
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustMethod, setAdjustMethod] = useState<"cash" | "etransfer">("cash");
@@ -225,6 +228,29 @@ export function BookingActions({
     }
   }
 
+  async function toggleAllowLateReschedule(nextVal: boolean) {
+    setLoading(true);
+    setError("");
+    setMessage("");
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ allowLateReschedule: nextVal }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update reschedule policy");
+      setIsLateRescheduleAllowed(nextVal);
+      setMessage(nextVal ? "🔓 Courtesy 24h reschedule policy bypass enabled!" : "🔒 Standard 24h reschedule policy restored.");
+      router.refresh();
+      onUpdate?.();
+    } catch (err: any) {
+      setError(err.message || "Failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3 text-sm text-left">
       {/* Notifications */}
@@ -238,6 +264,30 @@ export function BookingActions({
           ⚠️ {error}
         </div>
       )}
+
+      {/* Courtesy 24h Reschedule Bypass Switch */}
+      <div className="p-3 rounded-xl border border-[var(--border-color)] bg-black/5 dark:bg-white/5 flex items-center justify-between gap-3">
+        <div>
+          <span className="text-xs font-bold text-[var(--ink)] block">
+            {isLateRescheduleAllowed ? "🔓 24h Reschedule Waived" : "🔒 Standard 24h Policy"}
+          </span>
+          <span className="text-[10px] text-[var(--ink-soft)] block">
+            {isLateRescheduleAllowed ? "Client can reschedule for free anytime" : "Client forfeits deposit if under 24h"}
+          </span>
+        </div>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => void toggleAllowLateReschedule(!isLateRescheduleAllowed)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            isLateRescheduleAllowed
+              ? "border border-amber-500/40 bg-amber-500/20 text-amber-400"
+              : "border border-[var(--border-color)] bg-black/10 dark:bg-white/10 text-[var(--ink-soft)] hover:text-[var(--ink)]"
+          }`}
+        >
+          {isLateRescheduleAllowed ? "Disable Bypass" : "Waive 24h Policy"}
+        </button>
+      </div>
 
       {/* Held e-Transfer Approval */}
       {status === "held" && (

@@ -207,6 +207,7 @@ export async function GET(req: Request) {
 						start: booking.start ? new Date(booking.start).toISOString() : null,
 						end: booking.end ? new Date(booking.end).toISOString() : null,
 						status: booking.status,
+						allowLateReschedule: Boolean(booking.allowLateReschedule),
 						guestName: booking.guest?.name || "",
 						guestEmail: booking.guest?.email || "",
 						guestPhone: booking.guest?.phone || "",

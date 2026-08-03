@@ -39,6 +39,8 @@ interface BookingItem {
   end: string;
   status: string;
   notes?: string;
+  etransferProofUrl?: string;
+  allowLateReschedule?: boolean;
   depositMethod?: string;
   guest?: {
     name: string;
@@ -875,6 +877,7 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                   bookingId={selectedBooking._id}
                   status={selectedBooking.status}
                   balanceDueCents={selectedBooking.paymentSummary?.balanceDueCents ?? 0}
+                  allowLateReschedule={selectedBooking.allowLateReschedule}
                   onUpdate={() => {
                     void fetchBookings();
                     setTimeout(async () => {

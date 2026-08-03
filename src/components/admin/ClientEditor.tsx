@@ -13,6 +13,7 @@ export type ClientRow = {
   phone: string;
   active: boolean;
   banned: boolean;
+  vipRescheduleBypass?: boolean;
   photoUrl?: string;
   referralCode?: string;
   stripeCustomerId?: string;
@@ -39,6 +40,7 @@ export function ClientEditor({
     phone: "",
     active: true,
     banned: false,
+    vipRescheduleBypass: false,
     photoUrl: "",
   });
 
@@ -80,6 +82,7 @@ export function ClientEditor({
         phone: initialClient.phone || "",
         active: initialClient.active !== false,
         banned: Boolean(initialClient.banned),
+        vipRescheduleBypass: Boolean(initialClient.vipRescheduleBypass),
         photoUrl: initialClient.photoUrl || "",
       });
     }
@@ -394,7 +397,7 @@ export function ClientEditor({
           </div>
 
           {/* Active Status Checkbox */}
-          <div className="flex items-end pb-3.5 pl-1">
+          <div className="flex flex-col gap-2.5 justify-end pb-1 pl-1 sm:col-span-2">
             <label className="flex items-center gap-2.5 text-sm text-[var(--ink-soft)] font-medium cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -402,7 +405,17 @@ export function ClientEditor({
                 className="w-5 h-5 rounded border-[var(--border-color)] text-[#2f5d4a] focus:ring-[#2f5d4a]"
                 onChange={(e) => setForm({ ...form, active: e.target.checked })}
               />
-              Active Client (Can request appointments)
+              <span>Active Client (Can request appointments)</span>
+            </label>
+
+            <label className="flex items-center gap-2.5 text-sm text-[#c8a86b] font-semibold cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={Boolean(form.vipRescheduleBypass)}
+                className="w-5 h-5 rounded border-amber-500/50 text-[#c8a86b] focus:ring-[#c8a86b]"
+                onChange={(e) => setForm({ ...form, vipRescheduleBypass: e.target.checked })}
+              />
+              <span>⭐ VIP Client: Always Bypass 24h Reschedule Policy</span>
             </label>
           </div>
 

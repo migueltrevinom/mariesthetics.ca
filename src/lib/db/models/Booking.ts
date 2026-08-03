@@ -54,6 +54,7 @@ const BookingSchema = new Schema(
     etransferNote: { type: String, default: "" },
     reminder24hSent: { type: Boolean, default: false, index: true },
     reminder2hSent: { type: Boolean, default: false, index: true },
+    allowLateReschedule: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

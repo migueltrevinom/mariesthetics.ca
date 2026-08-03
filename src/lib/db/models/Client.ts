@@ -17,6 +17,7 @@ const ClientSchema = new Schema(
     stripeCustomerId: { type: String, default: "" },
     active: { type: Boolean, default: true },
     banned: { type: Boolean, default: false },
+    vipRescheduleBypass: { type: Boolean, default: false },
     photoUrl: { type: String, default: "" },
   },
   { timestamps: true },

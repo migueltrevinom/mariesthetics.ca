@@ -13,6 +13,7 @@ const patchSchema = z.object({
   status: z.enum(["held", "confirmed", "cancelled", "completed", "expired"]).optional(),
   notes: z.string().optional(),
   start: z.string().datetime().optional(),
+  allowLateReschedule: z.boolean().optional(),
 });
 
 export async function GET(
@@ -53,6 +54,7 @@ export async function PATCH(
 
     if (body.status) updates.status = body.status;
     if (body.notes !== undefined) updates.notes = body.notes;
+    if (body.allowLateReschedule !== undefined) updates.allowLateReschedule = body.allowLateReschedule;
 
     if (body.start) {
       const newStart = new Date(body.start);

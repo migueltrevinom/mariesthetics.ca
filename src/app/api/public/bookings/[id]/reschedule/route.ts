@@ -35,11 +35,20 @@ export async function POST(
       );
     }
 
-    // 24-HOUR RESCHEDULE POLICY ENFORCEMENT
+    // 24-HOUR RESCHEDULE POLICY ENFORCEMENT & MANAGER OVERRIDES
     const now = new Date();
     const hoursUntilAppointment = differenceInHours(new Date(booking.start), now);
 
-    if (hoursUntilAppointment < 24) {
+    let isBypassed = Boolean(booking.allowLateReschedule);
+    if (!isBypassed && booking.clientId) {
+      const { Client } = await import("@/lib/db/models/Client");
+      const clientObj = await Client.findById(booking.clientId);
+      if (clientObj?.vipRescheduleBypass) {
+        isBypassed = true;
+      }
+    }
+
+    if (hoursUntilAppointment < 24 && !isBypassed) {
       return NextResponse.json(
         {
           error:
