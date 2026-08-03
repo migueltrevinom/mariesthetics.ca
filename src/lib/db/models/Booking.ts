@@ -48,10 +48,11 @@ const BookingSchema = new Schema(
     couponId: { type: Schema.Types.ObjectId, ref: "Coupon", default: null },
     promotionId: { type: Schema.Types.ObjectId, ref: "Promotion", default: null },
     referralCode: { type: String, default: "" },
-    notes: { type: String, default: "" },
     paymentSummary: { type: PaymentSummarySchema, default: () => ({}) },
     etransferProofUrl: { type: String, default: "" },
     etransferNote: { type: String, default: "" },
+    reminder24hSent: { type: Boolean, default: false, index: true },
+    reminder2hSent: { type: Boolean, default: false, index: true },
   },
   { timestamps: true },
 );
