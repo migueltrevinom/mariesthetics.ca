@@ -14,31 +14,35 @@ export const siteUrl = (
 export const business = {
   name: "Mari Esthetics",
   legalName: "Mari Esthetics",
-  tagline: "Edmonton skin care, tailored to you.",
+  tagline: "Personalized skincare & lash artistry in West Edmonton.",
   description:
-    "Mari Esthetics is a private esthetics studio serving Edmonton, Alberta. Personalized facials, lash lifts, brow shaping and dermaplaning in a calm, one-on-one setting.",
+    "Mari Esthetics is a private home esthetics studio located in West Edmonton (Glastonbury / The Hamptons, T5T). Tailored facials, lash lifts, brow shaping and dermaplaning in a calm, one-on-one setting.",
   // Service-area business — city + region only, no street address published.
   locality: "Edmonton",
   region: "AB",
   regionName: "Alberta",
   country: "CA",
-  neighbourhood: "West Edmonton",
-  // Approximate geo for the service area (Edmonton centre) — not the home address.
-  geo: { lat: 53.5461, lng: -113.4938 },
+  neighbourhood: "Glastonbury / West Edmonton",
+  postalCode: "T5T 6M5",
+  // Geo coordinates centered on West Edmonton / Glastonbury (T5T 6M5 area)
+  geo: { lat: 53.4975, lng: -113.6358 },
   areasServed: [
-    "Edmonton",
     "West Edmonton",
-    "St. Albert",
-    "Sherwood Park",
+    "Glastonbury",
+    "The Hamptons",
+    "Granville",
+    "Lewis Estates",
+    "Secord",
+    "Callingwood",
+    "Windermere",
     "Spruce Grove",
-    "Stony Plain",
   ],
   // Temporary WhatsApp number until the Canadian line is live.
   phone: "+50762639742",
   phoneDisplay: "+507 6263-9742",
   priceRange: "$$",
   currency: "CAD",
-  // Placeholder hours — confirm and update.
+  // Temporary hours — confirm and update.
   hours: [
     { days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], open: "09:00", close: "20:00" },
   ],
@@ -49,16 +53,16 @@ export const business = {
 } as const;
 
 export const seoKeywords = [
-  "esthetician Edmonton",
-  "esthetics Edmonton",
-  "facials Edmonton",
-  "lash lift Edmonton",
-  "brow shaping Edmonton",
-  "dermaplaning Edmonton",
-  "Edmonton skin care studio",
-  "skin care Edmonton",
-  "eyelash lift Edmonton",
-  "home studio esthetician Edmonton",
+  "esthetician West Edmonton",
+  "facials Glastonbury Edmonton",
+  "lash lift The Hamptons Edmonton",
+  "dermaplaning West Edmonton",
+  "home studio esthetician Edmonton T5T",
+  "brow shaping West Edmonton",
+  "esthetics studio Glastonbury",
+  "skincare studio Edmonton T5T",
+  "facial treatment Lewis Estates",
+  "private esthetics studio West Edmonton",
 ];
 
 type BuildMetadataInput = {
@@ -87,13 +91,6 @@ export function buildMetadata({
     keywords: keywords ?? seoKeywords,
     alternates: {
       canonical,
-      languages: {
-        "en-CA": canonical,
-        "tl-PH": canonical,
-        "pa-IN": canonical,
-        "ar-SA": canonical,
-        "es-MX": canonical,
-      },
     },
     robots: noindex
       ? { index: false, follow: false }
@@ -124,8 +121,19 @@ function openingHoursSpec() {
   }));
 }
 
-export function localBusinessJsonLd() {
-  return {
+export type ReviewSchemaItem = {
+  author: string;
+  rating: number;
+  comment?: string;
+  datePublished?: string;
+};
+
+export function localBusinessJsonLd(options?: {
+  ratingValue?: number;
+  reviewCount?: number;
+  reviews?: ReviewSchemaItem[];
+}) {
+  const baseData: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "HealthAndBeautyBusiness",
     "@id": `${siteUrl}/#business`,
@@ -141,6 +149,7 @@ export function localBusinessJsonLd() {
       "@type": "PostalAddress",
       addressLocality: business.locality,
       addressRegion: business.region,
+      postalCode: business.postalCode,
       addressCountry: business.country,
     },
     areaServed: business.areasServed.map((name) => ({
@@ -155,6 +164,64 @@ export function localBusinessJsonLd() {
     openingHoursSpecification: openingHoursSpec(),
     sameAs: business.sameAs,
   };
+
+  if (options?.ratingValue && options?.reviewCount && options.reviewCount > 0) {
+    baseData.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: options.ratingValue.toFixed(1),
+      reviewCount: options.reviewCount,
+      bestRating: "5",
+      worstRating: "1",
+    };
+  }
+
+  if (options?.reviews && options.reviews.length > 0) {
+    baseData.review = options.reviews.map((r) => ({
+      "@type": "Review",
+      author: {
+        "@type": "Person",
+        name: r.author || "Verified Client",
+      },
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: r.rating || 5,
+        bestRating: "5",
+        worstRating: "1",
+      },
+      reviewBody: r.comment || "Exceptional service and beautiful results!",
+      ...(r.datePublished ? { datePublished: r.datePublished } : {}),
+    }));
+  }
+
+  return baseData;
+}
+
+export function individualServiceJsonLd(services: Array<{
+  name: string;
+  description?: string;
+  priceCents: number;
+  durationMin?: number;
+  slug?: string;
+}>) {
+  return services.map((s) => ({
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: s.name,
+    description: s.description || business.description,
+    provider: { "@id": `${siteUrl}/#business` },
+    areaServed: business.areasServed.map((name) => ({
+      "@type": "City",
+      name,
+    })),
+    url: s.slug ? `${siteUrl}/services#${s.slug}` : `${siteUrl}/services`,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: business.currency,
+      price: (s.priceCents / 100).toFixed(2),
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/book`,
+    },
+  }));
 }
 
 export function serviceCatalogJsonLd(

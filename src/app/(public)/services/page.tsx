@@ -9,6 +9,7 @@ import { Reveal } from "@/components/public/Reveal";
 import {
   breadcrumbJsonLd,
   buildMetadata,
+  individualServiceJsonLd,
   serviceCatalogJsonLd,
 } from "@/lib/seo";
 
@@ -382,6 +383,7 @@ export default async function ServicesPage() {
       <JsonLd
         data={[
           serviceCatalogJsonLd(services),
+          ...individualServiceJsonLd(services),
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
             { name: "Services", path: "/services" },

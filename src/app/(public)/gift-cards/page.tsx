@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 const DEFAULT_PRESETS = [
@@ -10,7 +10,7 @@ const DEFAULT_PRESETS = [
   { label: "$200 CAD", amount: 200 },
 ];
 
-export default function GiftCardsPage() {
+function GiftCardsContent() {
   const searchParams = useSearchParams();
   const success = searchParams.get("success") === "true";
   const code = searchParams.get("code") || "";
@@ -346,5 +346,13 @@ export default function GiftCardsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GiftCardsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen py-24 text-center">Loading...</div>}>
+      <GiftCardsContent />
+    </Suspense>
   );
 }
