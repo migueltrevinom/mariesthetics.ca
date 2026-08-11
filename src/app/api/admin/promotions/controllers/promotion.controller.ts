@@ -8,7 +8,7 @@ import {
   removeGiftCard,
 } from "../modules/promotion.module";
 import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
-import { config } from "@/lib/config";
+import { config, getAppUrl } from "@/lib/config";
 
 export async function handleGetCoupons(): Promise<NextResponse> {
   try {
@@ -83,6 +83,8 @@ export async function handlePublicGiftCardCheckoutSession(
   }
 ): Promise<NextResponse> {
   try {
+    const baseUrl = getAppUrl(req);
+
     if (!isStripeConfigured()) {
       // Fallback: issue directly if Stripe not configured in dev
       const giftCard = await issueGiftCard(validatedData);
@@ -90,7 +92,7 @@ export async function handlePublicGiftCardCheckoutSession(
         success: true,
         directIssue: true,
         giftCard,
-        url: `${config.appUrl}/gift-cards?success=true&code=${giftCard.code}`,
+        url: `${baseUrl}/gift-cards?success=true&code=${giftCard.code}`,
       });
     }
 
@@ -123,8 +125,8 @@ export async function handlePublicGiftCardCheckoutSession(
         senderEmail: validatedData.senderEmail || "",
         message: validatedData.message || "",
       },
-      success_url: `${config.appUrl}/gift-cards?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${config.appUrl}/gift-cards?cancelled=true`,
+      success_url: `${baseUrl}/gift-cards?success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/gift-cards?cancelled=true`,
     });
 
     return NextResponse.json({ success: true, url: session.url, sessionId: session.id });

@@ -7,30 +7,30 @@
     "admin": "Admin Portal"
   },
   "hero": {
-    "eyebrow": "Private Esthetics Studio · Edmonton",
-    "title1": "Customized Facials & Lash Artistry.",
-    "title2": "Tailored for your natural glow.",
-    "subtitle": "Serene, one-on-one skincare, dermaplaning, and lash lifts in Edmonton. Transparent pricing and seamless online booking.",
-    "ctaBook": "Book Treatment",
+    "eyebrow": "Private Home Studio · West Edmonton",
+    "title1": "Glass Skin & Effortless Lashes.",
+    "title2": "Your private glow ritual.",
+    "subtitle": "Tailored facials, dermaplaning, and lash lifts in a quiet 1-on-1 sanctuary.",
+    "ctaBook": "Book Appointment",
     "ctaServices": "Explore Services"
   },
   "services": {
-    "eyebrow": "Curated Esthetics",
-    "title": "Services & Pricing",
-    "subtitle": "Every treatment is tailored to your unique skin & beauty goals. A small deposit secures your private session.",
+    "eyebrow": "Curated Treatments",
+    "title": "Skincare & Lash Menu",
+    "subtitle": "Bespoke treatments tailored to your natural skin goals. Reserved with a small deposit.",
     "depositNote": "Deposit required to hold appointment",
     "bookNow": "Book Treatment",
     "details": "View Details"
   },
   "howItWorks": {
-    "eyebrow": "Seamless Process",
-    "title": "How Booking Works",
-    "step1Title": "Choose Your Treatment",
-    "step1Desc": "Select from customized facials, dermaplaning, lash lifts, or brow shaping.",
-    "step2Title": "Pick Date & Time",
-    "step2Desc": "View live availability in Edmonton local time and pick your ideal slot.",
-    "step3Title": "Secure with Deposit",
-    "step3Desc": "Pay a small deposit via Stripe or e-Transfer to hold your private appointment."
+    "eyebrow": "Simple Booking",
+    "title": "How It Works",
+    "step1Title": "Pick Your Treatment",
+    "step1Desc": "Choose from signature facials, dermaplaning, lash lifts, or brow shaping.",
+    "step2Title": "Select Your Slot",
+    "step2Desc": "Pick a time that fits your schedule with live Edmonton availability.",
+    "step3Title": "Lock Your Time",
+    "step3Desc": "Secure your private appointment instantly with a small deposit."
   },
   "memberships": {
     "eyebrow": "Exclusive Skincare Plans",

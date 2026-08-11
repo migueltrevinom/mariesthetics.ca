@@ -19,9 +19,12 @@ export async function createStripePaymentLink(params: {
 	const stripe = getStripe();
 	const amountCents = Math.round(params.amountCad * 100);
 
-	const protocol =
-		params.host.includes("localhost") || params.host.includes("127.0.0.1") ? "http" : "https";
-	const baseUrl = `${protocol}://${params.host}`;
+	const isLocalhostHost =
+		!params.host || params.host.includes("localhost") || params.host.includes("127.0.0.1");
+	const baseUrl =
+		isLocalhostHost && (process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_SITE_URL)
+			? (process.env.NEXT_PUBLIC_SITE_URL || "https://mariesthetics.ca").replace(/\/$/, "")
+			: `${isLocalhostHost ? "http" : "https"}://${params.host}`;
 
 	// Create stripe checkout session
 	const session = await stripe.checkout.sessions.create({

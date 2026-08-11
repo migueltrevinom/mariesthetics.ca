@@ -4,6 +4,7 @@ import { Booking, Payment } from "@/lib/db/models";
 import { config } from "@/lib/config";
 import { getStripe } from "@/lib/payments/stripe";
 import type Stripe from "stripe";
+import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
 
 async function applySucceededPayment(meta: {
   bookingId?: string;
@@ -56,6 +57,13 @@ async function applySucceededPayment(meta: {
   }
 
   await booking.save();
+
+  if (meta.kind === "deposit") {
+    void notifyAdminsOfBooking({
+      bookingId: String(booking._id),
+      eventType: "deposit_paid",
+    });
+  }
 }
 
 export async function POST(req: Request) {

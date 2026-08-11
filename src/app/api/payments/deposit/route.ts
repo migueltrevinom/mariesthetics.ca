@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Payment, Product } from "@/lib/db/models";
-import { config } from "@/lib/config";
+import { config, getAppUrl } from "@/lib/config";
 import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
 
 const bodySchema = z.object({
@@ -52,6 +52,8 @@ export async function POST(req: Request) {
       note: `Deposit for ${serviceObj?.name || "Service"} (Product: ${productName})`,
     });
 
+    const baseUrl = getAppUrl(req);
+
     // Create Stripe Checkout Session for seamless payment
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -70,8 +72,8 @@ export async function POST(req: Request) {
       ],
       mode: "payment",
       customer_email: booking.guest?.email,
-      success_url: `${config.appUrl}/payment-link?bookingId=${booking._id}&paymentId=${payment._id}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${config.appUrl}/book?serviceId=${serviceObj?._id || ""}`,
+      success_url: `${baseUrl}/payment-link?bookingId=${booking._id}&paymentId=${payment._id}&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/book?serviceId=${serviceObj?._id || ""}`,
       metadata: {
         bookingId: String(booking._id),
         paymentId: String(payment._id),

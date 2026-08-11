@@ -1,7 +1,42 @@
 import "@/lib/timezone";
 
+export function getAppUrl(req?: Request): string {
+  if (req) {
+    const forwardedHost = req.headers.get("x-forwarded-host");
+    const host = req.headers.get("host");
+    const targetHost = forwardedHost || host;
+    const proto =
+      req.headers.get("x-forwarded-proto") ||
+      (targetHost?.includes("localhost") || targetHost?.includes("127.0.0.1")
+        ? "http"
+        : "https");
+
+    if (targetHost && !targetHost.includes("localhost") && !targetHost.includes("127.0.0.1")) {
+      return `${proto}://${targetHost}`.replace(/\/$/, "");
+    }
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl && !siteUrl.includes("localhost")) {
+    return siteUrl.replace(/\/$/, "");
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl && !appUrl.includes("localhost")) {
+    return appUrl.replace(/\/$/, "");
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    return "https://mariesthetics.ca";
+  }
+
+  return (appUrl || "http://localhost:3000").replace(/\/$/, "");
+}
+
 export const config = {
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  get appUrl(): string {
+    return getAppUrl();
+  },
   timeZone: "America/Edmonton",
   whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "50762639742",
   studioAddress:

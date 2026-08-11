@@ -7,30 +7,30 @@
     "admin": "Admin Portal"
   },
   "hero": {
-    "eyebrow": "Pribadong Esthetics Studio · Edmonton",
-    "title1": "Pasadya na Facials at Lash Artistry.",
-    "title2": "Para sa iyong likas na kagandahan.",
-    "subtitle": "Kapanatagan at personal na pangangalaga sa balat, dermaplaning, at lash lifts sa Edmonton. Malinaw na presyo at mabilis na online booking.",
-    "ctaBook": "Mag-book ng Serbisyo",
+    "eyebrow": "Pribadong Studio · West Edmonton",
+    "title1": "Makinis na Balat at Magandang Lashes.",
+    "title2": "Ang iyong sariling beauty ritual.",
+    "subtitle": "Customized facials, dermaplaning, at lash lifts sa tahimik na 1-on-1 studio.",
+    "ctaBook": "Mag-book Ngayon",
     "ctaServices": "Tingnan ang Serbisyo"
   },
   "services": {
     "eyebrow": "Mga De-Kalidad na Serbisyo",
     "title": "Serbisyo at Presyo",
-    "subtitle": "Bawat serbisyo ay inangkop para sa iyong balat at kagustuhan. Maliit na deposito lamang para maseguro ang appointment.",
+    "subtitle": "Bespoke treatments para sa iyong balat at kagandahan. Iseguro gamit ang maliit na deposito.",
     "depositNote": "Kailangan ng deposito upang kumpirmahin ang appointment",
     "bookNow": "Mag-book Ngayon",
     "details": "Tingnan ang Detalye"
   },
   "howItWorks": {
-    "eyebrow": "Madaling Proseso",
+    "eyebrow": "Mabilis na Booking",
     "title": "Paano Mag-Book",
     "step1Title": "Pumili ng Serbisyo",
-    "step1Desc": "Pumili sa mga customized facials, dermaplaning, lash lifts, o brow shaping.",
-    "step2Title": "Pumili ng Petsa at Oras",
-    "step2Desc": "Tingnan ang live availability sa oras ng Edmonton at pumili ng angkop na slot.",
-    "step3Title": "Iseguro ang Deposito",
-    "step3Desc": "Magbayad ng maliit na deposito gamit ang Stripe o e-Transfer upang maseguro ang iyong slot."
+    "step1Desc": "Signature facials, dermaplaning, lash lifts, o brow shaping.",
+    "step2Title": "Pumili ng Oras",
+    "step2Desc": "Pumili ng angkop na oras sa live Edmonton availability.",
+    "step3Title": "Iseguro ang Slot",
+    "step3Desc": "Mag-deposit ng maliit na halaga para kumpirmahin ang iyong oras."
   },
   "memberships": {
     "eyebrow": "Esklusibong Plano sa Pangangalaga",

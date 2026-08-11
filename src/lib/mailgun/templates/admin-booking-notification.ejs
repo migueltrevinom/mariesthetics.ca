@@ -70,8 +70,8 @@
                   <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
                     Booking Status:
                   </td>
-                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 700; color: #c8a86b; text-transform: uppercase;">
-                    <%= paymentStatus %>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 700; color: <%= typeof statusBadgeColor !== 'undefined' ? statusBadgeColor : '#c8a86b' %>; text-transform: uppercase;">
+                    <%= typeof statusBadgeText !== 'undefined' ? statusBadgeText : paymentStatus %>
                   </td>
                 </tr>
                 <tr>
@@ -90,11 +90,21 @@
                     <%= totalFormatted %>
                   </td>
                 </tr>
+                <% if (typeof depositRequiredFormatted !== 'undefined') { %>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Deposit Required:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 600; color: #f3efe6;">
+                    <%= depositRequiredFormatted %>
+                  </td>
+                </tr>
+                <% } %>
                 <tr>
                   <td style="padding-bottom: 8px; font-size: 13px; color: #c8a86b; font-weight: 700;">
-                    Deposit Collected:
+                    Deposit Collected (Paid):
                   </td>
-                  <td align="right" style="padding-bottom: 8px; font-size: 14px; font-weight: 700; color: #c8a86b;">
+                  <td align="right" style="padding-bottom: 8px; font-size: 14px; font-weight: 700; color: <%= typeof statusBadgeColor !== 'undefined' ? statusBadgeColor : '#c8a86b' %>;">
                     <%= depositPaidFormatted %>
                   </td>
                 </tr>

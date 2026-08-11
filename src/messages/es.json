@@ -7,30 +7,30 @@
     "admin": "Portal Admin"
   },
   "hero": {
-    "eyebrow": "Estudio Privado de Estética · Edmonton",
-    "title1": "Faciales Personalizados y Arte en Pestañas.",
-    "title2": "Diseñado para resaltar tu brillo natural.",
-    "subtitle": "Tratamientos faciales tranquilos, dermaplaning y levantamiento de pestañas en Edmonton. Precios transparentes y reservas en línea sencillas.",
-    "ctaBook": "Reservar Tratamiento",
+    "eyebrow": "Estudio Privado · West Edmonton",
+    "title1": "Piel Radiante y Pestañas Perfectas.",
+    "title2": "Tu ritual privado de belleza.",
+    "subtitle": "Faciales personalizados, dermaplaning y lash lift en un ambiente exclusivo 1 a 1.",
+    "ctaBook": "Reservar Cita",
     "ctaServices": "Ver Servicios"
   },
   "services": {
-    "eyebrow": "Estética de Alta Gama",
-    "title": "Servicios y Precios",
-    "subtitle": "Cada tratamiento se adapta a los objetivos de tu piel. Un pequeño depósito asegura tu sesión privada.",
+    "eyebrow": "Tratamientos Exclusivos",
+    "title": "Menú de Servicios",
+    "subtitle": "Tratamientos diseñados para resaltar tu belleza natural. Asegura tu sesión con un pequeño depósito.",
     "depositNote": "Se requiere depósito para asegurar la cita",
     "bookNow": "Reservar Ahora",
     "details": "Ver Detalles"
   },
   "howItWorks": {
-    "eyebrow": "Proceso Sencillo",
-    "title": "Cómo Funciona la Reserva",
+    "eyebrow": "Reserva Fácil",
+    "title": "Cómo Funciona",
     "step1Title": "Elige tu Tratamiento",
-    "step1Desc": "Selecciona entre faciales personalizados, dermaplaning, lifting de pestañas o diseño de cejas.",
+    "step1Desc": "Faciales personalizados, dermaplaning, lash lift o diseño de cejas.",
     "step2Title": "Selecciona Fecha y Hora",
-    "step2Desc": "Consulta la disponibilidad en tiempo local de Edmonton y elige tu horario ideal.",
-    "step3Title": "Asegura con tu Depósito",
-    "step3Desc": "Paga un depósito accesible vía Stripe o e-Transfer para confirmar tu cita privada."
+    "step2Desc": "Elige tu horario ideal con disponibilidad en tiempo real.",
+    "step3Title": "Asegura tu Horario",
+    "step3Desc": "Reserva tu sesión privada al instante con un depósito sencillo."
   },
   "memberships": {
     "eyebrow": "Planes Exclusivos de Cuidado",

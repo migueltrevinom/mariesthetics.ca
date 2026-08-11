@@ -306,7 +306,7 @@ export async function POST(req: Request) {
 		// Trigger asynchronous admin notification email with .ics calendar file
 		void notifyAdminsOfBooking({
 			bookingId: String(booking._id),
-			eventType: isConfirmed ? "deposit_paid" : "creation",
+			eventType: isConfirmed ? "deposit_paid" : "deposit_initiated",
 		});
 
 		return NextResponse.json({

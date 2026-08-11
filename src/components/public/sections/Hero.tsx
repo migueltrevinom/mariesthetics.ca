@@ -1,15 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { business } from "@/lib/seo";
 import { useLanguage } from "@/components/i18n/LanguageContext";
-import { TreatmentQuizModal } from "@/components/public/TreatmentQuizModal";
 
 export function Hero() {
   const { t } = useLanguage();
-  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[var(--background)] transition-colors duration-200">
@@ -19,6 +16,8 @@ export function Hero() {
           alt="Calm esthetics treatment room at Mari Esthetics in Edmonton"
           fill
           priority
+          fetchPriority="high"
+          decoding="async"
           sizes="100vw"
           className="object-cover object-center"
         />
@@ -42,13 +41,6 @@ export function Hero() {
           <Link href="/book" className="btn-primary">
             {t("hero.ctaBook")}
           </Link>
-          <button
-            type="button"
-            onClick={() => setIsQuizOpen(true)}
-            className="px-5 py-3 rounded-xl border border-[#c8a86b]/40 bg-[#c8a86b]/10 hover:bg-[#c8a86b]/20 text-[#c8a86b] text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-2"
-          >
-            <span>✨ Find My Treatment (Quiz)</span>
-          </button>
           <Link href="/services" className="btn-ghost">
             {t("hero.ctaServices")}
           </Link>
@@ -59,9 +51,6 @@ export function Hero() {
         <span className="text-[0.65rem] uppercase tracking-[0.3em]">Scroll</span>
         <span className="scrollcue h-8 w-px bg-[var(--gold)]" />
       </div>
-
-      {/* PUBLIC QUIZ MODAL */}
-      <TreatmentQuizModal isOpen={isQuizOpen} onClose={() => setIsQuizOpen(false)} />
     </section>
   );
 }

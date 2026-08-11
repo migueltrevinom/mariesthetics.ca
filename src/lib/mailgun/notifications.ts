@@ -8,7 +8,13 @@ import { sendEmail } from "@/lib/mailgun";
 
 export interface AdminNotificationOptions {
   bookingId: string;
-  eventType: "creation" | "deposit_paid" | "rescheduled";
+  eventType:
+    | "creation"
+    | "deposit_initiated"
+    | "deposit_paid"
+    | "deposit_failed"
+    | "rescheduled"
+    | "cancelled";
 }
 
 export async function notifyAdminsOfBooking(options: AdminNotificationOptions): Promise<void> {
@@ -43,20 +49,49 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
 
     const summary = booking.paymentSummary || {};
     const totalFormatted = formatCad(summary.totalCents || serviceObj?.priceCents || 0);
-    const depositPaidFormatted = formatCad(summary.depositCents || summary.paidCents || 0);
-    const balanceDueFormatted = formatCad(summary.balanceDueCents || 0);
+    const depositRequiredFormatted = formatCad(summary.depositCents || serviceObj?.depositCents || 0);
+    const depositPaidFormatted = formatCad(summary.paidCents || 0);
+    const balanceDueFormatted = formatCad(
+      summary.balanceDueCents ?? Math.max(0, (summary.totalCents || 0) - (summary.paidCents || 0))
+    );
 
-    const eventTitle =
-      options.eventType === "creation"
-        ? `🚨 New Booking Created: ${serviceName}`
-        : options.eventType === "rescheduled"
-        ? `🔄 Appointment Rescheduled: ${serviceName}`
-        : `💰 Deposit Payment Confirmed: ${serviceName}`;
+    let eventTitle = "";
+    let statusBadgeText = (booking.status || "held").toUpperCase();
+    let statusBadgeColor = "#c8a86b";
+
+    switch (options.eventType) {
+      case "creation":
+      case "deposit_initiated":
+        eventTitle = `⏳ Booking Initiated (Deposit Pending): ${serviceName}`;
+        statusBadgeText = "PENDING DEPOSIT";
+        statusBadgeColor = "#e6a100";
+        break;
+      case "deposit_paid":
+        eventTitle = `✅ Deposit Payment Confirmed: ${serviceName}`;
+        statusBadgeText = "DEPOSIT CONFIRMED";
+        statusBadgeColor = "#2e7d32";
+        break;
+      case "deposit_failed":
+        eventTitle = `⚠️ Deposit Payment Failed: ${serviceName}`;
+        statusBadgeText = "PAYMENT FAILED";
+        statusBadgeColor = "#d32f2f";
+        break;
+      case "cancelled":
+        eventTitle = `❌ Booking Cancelled / Expired: ${serviceName}`;
+        statusBadgeText = "CANCELLED / EXPIRED";
+        statusBadgeColor = "#d32f2f";
+        break;
+      case "rescheduled":
+        eventTitle = `🔄 Appointment Rescheduled: ${serviceName}`;
+        statusBadgeText = "RESCHEDULED";
+        statusBadgeColor = "#1976d2";
+        break;
+    }
 
     // Generate iCal .ics file
     const icsContent = generateIcsContent({
       title: `Client Appointment: ${booking.guest?.name || "Client"} (${serviceName})`,
-      description: `Client: ${booking.guest?.name || "Client"}\nEmail: ${booking.guest?.email || ""}\nPhone: ${booking.guest?.phone || ""}\nService: ${serviceName}\nStatus: ${booking.status}\nDeposit Paid: ${depositPaidFormatted}\nBalance Due: ${balanceDueFormatted}`,
+      description: `Client: ${booking.guest?.name || "Client"}\nEmail: ${booking.guest?.email || ""}\nPhone: ${booking.guest?.phone || ""}\nService: ${serviceName}\nStatus: ${statusBadgeText}\nDeposit Required: ${depositRequiredFormatted}\nDeposit Paid: ${depositPaidFormatted}\nBalance Due: ${balanceDueFormatted}`,
       location: config.studioAddress,
       start: startDate,
       end: endDate,
@@ -72,6 +107,8 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
         templateName: "admin-booking-notification",
         data: {
           eventTitle,
+          statusBadgeText,
+          statusBadgeColor,
           clientName: booking.guest?.name || "Guest Client",
           clientEmail: booking.guest?.email || "N/A",
           clientPhone: booking.guest?.phone || "",
@@ -82,6 +119,7 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
           paymentStatus: booking.status,
           depositMethod: booking.depositMethod || "N/A",
           totalFormatted,
+          depositRequiredFormatted,
           depositPaidFormatted,
           balanceDueFormatted,
           notes: booking.notes || "",

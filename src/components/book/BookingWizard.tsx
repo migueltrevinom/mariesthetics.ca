@@ -5,6 +5,7 @@ import Image from "next/image";
 import { format, addDays, parseISO, isToday, isTomorrow } from "date-fns";
 import { formatCad } from "@/lib/money";
 import { COUNTRY_CODES } from "@/lib/constants/countryCodes";
+import { getFastIpfsUrl } from "@/lib/ipfs";
 
 type Service = {
   _id: string;
@@ -342,12 +343,13 @@ export function BookingWizard({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredServices.map((service) => {
               const cat = service.category || "general";
-              const photoUrl =
+              const rawPhotoUrl =
                 service.photos && service.photos.length > 0
                   ? service.photos[0]
                   : service.images && service.images.length > 0
                   ? service.images[0].url
                   : CATEGORY_FALLBACK_IMAGES[cat] || CATEGORY_FALLBACK_IMAGES.general;
+              const photoUrl = getFastIpfsUrl(rawPhotoUrl);
 
               return (
                 <div
@@ -360,7 +362,8 @@ export function BookingWizard({
                       src={photoUrl}
                       alt={service.name}
                       fill
-                      unoptimized={photoUrl.includes("pinata") || photoUrl.includes("ipfs")}
+                      loading="lazy"
+                      decoding="async"
                       className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />

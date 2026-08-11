@@ -13,6 +13,8 @@ import {
   serviceCatalogJsonLd,
 } from "@/lib/seo";
 
+import { getFastIpfsUrl } from "@/lib/ipfs";
+
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
@@ -216,10 +218,11 @@ export default async function ServicesPage() {
               {/* Spacious 2-Column Luxury Cards Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {categoryServices.map((service) => {
-                  const imageUrl =
+                  const rawImageUrl =
                     service.photos && service.photos.length > 0
                       ? service.photos[0]
                       : CATEGORY_FALLBACK_IMAGES[category] || CATEGORY_FALLBACK_IMAGES.general;
+                  const imageUrl = getFastIpfsUrl(rawImageUrl);
 
                   return (
                     <Reveal
@@ -232,7 +235,8 @@ export default async function ServicesPage() {
                           src={imageUrl}
                           alt={service.name}
                           fill
-                          unoptimized={imageUrl.includes("pinata") || imageUrl.includes("ipfs")}
+                          loading="lazy"
+                          decoding="async"
                           className="object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                           sizes="(max-width: 768px) 100vw, 50vw"
                         />

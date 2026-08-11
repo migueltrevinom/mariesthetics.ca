@@ -3,6 +3,7 @@ import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Payment } from "@/lib/db/models";
 import { AuthError, requireManager } from "@/lib/auth/jwt";
+import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
 
 const bodySchema = z.object({
   approve: z.boolean(),
@@ -60,6 +61,10 @@ export async function POST(
       }
 
       await booking.save();
+      void notifyAdminsOfBooking({
+        bookingId: String(booking._id),
+        eventType: "deposit_paid",
+      });
       return NextResponse.json({ booking, status: "confirmed" });
     }
 
@@ -69,6 +74,11 @@ export async function POST(
       { bookingId: booking._id, status: "pending" },
       { $set: { status: "cancelled" } },
     );
+
+    void notifyAdminsOfBooking({
+      bookingId: String(booking._id),
+      eventType: "cancelled",
+    });
 
     return NextResponse.json({ booking, status: "cancelled" });
   } catch (err) {

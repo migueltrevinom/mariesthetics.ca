@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Payment } from "@/lib/db/models";
-import { config } from "@/lib/config";
+import { config, getAppUrl } from "@/lib/config";
 import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
 
 const bodySchema = z.object({
@@ -36,10 +36,12 @@ export async function POST(req: Request) {
       status: "pending",
     });
 
+    const baseUrl = getAppUrl(req);
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      success_url: `${config.appUrl}/book/success?bookingId=${booking._id}&paid=tip`,
-      cancel_url: `${config.appUrl}/book/success?bookingId=${booking._id}`,
+      success_url: `${baseUrl}/book/success?bookingId=${booking._id}&paid=tip`,
+      cancel_url: `${baseUrl}/book/success?bookingId=${booking._id}`,
       customer_email: booking.guest?.email,
       line_items: [
         {

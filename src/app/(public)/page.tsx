@@ -33,6 +33,9 @@ type PreviewService = {
   description: string;
   durationMin: number;
   priceCents: number;
+  depositCents: number;
+  category: string;
+  photos: string[];
 };
 
 type Plan = {
@@ -58,7 +61,7 @@ async function getData(): Promise<{
   try {
     await connectDb();
     const [services, plans, reviews] = await Promise.all([
-      Service.find({ active: true }).sort({ sortOrder: 1 }).limit(3).lean(),
+      Service.find({ active: true }).sort({ sortOrder: 1 }).limit(6).lean(),
       SubscriptionPlan.find({ active: true }).limit(2).lean(),
       Review.find({ status: "submitted" }).sort({ submittedAt: -1 }).lean(),
     ]);
@@ -80,12 +83,15 @@ async function getData(): Promise<{
     }));
 
     return {
-      services: services.map((s) => ({
+      services: services.map((s: any) => ({
         _id: String(s._id),
         name: String(s.name),
         description: String(s.description ?? ""),
         durationMin: Number(s.durationMin),
         priceCents: Number(s.priceCents),
+        depositCents: Number(s.depositCents || 0),
+        category: String(s.category || "facials"),
+        photos: Array.isArray(s.photos) ? s.photos : [],
       })),
       plans: plans.map((p) => ({
         _id: String(p._id),
