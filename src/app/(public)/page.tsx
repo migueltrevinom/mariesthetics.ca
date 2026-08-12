@@ -62,7 +62,7 @@ async function getData(): Promise<{
     await connectDb();
     const [services, plans, reviews] = await Promise.all([
       Service.find({ active: true }).sort({ sortOrder: 1 }).limit(6).lean(),
-      SubscriptionPlan.find({ active: true }).limit(2).lean(),
+      SubscriptionPlan.find({ active: true }).populate("includedServiceIds", "name priceCents").limit(2).lean(),
       Review.find({ status: "submitted" }).sort({ submittedAt: -1 }).lean(),
     ]);
 
@@ -93,14 +93,40 @@ async function getData(): Promise<{
         category: String(s.category || "facials"),
         photos: Array.isArray(s.photos) ? s.photos : [],
       })),
-      plans: plans.map((p) => ({
-        _id: String(p._id),
-        name: String(p.name),
-        description: String(p.description ?? ""),
-        interval: String(p.interval),
-        priceCents: Number(p.priceCents),
-        billingNote: p.billingNote ? String(p.billingNote) : undefined,
-      })),
+      plans: plans.map((p: any) => {
+        const coveredServices = (p.includedServiceIds || [])
+          .map((srv: any) => {
+            if (typeof srv === "object" && srv !== null && srv.name) {
+              return {
+                _id: String(srv._id),
+                name: String(srv.name),
+                priceCents: Number(srv.priceCents || 0),
+              };
+            }
+            const srvId = typeof srv === "object" && srv !== null ? String(srv._id || srv) : String(srv);
+            const matched = services.find((s: any) => String(s._id) === srvId);
+            if (matched) {
+              return {
+                _id: String(matched._id),
+                name: String(matched.name),
+                priceCents: Number(matched.priceCents || 0),
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        return {
+          _id: String(p._id),
+          name: String(p.name),
+          description: String(p.description ?? ""),
+          interval: String(p.interval),
+          priceCents: Number(p.priceCents),
+          billingNote: p.billingNote ? String(p.billingNote) : undefined,
+          visitsPerPeriod: Number(p.visitsPerPeriod || 1),
+          includedServiceIds: coveredServices,
+        };
+      }),
       reviewStats: {
         ratingValue,
         reviewCount: reviewCount > 0 ? reviewCount : 5, // Default fallback count if fresh DB

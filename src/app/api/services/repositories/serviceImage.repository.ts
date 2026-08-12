@@ -1,6 +1,6 @@
 import { connectDb } from "@/lib/db/connect";
 import { ServiceImage } from "@/lib/db/models/ServiceImage";
-import { PinataRepository } from "./pinata.repository";
+import { deleteFromDigitalOceanSpaces } from "@/lib/storage/doSpaces";
 
 export class ServiceImageRepository {
   /**
@@ -30,7 +30,7 @@ export class ServiceImageRepository {
   }
 
   /**
-   * Deletes an image document from MongoDB and unpins it from Pinata
+   * Deletes an image document from MongoDB and DigitalOcean Spaces
    */
   static async deleteImage(id: string) {
     await connectDb();
@@ -41,14 +41,13 @@ export class ServiceImageRepository {
       throw new Error("Image profile not found in database.");
     }
 
-    // Attempt unpinning from Pinata IPFS
+    // Attempt deletion from DigitalOcean Spaces
     try {
       if (imageDoc.ipfsHash) {
-        await PinataRepository.deleteFileFromPinata(imageDoc.ipfsHash);
+        await deleteFromDigitalOceanSpaces(imageDoc.ipfsHash);
       }
     } catch (err: any) {
-      // Log error but proceed to remove from DB to prevent orphaned DB records
-      console.error(`[ServiceImageRepository.deleteImage IPFS Unpin Warn]: ${err.message}`);
+      console.error(`[ServiceImageRepository.deleteImage Storage Delete Warn]: ${err.message}`);
     }
 
     // Delete image document from DB

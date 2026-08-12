@@ -83,7 +83,7 @@ async function getData() {
         startsAt: { $lte: new Date() },
         endsAt: { $gte: new Date() },
       }).lean(),
-      SubscriptionPlan.find({ active: true }).lean(),
+      SubscriptionPlan.find({ active: true }).populate("includedServiceIds", "name priceCents").lean(),
       ServiceImage.find({ isPrivate: false }).lean(),
       Category.find({ active: true }).sort({ sortOrder: 1, name: 1 }).lean(),
     ]);
@@ -116,14 +116,40 @@ async function getData() {
         title: String(p.title),
         description: String(p.description ?? ""),
       })) as Promo[],
-      plans: plans.map((p: any) => ({
-        _id: String(p._id),
-        name: String(p.name),
-        description: String(p.description ?? ""),
-        interval: String(p.interval),
-        priceCents: Number(p.priceCents),
-        billingNote: p.billingNote ? String(p.billingNote) : undefined,
-      })) as Plan[],
+      plans: plans.map((p: any) => {
+        const coveredServices = (p.includedServiceIds || [])
+          .map((srv: any) => {
+            if (typeof srv === "object" && srv !== null && srv.name) {
+              return {
+                _id: String(srv._id),
+                name: String(srv.name),
+                priceCents: Number(srv.priceCents || 0),
+              };
+            }
+            const srvId = typeof srv === "object" && srv !== null ? String(srv._id || srv) : String(srv);
+            const matched = (services as any[]).find((s: any) => String(s._id) === srvId);
+            if (matched) {
+              return {
+                _id: String(matched._id),
+                name: String(matched.name),
+                priceCents: Number(matched.priceCents || 0),
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+
+        return {
+          _id: String(p._id),
+          name: String(p.name),
+          description: String(p.description ?? ""),
+          interval: String(p.interval),
+          priceCents: Number(p.priceCents),
+          billingNote: p.billingNote ? String(p.billingNote) : undefined,
+          visitsPerPeriod: Number(p.visitsPerPeriod || 1),
+          includedServiceIds: coveredServices,
+        };
+      }) as Plan[],
       categories: categories.map((c: any) => ({
         _id: String(c._id),
         name: String(c.name),

@@ -107,7 +107,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 1,
 			category: "lashes",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmQ4YxRD13Vk1r59rFEQ9K1S1i8ekM9F5cNz4F3dXSyeV2"],
+			photos: ["/images/services/hybrid-set.jpg"],
 			active: true,
 		},
 		{
@@ -119,7 +119,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 2,
 			category: "lashes",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmaRpubkwHH8CwCCKYhpoyzwyvDDHeBosyYFocBa1xUtaU"],
+			photos: ["/images/services/volume-set.jpg"],
 			active: true,
 		},
 		{
@@ -131,7 +131,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 3,
 			category: "lashes",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmXUDKwJRSXQEZSzbZkE7m7MAjMUUbpy43Xgjr9DiB6FGa"],
+			photos: ["/images/services/fill-service.jpg"],
 			active: true,
 		},
 		{
@@ -143,7 +143,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 4,
 			category: "lashes",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmXUDKwJRSXQEZSzbZkE7m7MAjMUUbpy43Xgjr9DiB6FGa"],
+			photos: ["/images/services/fill-service.jpg"],
 			active: true,
 		},
 		{
@@ -155,7 +155,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 5,
 			category: "lashes",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmeCTmrvdHwwV2Wdoq5kc5dirzZcLiDPnSpXzVrChvPVCh"],
+			photos: ["/images/services/classic-set.jpg"],
 			active: true,
 		},
 		{
@@ -167,7 +167,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 6,
 			category: "lashes",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmXUDKwJRSXQEZSzbZkE7m7MAjMUUbpy43Xgjr9DiB6FGa"],
+			photos: ["/images/services/fill-service.jpg"],
 			active: true,
 		},
 
@@ -181,7 +181,7 @@ async function seed() {
 			depositCents: 7500,
 			sortOrder: 7,
 			category: "permanentMakeUp",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmeCFXgjRdYvcihfBeSM7o78BqXcggbRbbEMn47eeft4zq"],
+			photos: ["/images/services/lip-neutralization.jpg"],
 			active: true,
 		},
 		{
@@ -193,7 +193,7 @@ async function seed() {
 			depositCents: 7500,
 			sortOrder: 8,
 			category: "permanentMakeUp",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmYBe4KnaY5vqtHWWahW38k2gXp2uKaRywNLad7SnfcSXD"],
+			photos: ["/images/services/lip-blush.jpg"],
 			active: true,
 		},
 		{
@@ -205,7 +205,7 @@ async function seed() {
 			depositCents: 7500,
 			sortOrder: 9,
 			category: "permanentMakeUp",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmauFWpQRYH7yH35oU3SU44fRfpcjaoBHvUQx9ZdDMpJwa"],
+			photos: ["/images/services/soft-powder-brows.jpg"],
 			active: true,
 		},
 
@@ -219,7 +219,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 10,
 			category: "facials",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmZmkT8z2xnxNMdAhwu4KtBbTBdidYV8ujAoTAsjvB5Eou"],
+			photos: ["/images/services/hydra-facial.jpg"],
 			active: true,
 		},
 		{
@@ -231,7 +231,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 11,
 			category: "facials",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmP4vEM1z74kgXC5HcrseVL1KbnXCBGrXWHrCWzdXwZi6Z"],
+			photos: ["/images/services/anti-aging-facial.jpg"],
 			active: true,
 		},
 		{
@@ -243,7 +243,7 @@ async function seed() {
 			depositCents: 2500,
 			sortOrder: 12,
 			category: "facials",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmYygEVs3neAWK4TGsgvFevkVdCB59UHe2PALZjM8ABmNr"],
+			photos: ["/images/services/basic-facial.jpg"],
 			active: true,
 		},
 		{
@@ -255,7 +255,7 @@ async function seed() {
 			depositCents: 3000,
 			sortOrder: 13,
 			category: "facials",
-			photos: ["https://gateway.pinata.cloud/ipfs/QmYJtGxNuXBnXXBWcL6T63CuTcqFCc6oZW9UyKMeTTv149"],
+			photos: ["/images/services/deep-cleansing-facial.jpg"],
 			active: true,
 		},
 	];
@@ -311,6 +311,8 @@ async function seed() {
 	console.log("Products synced for all 13 production services!");
 
 	const classicLashService = await Service.findOne({ name: "Classic Set" });
+	const classicFillService = await Service.findOne({ name: "Classic Fill" });
+	const lashServiceIds = [classicLashService?._id, classicFillService?._id].filter(Boolean);
 
 	await SubscriptionPlan.findOneAndUpdate(
 		{ name: "Lash Membership — Yearly" },
@@ -320,7 +322,7 @@ async function seed() {
 			interval: "year",
 			priceCents: 75000,
 			billingNote: "12 for the price of 10 — two months free",
-			includedServiceIds: classicLashService ? [classicLashService._id] : [],
+			includedServiceIds: lashServiceIds,
 			visitsPerPeriod: 12,
 			active: true,
 		},
@@ -335,7 +337,7 @@ async function seed() {
 			interval: "month",
 			priceCents: 7500,
 			billingNote: "Cancel anytime",
-			includedServiceIds: classicLashService ? [classicLashService._id] : [],
+			includedServiceIds: lashServiceIds,
 			visitsPerPeriod: 1,
 			active: true,
 		},
@@ -359,6 +361,31 @@ async function seed() {
 		{ clientId: client._id, remindersEnabled: true, marketingOptIn: false },
 		{ upsert: true, new: true },
 	);
+
+	const monthlyPlan = await SubscriptionPlan.findOne({ name: "Lash Membership — Monthly" });
+	if (monthlyPlan && client) {
+		const { ClientSubscription } = await import("../src/lib/db/models/ClientSubscription");
+		const start = new Date();
+		const end = new Date(start.getTime() + 30 * 24 * 60 * 60 * 1000);
+		const sub = await ClientSubscription.findOneAndUpdate(
+			{ clientId: client._id, planId: monthlyPlan._id },
+			{
+				clientId: client._id,
+				planId: monthlyPlan._id,
+				status: "active",
+				currentPeriodStart: start,
+				currentPeriodEnd: end,
+				visitsUsedThisPeriod: 0,
+			},
+			{ upsert: true, new: true }
+		);
+
+		if (!client.activeSubscriptions) client.activeSubscriptions = [];
+		if (!client.activeSubscriptions.includes(sub._id)) {
+			client.activeSubscriptions.push(sub._id);
+			await client.save();
+		}
+	}
 
 	console.log("Sync complete! 13 Production services, prices & Pinata photos are now 100% active in dev!");
 	await mongoose.disconnect();
