@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BookingWizard } from "@/components/book/BookingWizard";
+import { BookPageHeader } from "@/components/book/BookPageHeader";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
@@ -19,15 +20,7 @@ export default async function BookPage({
   return (
     <div className="aurora grain relative min-h-screen overflow-hidden pt-36 pb-24 md:pt-44">
       <div className="relative mx-auto max-w-5xl px-6 md:px-10">
-        <div className="text-center sm:text-left space-y-3 mb-10">
-          <p className="eyebrow">Online Reservation</p>
-          <h1 className="display text-4xl sm:text-5xl md:text-7xl text-[var(--ink)] tracking-tight">
-            Reserve Your Treatment.
-          </h1>
-          <p className="max-w-2xl text-sm sm:text-base text-[var(--ink-soft)] leading-relaxed">
-            Select your service, choose a date &amp; time slot, and secure your session with a deposit. Instant confirmation with Stripe or held for 2 hours with Interac e-Transfer.
-          </p>
-        </div>
+        <BookPageHeader />
 
         <BookingWizard
           initialServiceId={params.serviceId}

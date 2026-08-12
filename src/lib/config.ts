@@ -38,7 +38,7 @@ export const config = {
     return getAppUrl();
   },
   timeZone: "America/Edmonton",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "50762639742",
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP ?? "18257853081",
   studioAddress:
     process.env.NEXT_PUBLIC_STUDIO_ADDRESS ??
     "1211 Gillespie Crescent NW, Edmonton AB T5T 6M5",

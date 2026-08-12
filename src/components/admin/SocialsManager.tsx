@@ -16,7 +16,7 @@ const PLATFORM_PRESETS = [
   { value: "instagram", label: "Instagram", icon: "📸", defaultUrl: "https://instagram.com/mariesthetics" },
   { value: "facebook", label: "Facebook", icon: "👤", defaultUrl: "https://facebook.com/mariesthetics" },
   { value: "tiktok", label: "TikTok", icon: "🎵", defaultUrl: "https://tiktok.com/@mariesthetics" },
-  { value: "whatsapp", label: "WhatsApp", icon: "💬", defaultUrl: "https://wa.me/50762639742" },
+  { value: "whatsapp", label: "WhatsApp", icon: "💬", defaultUrl: "https://wa.me/18257853081" },
   { value: "youtube", label: "YouTube", icon: "▶️", defaultUrl: "https://youtube.com/@mariesthetics" },
   { value: "pinterest", label: "Pinterest", icon: "📌", defaultUrl: "https://pinterest.com/mariesthetics" },
   { value: "x", label: "X / Twitter", icon: "🐦", defaultUrl: "https://x.com/mariesthetics" },

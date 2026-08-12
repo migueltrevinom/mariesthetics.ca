@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+import { useLanguage } from "@/components/i18n/LanguageContext";
+
 const DEFAULT_PRESETS = [
   { label: "$50 CAD", amount: 50 },
   { label: "$100 CAD", amount: 100 },
@@ -11,6 +13,7 @@ const DEFAULT_PRESETS = [
 ];
 
 function GiftCardsContent() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const success = searchParams.get("success") === "true";
   const code = searchParams.get("code") || "";
@@ -92,13 +95,19 @@ function GiftCardsContent() {
         {/* Header */}
         <div className="text-center sm:text-left space-y-3">
           <p className="eyebrow font-bold tracking-[0.28em] text-[#856526] dark:text-[#c8a86b]">
-            Digital Certificates & Vouchers
+            {t("giftCardsPage.eyebrow") !== "giftCardsPage.eyebrow"
+              ? t("giftCardsPage.eyebrow")
+              : "Digital Certificates & Vouchers"}
           </p>
           <h1 className="display text-4xl sm:text-5xl md:text-7xl text-[var(--ink)] tracking-tight">
-            Give the Gift of Self-Care.
+            {t("giftCardsPage.title") !== "giftCardsPage.title"
+              ? t("giftCardsPage.title")
+              : "Give the Gift of Self-Care."}
           </h1>
           <p className="max-w-2xl text-sm sm:text-base text-[var(--ink-soft)] leading-relaxed">
-            Purchase a digital gift certificate for loved ones. Delivered instantly via email with custom notes, redeemable online or in-studio.
+            {t("giftCardsPage.subtitle") !== "giftCardsPage.subtitle"
+              ? t("giftCardsPage.subtitle")
+              : "Purchase a digital gift certificate for loved ones. Delivered instantly via email with custom notes, redeemable online or in-studio."}
           </p>
         </div>
 

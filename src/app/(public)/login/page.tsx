@@ -69,10 +69,10 @@ export default function ClientLoginPage() {
   return (
     <div className="aurora grain relative min-h-[90svh] overflow-hidden pt-40 pb-24 md:pt-48">
       <div className="relative mx-auto max-w-md px-6 md:px-10">
-        <h1 className="display text-5xl text-ivory">
+        <h1 className="display text-5xl text-[var(--ink)]">
           Client login
         </h1>
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-sm text-[var(--ink-soft)]">
           Email one-time code — no password. Guests can book without an account.
         </p>
         {error && <p className="mt-4 text-sm text-blush">{error}</p>}

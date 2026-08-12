@@ -6,6 +6,7 @@ import { whatsappUrl } from "@/lib/config";
 import { business } from "@/lib/seo";
 import { formatCad } from "@/lib/money";
 import { Logo } from "@/components/public/Logo";
+import { useLanguage } from "@/components/i18n/LanguageContext";
 
 export type NavService = {
   id: string;
@@ -34,15 +35,11 @@ const DEFAULT_CATEGORY_BLURB: Record<string, string> = {
   general: "Everything else we offer",
 };
 
-const exploreLinks = [
-  { href: "/services", label: "All services" },
-  { href: "/book", label: "Book an appointment" },
-  { href: "/services#memberships", label: "Memberships" },
-  { href: "/contact", label: "Contact" },
-  { href: "/login", label: "Client login" },
-];
-
-function groupByCategory(services: NavService[], categoryMetaMap: Map<string, CategoryMeta>) {
+function groupByCategory(
+  services: NavService[],
+  categoryMetaMap: Map<string, CategoryMeta>,
+  t: (key: string) => string
+) {
   const map = new Map<string, NavService[]>();
   for (const svc of services) {
     const key = svc.category || "general";
@@ -53,10 +50,23 @@ function groupByCategory(services: NavService[], categoryMetaMap: Map<string, Ca
   const entries = [...map.entries()];
   return entries.map(([category, items]) => {
     const meta = categoryMetaMap.get(category);
+    const catNameKey = `servicesPage.categories.${category}`;
+    const catDescKey = `servicesPage.categoryDescriptions.${category}`;
+
+    const label =
+      t(catNameKey) !== catNameKey
+        ? t(catNameKey)
+        : meta?.name ?? DEFAULT_CATEGORY_LABELS[category] ?? category;
+
+    const blurb =
+      t(catDescKey) !== catDescKey
+        ? t(catDescKey)
+        : meta?.description || DEFAULT_CATEGORY_BLURB[category] || "Explore our treatment menu";
+
     return {
       category,
-      label: meta?.name ?? DEFAULT_CATEGORY_LABELS[category] ?? category,
-      blurb: meta?.description || DEFAULT_CATEGORY_BLURB[category] || "Explore our treatment menu",
+      label,
+      blurb,
       count: items.length,
       from: Math.min(...items.map((i) => i.priceCents)),
     };
@@ -72,6 +82,7 @@ export function MegaMenu({
   onClose: () => void;
   navServices: NavService[];
 }) {
+  const { t } = useLanguage();
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const [categoryMetaMap, setCategoryMetaMap] = useState<Map<string, CategoryMeta>>(new Map());
 
@@ -96,14 +107,52 @@ export function MegaMenu({
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
-    const t = setTimeout(() => closeRef.current?.focus(), 60);
+    const tTimer = setTimeout(() => closeRef.current?.focus(), 60);
     return () => {
       window.removeEventListener("keydown", onKey);
-      clearTimeout(t);
+      clearTimeout(tTimer);
     };
   }, [open, onClose]);
 
-  const categories = groupByCategory(navServices, categoryMetaMap);
+  const exploreLinks = [
+    {
+      href: "/services",
+      label:
+        t("megaMenu.allServices") !== "megaMenu.allServices"
+          ? t("megaMenu.allServices")
+          : "All services",
+    },
+    {
+      href: "/book",
+      label:
+        t("megaMenu.bookAppointment") !== "megaMenu.bookAppointment"
+          ? t("megaMenu.bookAppointment")
+          : "Book an appointment",
+    },
+    {
+      href: "/services#memberships",
+      label:
+        t("megaMenu.memberships") !== "megaMenu.memberships"
+          ? t("megaMenu.memberships")
+          : "Memberships",
+    },
+    {
+      href: "/contact",
+      label:
+        t("megaMenu.contact") !== "megaMenu.contact"
+          ? t("megaMenu.contact")
+          : "Contact",
+    },
+    {
+      href: "/login",
+      label:
+        t("megaMenu.clientLogin") !== "megaMenu.clientLogin"
+          ? t("megaMenu.clientLogin")
+          : "Client login",
+    },
+  ];
+
+  const categories = groupByCategory(navServices, categoryMetaMap, t);
   const tiles = categories.length > 0 ? categories : null;
 
   return (
@@ -146,7 +195,9 @@ export function MegaMenu({
                   onClick={onClose}
                   className="btn-primary !py-2.5 !px-5 text-sm"
                 >
-                  Book a service
+                  {t("megaMenu.bookService") !== "megaMenu.bookService"
+                    ? t("megaMenu.bookService")
+                    : "Book a service"}
                 </Link>
               </div>
               <button
@@ -171,14 +222,25 @@ export function MegaMenu({
           <div className="mt-10 grid flex-1 gap-10 md:mt-14 md:grid-cols-[0.9fr_1.4fr_0.7fr] md:gap-12">
             {/* Left: heading + motif */}
             <div className={`menu-enter ${open ? "is-in" : ""} relative flex flex-col`}>
-              <p className="eyebrow">The studio</p>
+              <p className="eyebrow">
+                {t("megaMenu.eyebrow") !== "megaMenu.eyebrow"
+                  ? t("megaMenu.eyebrow")
+                  : "The studio"}
+              </p>
               <h2 className="display mt-4 text-4xl leading-[0.95] text-[var(--ink)] md:text-5xl">
-                Edmonton skin care,
-                <span className="gold-text italic"> by appointment.</span>
+                {t("megaMenu.title1") !== "megaMenu.title1"
+                  ? t("megaMenu.title1")
+                  : "Edmonton skin care,"}{" "}
+                <span className="gold-text italic block sm:inline">
+                  {t("megaMenu.title2") !== "megaMenu.title2"
+                    ? t("megaMenu.title2")
+                    : "by appointment."}
+                </span>
               </h2>
-              <p className="mt-5 max-w-xs text-sm leading-relaxed text-ink-soft">
-                Private, unhurried treatments tailored to your skin. Explore the
-                menu or jump straight to booking.
+              <p className="mt-5 max-w-xs text-sm leading-relaxed text-[var(--ink-soft)]">
+                {t("megaMenu.subtitle") !== "megaMenu.subtitle"
+                  ? t("megaMenu.subtitle")
+                  : "Private, unhurried treatments tailored to your skin. Explore the menu or jump straight to booking."}
               </p>
 
               <div className="relative mt-auto hidden pt-10 md:block">
@@ -232,10 +294,20 @@ export function MegaMenu({
                         →
                       </span>
                     </div>
-                    <p className="mt-2 text-sm text-ink-soft">{tile.blurb}</p>
+                    <p className="mt-2 text-sm text-[var(--ink-soft)]">{tile.blurb}</p>
                     <p className="mt-6 text-xs uppercase tracking-wider text-[var(--ink-faint)]">
-                      {tile.count} {tile.count === 1 ? "treatment" : "treatments"}
-                      {" · from "}
+                      {tile.count}{" "}
+                      {tile.count === 1
+                        ? t("megaMenu.treatment") !== "megaMenu.treatment"
+                          ? t("megaMenu.treatment")
+                          : "treatment"
+                        : t("megaMenu.treatments") !== "megaMenu.treatments"
+                        ? t("megaMenu.treatments")
+                        : "treatments"}{" "}
+                      ·{" "}
+                      {t("megaMenu.from") !== "megaMenu.from"
+                        ? t("megaMenu.from")
+                        : "from"}{" "}
                       {formatCad(tile.from)}
                     </p>
                   </Link>
@@ -247,10 +319,14 @@ export function MegaMenu({
                   className="mega-tile group sm:col-span-2"
                 >
                   <h3 className="display text-3xl text-[var(--ink)] md:text-4xl">
-                    View all services
+                    {t("megaMenu.allServices") !== "megaMenu.allServices"
+                      ? t("megaMenu.allServices")
+                      : "View all services"}
                   </h3>
-                  <p className="mt-2 text-sm text-ink-soft">
-                    Browse treatments and transparent pricing.
+                  <p className="mt-2 text-sm text-[var(--ink-soft)]">
+                    {t("megaMenu.subtitle") !== "megaMenu.subtitle"
+                      ? t("megaMenu.subtitle")
+                      : "Browse treatments and transparent pricing."}
                   </p>
                 </Link>
               )}
@@ -264,10 +340,14 @@ export function MegaMenu({
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="display text-3xl text-[#24180a] md:text-4xl">
-                      Book an appointment
+                      {t("megaMenu.bookBannerTitle") !== "megaMenu.bookBannerTitle"
+                        ? t("megaMenu.bookBannerTitle")
+                        : "Book an appointment"}
                     </h3>
                     <p className="mt-2 text-sm text-[#4a3a1e]">
-                      Choose a time and secure it with a quick deposit.
+                      {t("megaMenu.bookBannerSubtitle") !== "megaMenu.bookBannerSubtitle"
+                        ? t("megaMenu.bookBannerSubtitle")
+                        : "Choose a time and secure it with a quick deposit."}
                     </p>
                   </div>
                   <span className="text-2xl text-[#24180a] transition-transform duration-300 group-hover:translate-x-1">
@@ -279,7 +359,11 @@ export function MegaMenu({
 
             {/* Right: explore + footer */}
             <div className={`menu-enter ${open ? "is-in" : ""} flex flex-col`} style={{ transitionDelay: "120ms" }}>
-              <p className="eyebrow">Explore</p>
+              <p className="eyebrow">
+                {t("megaMenu.explore") !== "megaMenu.explore"
+                  ? t("megaMenu.explore")
+                  : "Explore"}
+              </p>
               <ul className="mt-5 space-y-1">
                 {exploreLinks.map((link) => (
                   <li key={link.href}>
@@ -301,9 +385,11 @@ export function MegaMenu({
                     target="_blank"
                     rel="noreferrer"
                     onClick={onClose}
-                    className="group flex items-center justify-between border-b border-[var(--line-soft)] py-3 text-lg text-ivory transition-colors hover:text-gold-bright"
+                    className="group flex items-center justify-between border-b border-[var(--line-soft)] py-3 text-lg text-[var(--ink)] transition-colors hover:text-gold-bright"
                   >
-                    WhatsApp
+                    {t("megaMenu.whatsApp") !== "megaMenu.whatsApp"
+                      ? t("megaMenu.whatsApp")
+                      : "WhatsApp"}
                     <span className="text-gold opacity-0 transition group-hover:opacity-100">
                       ↗
                     </span>
@@ -311,10 +397,13 @@ export function MegaMenu({
                 </li>
               </ul>
 
-              <div className="mt-auto space-y-2 pt-10 text-sm text-ink-soft">
+              <div className="mt-auto space-y-2 pt-10 text-sm text-[var(--ink-soft)]">
                 <p>Mon – Sat · 9:00 am – 8:00 pm</p>
                 <p>
-                  {business.locality}, {business.region} · by appointment
+                  {business.locality}, {business.region} ·{" "}
+                  {t("megaMenu.byAppointment") !== "megaMenu.byAppointment"
+                    ? t("megaMenu.byAppointment")
+                    : "by appointment"}
                 </p>
                 <div className="flex gap-4 pt-2 text-xs uppercase tracking-wider">
                   {business.sameAs.map((url) => (

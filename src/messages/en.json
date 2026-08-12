@@ -32,6 +32,31 @@
     "step3Title": "Lock Your Time",
     "step3Desc": "Secure your private appointment instantly with a small deposit."
   },
+  "giftCardsPage": {
+    "eyebrow": "Digital Certificates & Vouchers",
+    "title": "Give the Gift of Self-Care.",
+    "subtitle": "Treat someone special to bespoke facial treatments, lash extensions, or brow lamination."
+  },
+  "megaMenu": {
+    "eyebrow": "The studio",
+    "title1": "Edmonton skin care,",
+    "title2": "by appointment.",
+    "subtitle": "Private, unhurried treatments tailored to your skin. Explore the menu or jump straight to booking.",
+    "bookService": "Book a service",
+    "explore": "Explore",
+    "allServices": "All services",
+    "bookAppointment": "Book an appointment",
+    "memberships": "Memberships",
+    "contact": "Contact",
+    "clientLogin": "Client login",
+    "whatsApp": "WhatsApp",
+    "bookBannerTitle": "Book an appointment",
+    "bookBannerSubtitle": "Choose a time and secure it with a quick deposit.",
+    "treatment": "treatment",
+    "treatments": "treatments",
+    "from": "from",
+    "byAppointment": "by appointment"
+  },
   "memberships": {
     "eyebrow": "Exclusive Skincare Plans",
     "title": "Monthly Esthetics Memberships",
@@ -50,5 +75,32 @@
   "footer": {
     "rights": "All rights reserved.",
     "address": "Edmonton, AB · Service Area Studio"
+  },
+  "servicesPage": {
+    "heroEyebrow": "Treatment Catalog & Pricing",
+    "heroTitle1": "Curated Esthetics.",
+    "heroTitle2": "Transparent Pricing.",
+    "heroSubtitle": "Every treatment is tailored to your unique skin & beauty goals in a private, serene Edmonton studio. A deposit secures your appointment; the balance is settled upon completion.",
+    "memberships": "Memberships",
+    "category": "Category",
+    "treatmentsAvailable": "treatments available",
+    "treatmentAvailable": "treatment available",
+    "depositRequired": "Deposit Required:",
+    "bookTreatment": "Book Treatment →",
+    "mins": "mins",
+    "categories": {
+      "lashes": "Lashes & Lift",
+      "facials": "Facials & Skin Care",
+      "permanentMakeUp": "Permanent Makeup",
+      "brows": "Brow Shaping & Lifts",
+      "general": "General Esthetics"
+    },
+    "categoryDescriptions": {
+      "lashes": "Lash lifts, tinting & extensions tailored to your natural beauty.",
+      "facials": "Customized facial treatments, dermaplaning, and deep skin cleansing.",
+      "permanentMakeUp": "Lip blush, soft powder brows, and long-lasting permanent esthetics.",
+      "brows": "Precision brow lamination, shaping, and tinting.",
+      "general": "General luxury esthetics and specialized skin care."
+    }
   }
 }

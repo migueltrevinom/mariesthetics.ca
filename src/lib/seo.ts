@@ -37,9 +37,8 @@ export const business = {
     "Windermere",
     "Spruce Grove",
   ],
-  // Temporary WhatsApp number until the Canadian line is live.
-  phone: "+50762639742",
-  phoneDisplay: "+507 6263-9742",
+  phone: "+18257853081",
+  phoneDisplay: "+1 (825) 785-3081",
   priceRange: "$$",
   currency: "CAD",
   // Temporary hours — confirm and update.

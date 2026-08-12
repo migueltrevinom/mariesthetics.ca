@@ -50,5 +50,99 @@
   "footer": {
     "rights": "Lahat ng karapatan ay nakalaan.",
     "address": "Edmonton, AB · Service Area Studio"
+  },
+  "servicesPage": {
+    "heroEyebrow": "Katalogo ng Serbisyo at Presyo",
+    "heroTitle1": "De-Kalidad na Esthetics.",
+    "heroTitle2": "Tapat na Presyo.",
+    "heroSubtitle": "Bawat serbisyo ay nakatutok sa iyong balat at ganda sa isang pribadong Edmonton studio. Ang deposito ay nagpapatibay ng iyong oras.",
+    "memberships": "Mga Membership",
+    "category": "Kategorya",
+    "treatmentsAvailable": "serbisyong available",
+    "treatmentAvailable": "serbisyong available",
+    "depositRequired": "Kailangan na Deposito:",
+    "bookTreatment": "Mag-book ng Serbisyo →",
+    "mins": "mins",
+    "categories": {
+      "lashes": "Lashes at Lift",
+      "facials": "Facials at Skin Care",
+      "permanentMakeUp": "Permanent Makeup",
+      "brows": "Brow Shaping at Lift",
+      "general": "Pangkalahatang Esthetics"
+    },
+    "categoryDescriptions": {
+      "lashes": "Lash lifts, tinting at extensions na angkop sa iyong natural na ganda.",
+      "facials": "Customized facial treatments, dermaplaning, at malalim na paglilinis ng balat.",
+      "permanentMakeUp": "Lip blush, soft powder brows, at matagalang permanent esthetics.",
+      "brows": "Precision brow lamination, shaping, at tinting.",
+      "general": "Luxury esthetics at specialized skin care."
+    }
+  },
+  "contactPage": {
+    "eyebrow": "Kontak",
+    "title": "Usap Tayo Tungkol Sa Balat.",
+    "subtitle": "Pinakamabilis makipag-ugnayan kay Mari sa WhatsApp. Para sa appointments, pinakamabilis ang online booking — kumpirmado agad sa deposito.",
+    "whatsappBtn": "Mag-message sa WhatsApp",
+    "bookBtn": "Mag-book ng Appointment",
+    "whatsappEyebrow": "WhatsApp",
+    "hoursEyebrow": "Oras",
+    "hoursValue": "Martes – Sabado",
+    "hoursTime": "9:00 am – 6:00 pm",
+    "areaEyebrow": "Lugar ng Serbisyo",
+    "surroundingArea": "at mga karatig-lugar",
+    "privateStudioNote": "Pribadong studio — ang eksaktong address ay ipapadala kapag kumpirmado na ang appointment."
+  },
+  "howItWorksSection": {
+    "eyebrow": "Mabilis na Online Booking",
+    "title1": "Ang iyong appointment sa",
+    "title2": "3 simpleng hakbang.",
+    "step1Title": "Pumili ng Serbisyo",
+    "step1Body": "Tingnan ang 13 de-kalidad na facials, lash sets, at brow treatments sa tapat na presyo.",
+    "step2Title": "Pumili ng Oras",
+    "step2Body": "Pumili ng petsa at oras na angkop sa iyong araw sa live Edmonton availability.",
+    "step3Title": "Iseguro ang Slot",
+    "step3Body": "Kumpirmahin agad ang iyong oras gamit ang maliit na deposito sa card o e-Transfer."
+  },
+  "bookingWizard": {
+    "eyebrow": "Online Booking",
+    "title": "Mag-reserba ng Serbisyo",
+    "subtitle": "Pumili ng serbisyo, oras, at iseguro ang slot sa pamamagitan ng deposito.",
+    "allTreatments": "Lahat ng Serbisyo",
+    "selectDate": "Pumili ng Petsa:",
+    "availableSlots": "Mga Bakanteng Oras para sa",
+    "noSlots": "Walang bakanteng oras sa petsang ito. Mangyaring pumili ng ibang araw.",
+    "continueDetails": "Magpatuloy sa Impormasyon →",
+    "continuePayment": "Magpatuloy sa Pagbabayad →",
+    "nameLabel": "Buong Pangalan",
+    "emailLabel": "Email Address",
+    "phoneLabel": "Numero ng Telepono",
+    "couponLabel": "Promo o Gift Card Code",
+    "apply": "I-apply",
+    "selectSlot": "Pumili ng Oras →"
+  },
+  "giftCardsPage": {
+    "eyebrow": "Digital Certificates at Vouchers",
+    "title": "Magregalo ng Pangangalaga sa Sarili.",
+    "subtitle": "Regaluhan ang mahal sa buhay ng facial treatments, lash extensions, o brow lamination."
+  },
+  "megaMenu": {
+    "eyebrow": "Ang studio",
+    "title1": "Pangangalaga sa balat sa Edmonton,",
+    "title2": "sa pamamagitan ng appointment.",
+    "subtitle": "Pribado at hindi minamadaling alaga sa iyong balat. Tingnan ang menu o mag-book agad.",
+    "bookService": "Mag-book ng serbisyo",
+    "explore": "Galugarin",
+    "allServices": "Lahat ng serbisyo",
+    "bookAppointment": "Mag-book ng appointment",
+    "memberships": "Mga Membership",
+    "contact": "Kontak",
+    "clientLogin": "Login ng customer",
+    "whatsApp": "WhatsApp",
+    "bookBannerTitle": "Mag-book ng appointment",
+    "bookBannerSubtitle": "Pumili ng oras at iseguro ito sa mabilis na deposito.",
+    "treatment": "serbisyo",
+    "treatments": "mga serbisyo",
+    "from": "mula sa",
+    "byAppointment": "sa appointment"
   }
 }

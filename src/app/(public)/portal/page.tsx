@@ -46,7 +46,7 @@ export default async function PortalPage() {
     <div className="aurora grain relative min-h-screen overflow-hidden pt-40 pb-24 md:pt-48">
       <div className="relative mx-auto max-w-3xl px-6 md:px-10">
         <p className="eyebrow">Portal</p>
-        <h1 className="display mt-3 text-5xl text-ivory">
+        <h1 className="display mt-3 text-5xl text-[var(--ink)]">
           Hi, {session.name}
         </h1>
         <div className="mt-8 flex gap-3">
@@ -62,13 +62,13 @@ export default async function PortalPage() {
         <div className="mt-12 divide-y divide-[var(--line)] border-y border-[var(--line)]">
           {bookings.map((b) => (
             <div key={String(b._id)} className="py-6">
-              <p className="font-[family-name:var(--font-display)] text-2xl">
+              <p className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
                 {b.serviceId?.name ?? "Service"}
               </p>
-              <p className="mt-1 text-sm text-ink-soft">
+              <p className="mt-1 text-sm text-[var(--ink-soft)]">
                 {format(new Date(b.start), "PPpp")} · {b.status}
               </p>
-              <p className="mt-2 text-sm">
+              <p className="mt-2 text-sm text-[var(--ink-soft)]">
                 Paid {formatCad(b.paymentSummary?.paidCents ?? 0)} · Balance{" "}
                 {formatCad(b.paymentSummary?.balanceDueCents ?? 0)}
               </p>
@@ -78,7 +78,7 @@ export default async function PortalPage() {
             </div>
           ))}
           {bookings.length === 0 && (
-            <p className="py-10 text-ink-soft">No bookings linked yet.</p>
+            <p className="py-10 text-[var(--ink-soft)]">No bookings linked yet.</p>
           )}
         </div>
       </div>

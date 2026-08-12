@@ -50,5 +50,99 @@
   "footer": {
     "rights": "Todos los derechos reservados.",
     "address": "Edmonton, AB · Estudio Privado"
+  },
+  "servicesPage": {
+    "heroEyebrow": "Catálogo de Tratamientos y Precios",
+    "heroTitle1": "Estética Curada.",
+    "heroTitle2": "Precios Transparentes.",
+    "heroSubtitle": "Cada tratamiento se adapta a los objetivos únicos de tu piel y belleza en un estudio privado y sereno en Edmonton. Un depósito asegura tu cita; el saldo se liquida al finalizar.",
+    "memberships": "Membresías",
+    "category": "Categoría",
+    "treatmentsAvailable": "tratamientos disponibles",
+    "treatmentAvailable": "tratamiento disponible",
+    "depositRequired": "Depósito Requerido:",
+    "bookTreatment": "Reservar Tratamiento →",
+    "mins": "mins",
+    "categories": {
+      "lashes": "Pestañas y Lifting",
+      "facials": "Faciales y Cuidado de la Piel",
+      "permanentMakeUp": "Maquillaje Permanente",
+      "brows": "Diseño de Cejas",
+      "general": "Estética General"
+    },
+    "categoryDescriptions": {
+      "lashes": "Lifting de pestañas, tinte y extensiones adaptadas a tu belleza natural.",
+      "facials": "Tratamientos faciales personalizados, dermaplaning y limpieza profunda.",
+      "permanentMakeUp": "Lip blush, cejas efecto polvo y estética permanente de larga duración.",
+      "brows": "Laminado de cejas, diseño de precisión y tinte.",
+      "general": "Estética de lujo general y cuidado de la piel especializado."
+    }
+  },
+  "contactPage": {
+    "eyebrow": "Contacto",
+    "title": "Hablemos de tu piel.",
+    "subtitle": "La forma más rápida de contactar a Mari es por WhatsApp. Para citas, reservar en línea es más rápido: tu depósito asegura el horario al instante.",
+    "whatsappBtn": "Enviar mensaje por WhatsApp",
+    "bookBtn": "Reservar una cita",
+    "whatsappEyebrow": "WhatsApp",
+    "hoursEyebrow": "Horario",
+    "hoursValue": "Mar – Sáb",
+    "hoursTime": "9:00 am – 6:00 pm",
+    "areaEyebrow": "Área de Servicio",
+    "surroundingArea": "y alrededores",
+    "privateStudioNote": "Estudio privado — la dirección exacta se comparte una vez confirmada tu cita."
+  },
+  "howItWorksSection": {
+    "eyebrow": "Reserva en Línea Fácil",
+    "title1": "Tu cita en",
+    "title2": "3 sencillos pasos.",
+    "step1Title": "Elige tu Ritual",
+    "step1Body": "Explora 13 tratamientos faciales, pestañas y cejas con precios transparentes.",
+    "step2Title": "Selecciona tu Horario",
+    "step2Body": "Elige fecha y hora que se adapte a tu día con disponibilidad en tiempo real.",
+    "step3Title": "Asegura tu Sesión",
+    "step3Body": "Asegura tu sesión privada al instante con un pequeño depósito con tarjeta o e-Transfer."
+  },
+  "bookingWizard": {
+    "eyebrow": "Reserva en Línea",
+    "title": "Reserva tu Tratamiento",
+    "subtitle": "Selecciona tu servicio, elige fecha y hora, y asegura tu sesión con un depósito.",
+    "allTreatments": "Todos los Tratamientos",
+    "selectDate": "Seleccionar Fecha:",
+    "availableSlots": "Horarios Disponibles para",
+    "noSlots": "No hay horarios disponibles en esta fecha. Por favor elige otro día.",
+    "continueDetails": "Continuar a Datos del Cliente →",
+    "continuePayment": "Continuar al Pago →",
+    "nameLabel": "Nombre Completo",
+    "emailLabel": "Correo Electrónico",
+    "phoneLabel": "Número de Teléfono Móvil",
+    "couponLabel": "Código de Promoción o Tarjeta de Regalo",
+    "apply": "Aplicar",
+    "selectSlot": "Seleccionar Horario →"
+  },
+  "giftCardsPage": {
+    "eyebrow": "Certificados y Vales Digitales",
+    "title": "Regala el Cuidado Personal.",
+    "subtitle": "Consiente a alguien especial con tratamientos faciales personalizados, extensiones de pestañas o laminado de cejas."
+  },
+  "megaMenu": {
+    "eyebrow": "El estudio",
+    "title1": "Cuidado de la piel en Edmonton,",
+    "title2": "con cita previa.",
+    "subtitle": "Tratamientos privados y sin prisas adaptados a tu piel. Explora el menú o ve directo a reservar.",
+    "bookService": "Reservar servicio",
+    "explore": "Explorar",
+    "allServices": "Todos los servicios",
+    "bookAppointment": "Reservar una cita",
+    "memberships": "Membresías",
+    "contact": "Contacto",
+    "clientLogin": "Acceso de clientes",
+    "whatsApp": "WhatsApp",
+    "bookBannerTitle": "Reservar una cita",
+    "bookBannerSubtitle": "Elige un horario y asegúralo con un depósito rápido.",
+    "treatment": "tratamiento",
+    "treatments": "tratamientos",
+    "from": "desde",
+    "byAppointment": "con cita previa"
   }
 }

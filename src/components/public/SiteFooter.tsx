@@ -7,13 +7,7 @@ import { business } from "@/lib/seo";
 import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/admin/ThemeToggle";
 import { SocialIcon } from "@/components/ui/SocialIcon";
-
-const nav = [
-  { href: "/services", label: "Services" },
-  { href: "/book", label: "Book an appointment" },
-  { href: "/contact", label: "Contact" },
-  { href: "/login", label: "Client login" },
-];
+import { useLanguage } from "@/components/i18n/LanguageContext";
 
 export interface SocialLinkItem {
   _id: string;
@@ -23,6 +17,7 @@ export interface SocialLinkItem {
 }
 
 export function SiteFooter() {
+  const { t } = useLanguage();
   const [socials, setSocials] = useState<SocialLinkItem[]>([]);
 
   useEffect(() => {
@@ -40,6 +35,25 @@ export function SiteFooter() {
     void loadSocials();
   }, []);
 
+  const nav = [
+    {
+      href: "/services",
+      label: t("nav.services") !== "nav.services" ? t("nav.services") : "Services",
+    },
+    {
+      href: "/book",
+      label: t("nav.book") !== "nav.book" ? t("nav.book") : "Book an appointment",
+    },
+    {
+      href: "/contact",
+      label: t("nav.contact") !== "nav.contact" ? t("nav.contact") : "Contact",
+    },
+    {
+      href: "/login",
+      label: t("megaMenu.clientLogin") !== "megaMenu.clientLogin" ? t("megaMenu.clientLogin") : "Client login",
+    },
+  ];
+
   return (
     <footer className="relative overflow-hidden border-t border-[var(--border-color)] bg-[var(--mist)] text-[var(--ink)] transition-colors duration-200">
       <div className="aurora-soft pointer-events-none absolute inset-0 opacity-70" />
@@ -48,19 +62,23 @@ export function SiteFooter() {
           {/* Brand Info */}
           <div>
             <Logo size="lg" tagline />
-            <p className="mt-6 max-w-xs text-sm leading-relaxed text-ink-soft">
+            <p className="mt-6 max-w-xs text-sm leading-relaxed text-[var(--ink-soft)]">
               A private esthetics studio serving {business.locality} and area.
               Personalized skin care in a calm, one-on-one setting.
             </p>
-            <p className="mt-4 text-sm text-ink-soft">
+            <p className="mt-4 text-sm text-[var(--ink-soft)]">
               Serving {business.neighbourhood} &amp; {business.regionName}
             </p>
           </div>
 
           {/* Navigation Links */}
           <div>
-            <p className="eyebrow">Explore</p>
-            <ul className="mt-4 space-y-3 text-sm text-ink-soft">
+            <p className="eyebrow">
+              {t("megaMenu.explore") !== "megaMenu.explore"
+                ? t("megaMenu.explore")
+                : "Explore"}
+            </p>
+            <ul className="mt-4 space-y-3 text-sm text-[var(--ink-soft)]">
               {nav.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="transition-colors hover:text-gold-bright">
@@ -73,9 +91,17 @@ export function SiteFooter() {
 
           {/* Hours & Location */}
           <div>
-            <p className="eyebrow">Visit &amp; Hours</p>
-            <ul className="mt-4 space-y-3 text-sm text-ink-soft">
-              <li>Monday – Saturday</li>
+            <p className="eyebrow">
+              {t("contactPage.hoursEyebrow") !== "contactPage.hoursEyebrow"
+                ? t("contactPage.hoursEyebrow")
+                : "Visit & Hours"}
+            </p>
+            <ul className="mt-4 space-y-3 text-sm text-[var(--ink-soft)]">
+              <li>
+                {t("contactPage.hoursValue") !== "contactPage.hoursValue"
+                  ? t("contactPage.hoursValue")
+                  : "Monday – Saturday"}
+              </li>
               <li>9:00 am – 8:00 pm</li>
               <li className="pt-2">
                 <a
@@ -142,7 +168,12 @@ export function SiteFooter() {
         <div className="mt-14 flex flex-col items-start justify-between gap-6 border-t border-[var(--border-color)] pt-6 text-xs text-[var(--ink-soft)] sm:flex-row sm:items-center">
           <div>
             <p>© {new Date().getFullYear()} {business.name}. Edmonton, Alberta.</p>
-            <p className="mt-1 text-[var(--ink-soft)]/70">Personalized skin care · By appointment</p>
+            <p className="mt-1 text-[var(--ink-soft)]/70">
+              Personalized skin care ·{" "}
+              {t("megaMenu.byAppointment") !== "megaMenu.byAppointment"
+                ? t("megaMenu.byAppointment")
+                : "By appointment"}
+            </p>
           </div>
           
           <div className="w-full sm:w-48 shrink-0">
@@ -152,18 +183,4 @@ export function SiteFooter() {
       </div>
     </footer>
   );
-}
-
-function getPlatformIcon(platform: string) {
-  switch (platform.toLowerCase()) {
-    case "instagram": return "📸";
-    case "facebook": return "👤";
-    case "tiktok": return "🎵";
-    case "whatsapp": return "💬";
-    case "youtube": return "▶️";
-    case "pinterest": return "📌";
-    case "x":
-    case "twitter": return "🐦";
-    default: return "🔗";
-  }
 }

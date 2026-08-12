@@ -6,6 +6,8 @@ import { format, addDays, parseISO, isToday, isTomorrow } from "date-fns";
 import { formatCad } from "@/lib/money";
 import { COUNTRY_CODES } from "@/lib/constants/countryCodes";
 import { getFastIpfsUrl } from "@/lib/ipfs";
+import { useLanguage } from "@/components/i18n/LanguageContext";
+import { getLocalizedService } from "@/lib/i18n/serviceTranslations";
 
 type Service = {
   _id: string;
@@ -60,6 +62,7 @@ export function BookingWizard({
   initialDate?: string;
   initialTime?: string;
 }) {
+  const { locale, t } = useLanguage();
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState(initialServiceId ?? "");
   const [activeCategory, setActiveCategory] = useState("all");
@@ -342,6 +345,7 @@ export function BookingWizard({
           {/* Spacious Service Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredServices.map((service) => {
+              const localized = getLocalizedService(service, locale);
               const cat = service.category || "general";
               const rawPhotoUrl =
                 service.photos && service.photos.length > 0
@@ -360,7 +364,7 @@ export function BookingWizard({
                   <div className="relative w-full h-56 overflow-hidden bg-black/10">
                     <Image
                       src={photoUrl}
-                      alt={service.name}
+                      alt={localized.name}
                       fill
                       loading="lazy"
                       decoding="async"
@@ -381,7 +385,7 @@ export function BookingWizard({
 
                     <div className="absolute bottom-4 left-5 right-5">
                       <h3 className="font-[family-name:var(--font-display)] text-2xl text-white tracking-tight leading-tight">
-                        {service.name}
+                        {localized.name}
                       </h3>
                     </div>
                   </div>
@@ -389,13 +393,13 @@ export function BookingWizard({
                   {/* Body & CTA */}
                   <div className="p-6 flex-1 flex flex-col justify-between space-y-5">
                     <p className="text-xs text-[var(--ink-soft)] leading-relaxed">
-                      {service.description || "A personalized beauty treatment crafted to enhance your natural features and revitalize your skin in a serene Edmonton studio."}
+                      {localized.description || "A personalized beauty treatment crafted to enhance your natural features and revitalize your skin in a serene Edmonton studio."}
                     </p>
 
                     <div className="pt-4 border-t border-[var(--border-color)] flex items-center justify-between gap-3">
                       <div>
                         <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--ink-faint)] block">
-                          Deposit: {formatCad(service.depositCents)}
+                          {t("servicesPage.depositRequired") !== "servicesPage.depositRequired" ? t("servicesPage.depositRequired") : "Deposit Required:"} {formatCad(service.depositCents)}
                         </span>
                         <span className="gold-text text-2xl font-bold tracking-tight">
                           {formatCad(service.priceCents)}

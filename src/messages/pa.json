@@ -50,5 +50,99 @@
   "footer": {
     "rights": "ਸਾਰੇ ਹੱਕ ਰਾਖਵੇਂ ਹਨ।",
     "address": "ਐਡਮਿੰਟਨ, AB · ਸਟੂਡੀਓ"
+  },
+  "servicesPage": {
+    "heroEyebrow": "ਇਲਾਜ ਕੈਟਾਲਾਗ ਅਤੇ ਕੀਮਤਾਂ",
+    "heroTitle1": "ਚੋਣਵੀਂ ਐਸਥੇਟਿਕਸ।",
+    "heroTitle2": "ਸਪਸ਼ਟ ਕੀਮਤਾਂ।",
+    "heroSubtitle": "ਹਰ ਇਲਾਜ ਤੁਹਾਡੀ ਚਮੜੀ ਅਤੇ ਸੁੰਦਰਤਾ ਦੇ ਟੀਚਿਆਂ ਲਈ ਐਡਮਿੰਟਨ ਸਟੂਡੀਓ ਵਿੱਚ ਤਿਆਰ ਕੀਤਾ ਗਿਆ ਹੈ।",
+    "memberships": "ਮੈਂਬਰਸ਼ਿਪ",
+    "category": "ਸ਼੍ਰੇਣੀ",
+    "treatmentsAvailable": "ਇਲਾਜ ਉਪਲਬਧ ਹਨ",
+    "treatmentAvailable": "ਇਲਾਜ ਉਪਲਬਧ ਹੈ",
+    "depositRequired": "ਲੋੜੀਂਦਾ ਜਮ੍ਹਾਂ:",
+    "bookTreatment": "ਬੁੱਕ ਇਲਾਜ →",
+    "mins": "ਮਿੰਟ",
+    "categories": {
+      "lashes": "ਲੇਸ਼ਿਜ਼ ਅਤੇ ਲਿਫਟ",
+      "facials": "ਫੇਸ਼ੀਅਲ ਅਤੇ ਚਮੜੀ ਦੀ ਦੇਖਭਾਲ",
+      "permanentMakeUp": "ਪੱਕਾ ਮੇਕਅਪ",
+      "brows": "ਆਈਬ੍ਰੋ ਸ਼ੇਪਿੰਗ",
+      "general": "ਆਮ ਐਸਥੇਟਿਕਸ"
+    },
+    "categoryDescriptions": {
+      "lashes": "ਲੇਸ਼ ਲਿਫਟ, ਟਿੰਟਿੰਗ ਅਤੇ ਐਕਸਟੈਂਸ਼ਨ।",
+      "facials": "ਚਮੜੀ ਦੇ ਫੇਸ਼ੀਅਲ ਅਤੇ ਡਰਮਾਪਲੈਨਿੰਗ।",
+      "permanentMakeUp": "ਲਿਪ ਬਲੱਸ਼ ਅਤੇ ਪਾਊਡਰ ਬ੍ਰੋਜ਼।",
+      "brows": "ਆਈਬ੍ਰੋ ਲੈਮੀਨੇਸ਼ਨ ਅਤੇ ਸ਼ੇਪਿੰਗ।",
+      "general": "ਲਗਜ਼ਰੀ ਐਸਥੇਟਿਕਸ ਅਤੇ ਚਮੜੀ ਦੀ ਸੰਭਾਲ।"
+    }
+  },
+  "contactPage": {
+    "eyebrow": "ਸੰਪਰਕ",
+    "title": "ਚਮੜੀ ਦੀ ਸੰਭਾਲ ਬਾਰੇ ਗੱਲ ਕਰੀਏ।",
+    "subtitle": "ਮਾਰੀ ਨਾਲ ਸੰਪਰਕ ਕਰਨ ਦਾ ਸਭ ਤੋਂ ਤੇਜ਼ ਤਰੀਕਾ WhatsApp ਹੈ। ਬੁਕਿੰਗ ਲਈ ਆਨਲਾਈਨ ਬੁਕਿੰਗ ਸਭ ਤੋਂ ਵਧੀਆ ਹੈ।",
+    "whatsappBtn": "WhatsApp 'ਤੇ ਮੈਸੇਜ ਕਰੋ",
+    "bookBtn": "ਬੁਕਿੰਗ ਕਰੋ",
+    "whatsappEyebrow": "WhatsApp",
+    "hoursEyebrow": "ਸਮਾਂ",
+    "hoursValue": "ਮੰਗਲਵਾਰ – ਸ਼ਨੀਵਾਰ",
+    "hoursTime": "9:00 ਸਵੇਰੇ – 6:00 ਸ਼ਾਮ",
+    "areaEyebrow": "ਸੇਵਾ ਖੇਤਰ",
+    "surroundingArea": "ਅਤੇ ਆਸ-ਪਾਸ ਦੇ ਖੇਤਰ",
+    "privateStudioNote": "ਪ੍ਰਾਈਵੇਟ ਸਟੂਡੀਓ — ਬੁਕਿੰਗ ਪੱਕੀ ਹੋਣ 'ਤੇ ਪੂਰਾ ਪਤਾ ਭੇਜਿਆ ਜਾਵੇਗਾ।"
+  },
+  "howItWorksSection": {
+    "eyebrow": "ਸੌਖੀ ਆਨਲਾਈਨ ਬੁਕਿੰਗ",
+    "title1": "ਤੁਹਾਡੀ ਅਪਾਇੰਟਮੈਂਟ",
+    "title2": "3 ਆਸਾਨ ਕਦਮਾਂ ਵਿੱਚ।",
+    "step1Title": "ਆਪਣਾ ਇਲਾਜ ਚੁਣੋ",
+    "step1Body": "13 ਚੋਣਵੇਂ ਫੇਸ਼ੀਅਲ, ਲੇਸ਼ ਸੈੱਟ ਅਤੇ ਆਈਬ੍ਰੋ ਇਲਾਜ ਸਪਸ਼ਟ ਕੀਮਤਾਂ ਨਾਲ ਦੇਖੋ।",
+    "step2Title": "ਆਪਣਾ ਸਮਾਂ ਚੁਣੋ",
+    "step2Body": "ਲਾਈਵ ਉਪਲਬਧਤਾ ਅਨੁਸਾਰ ਆਪਣਾ ਸਮਾਂ ਚੁਣੋ।",
+    "step3Title": "ਸਮਾਂ ਪੱਕਾ ਕਰੋ",
+    "step3Body": "ਛੋਟਾ ਡਿਪਾਜ਼ਿਟ ਦੇ ਕੇ ਆਪਣਾ ਸਮਾਂ ਤੁਰੰਤ ਬੁੱਕ ਕਰੋ।"
+  },
+  "bookingWizard": {
+    "eyebrow": "ਆਨਲਾਈਨ ਬੁਕਿੰਗ",
+    "title": "ਆਪਣਾ ਸਮਾਂ ਰਿਜ਼ਰਵ ਕਰੋ",
+    "subtitle": "ਆਪਣੀ ਸੇਵਾ ਅਤੇ ਸਮਾਂ ਚੁਣੋ, ਅਤੇ ਡਿਪਾਜ਼ਿਟ ਨਾਲ ਸਮਾਂ ਪੱਕਾ ਕਰੋ।",
+    "allTreatments": "ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ",
+    "selectDate": "ਮਿਤੀ ਚੁਣੋ:",
+    "availableSlots": "ਲਈ ਉਪਲਬਧ ਸਮਾਂ",
+    "noSlots": "ਇਸ ਮਿਤੀ 'ਤੇ ਕੋਈ ਸਮਾਂ ਉਪਲਬਧ ਨਹੀਂ ਹੈ। ਕਿਰਪਾ ਕਰਕੇ ਕੋਈ ਹੋਰ ਦਿਨ ਚੁਣੋ।",
+    "continueDetails": "ਜਾਣਕਾਰੀ ਵੱਲ ਵਧੋ →",
+    "continuePayment": "ਭੁਗਤਾਨ ਵੱਲ ਵਧੋ →",
+    "nameLabel": "ਪੂਰਾ ਨਾਮ",
+    "emailLabel": "ਈਮੇਲ ਪਤਾ",
+    "phoneLabel": "ਮੋਬਾਈਲ ਫੋਨ ਨੰਬਰ",
+    "couponLabel": "ਪ੍ਰੋਮੋ ਜਾਂ ਗਿਫਟ ਕਾਰਡ ਕੋਡ",
+    "apply": "ਲਾਗੂ ਕਰੋ",
+    "selectSlot": "ਸਮਾਂ ਚੁਣੋ →"
+  },
+  "giftCardsPage": {
+    "eyebrow": "ਡਿਜੀਟਲ ਗਿਫਟ ਕਾਰਡ",
+    "title": "ਸਕਿਨਕੇਅਰ ਦਾ ਤੋਹਫ਼ਾ ਦਿਓ।",
+    "subtitle": "ਆਪਣੇ ਪਿਆਰਿਆਂ ਨੂੰ ਫੇਸ਼ੀਅਲ ਜਾਂ ਲੇਸ਼ ਇਲਾਜ ਦਾ ਤੋਹਫ਼ਾ ਦਿਓ।"
+  },
+  "megaMenu": {
+    "eyebrow": "ਸਟੂਡੀਓ",
+    "title1": "ਐਡਮਿੰਟਨ ਸਕਿਨ ਕੇਅਰ,",
+    "title2": "ਕੇਵਲ ਅਪਾਇੰਟਮੈਂਟ ਦੁਆਰਾ।",
+    "subtitle": "ਤੁਹਾਡੀ ਸਕਿਨ ਲਈ ਸ਼ਾਂਤਮਈ ਇਲਾਜ। ਮੇਨੂ ਦੇਖੋ ਜਾਂ ਸਿੱਧਾ ਬੁਕਿੰਗ ਕਰੋ।",
+    "bookService": "ਸੇਵਾ ਬੁੱਕ ਕਰੋ",
+    "explore": "ਦੇਖੋ",
+    "allServices": "ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ",
+    "bookAppointment": "ਬੁਕਿੰਗ ਕਰੋ",
+    "memberships": "ਮੈਂਬਰਸ਼ਿਪ",
+    "contact": "ਸੰਪਰਕ",
+    "clientLogin": "ਗ੍ਰਾਹਕ ਲੌਗਇਨ",
+    "whatsApp": "WhatsApp",
+    "bookBannerTitle": "ਬੁਕਿੰਗ ਕਰੋ",
+    "bookBannerSubtitle": "ਸਮਾਂ ਚੁਣੋ ਅਤੇ ਡਿਪਾਜ਼ਿਟ ਨਾਲ ਸਮਾਂ ਪੱਕਾ ਕਰੋ।",
+    "treatment": "ਇਲਾਜ",
+    "treatments": "ਇਲਾਜ",
+    "from": "ਤੋਂ",
+    "byAppointment": "ਅਪਾਇੰਟਮੈਂਟ ਦੁਆਰਾ"
   }
 }

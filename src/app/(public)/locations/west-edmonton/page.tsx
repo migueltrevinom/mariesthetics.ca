@@ -140,7 +140,7 @@ export default async function WestEdmontonLocationPage() {
             <h1 className="font-[family-name:var(--font-display)] mt-6 text-4xl sm:text-6xl md:text-7xl font-light text-[var(--ink)] leading-[1.05]">
               Your neighborhood retreat for <span className="gold-text italic font-normal">glowing skin</span>.
             </h1>
-            <p className="mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-ink-soft">
+            <p className="mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-[var(--ink-soft)]">
               Located in Glastonbury, West Edmonton. Escape the commercial salon noise and enjoy quiet, customized skincare, lash lifts, brow artistry, and dermaplaning in a private 1-on-1 home studio.
             </p>
 
@@ -175,7 +175,7 @@ export default async function WestEdmontonLocationPage() {
                   <h3 className="font-[family-name:var(--font-display)] mt-4 text-xl text-[var(--ink)]">
                     1-on-1 Quiet Sanctuary
                   </h3>
-                  <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+                  <p className="mt-3 text-sm text-[var(--ink-soft)] leading-relaxed">
                     No crowded waiting rooms or overlapping appointments. Every session is exclusively yours in a peaceful setting.
                   </p>
                 </div>
@@ -190,7 +190,7 @@ export default async function WestEdmontonLocationPage() {
                   <h3 className="font-[family-name:var(--font-display)] mt-4 text-xl text-[var(--ink)]">
                     Zero Traffic &amp; Free Parking
                   </h3>
-                  <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+                  <p className="mt-3 text-sm text-[var(--ink-soft)] leading-relaxed">
                     Minutes off Lessard Road and Anthony Henday Drive. Pull right up with free, stress-free driveway &amp; street parking.
                   </p>
                 </div>
@@ -205,7 +205,7 @@ export default async function WestEdmontonLocationPage() {
                   <h3 className="font-[family-name:var(--font-display)] mt-4 text-xl text-[var(--ink)]">
                     Tailored Skincare &amp; Lashes
                   </h3>
-                  <p className="mt-3 text-sm text-ink-soft leading-relaxed">
+                  <p className="mt-3 text-sm text-[var(--ink-soft)] leading-relaxed">
                     Personalized facials, dermaplaning, lash lifts, and brow shaping customized to your exact skin goals.
                   </p>
                 </div>
@@ -242,7 +242,7 @@ export default async function WestEdmontonLocationPage() {
                         {formatCad(service.priceCents)}
                       </span>
                     </div>
-                    <p className="mt-3 flex-1 text-xs leading-relaxed text-ink-soft">
+                    <p className="mt-3 flex-1 text-xs leading-relaxed text-[var(--ink-soft)]">
                       {service.description}
                     </p>
                     <div className="mt-6 flex items-center justify-between text-[11px] uppercase tracking-wider text-[var(--ink-faint)] border-t border-[var(--border-color)] pt-4">
@@ -270,7 +270,7 @@ export default async function WestEdmontonLocationPage() {
                 <h2 className="font-[family-name:var(--font-display)] mt-3 text-3xl sm:text-4xl text-[var(--ink)]">
                   Serving West Edmonton &amp; surrounding areas.
                 </h2>
-                <p className="mt-4 text-sm text-ink-soft leading-relaxed">
+                <p className="mt-4 text-sm text-[var(--ink-soft)] leading-relaxed">
                   Our private studio is located in Glastonbury (postal code T5T 6M5), conveniently accessible from:
                 </p>
 
@@ -315,7 +315,7 @@ export default async function WestEdmontonLocationPage() {
                   Driving Directions
                 </h3>
 
-                <div className="space-y-4 text-xs text-ink-soft leading-relaxed">
+                <div className="space-y-4 text-xs text-[var(--ink-soft)] leading-relaxed">
                   <div className="border-b border-[var(--border-color)] pb-3">
                     <strong className="text-[var(--ink)] font-bold block mb-1">
                       From Anthony Henday Drive:
@@ -360,7 +360,7 @@ export default async function WestEdmontonLocationPage() {
                   <h3 className="text-base font-semibold text-[var(--ink)]">
                     {faq.q}
                   </h3>
-                  <p className="mt-2 text-xs leading-relaxed text-ink-soft">
+                  <p className="mt-2 text-xs leading-relaxed text-[var(--ink-soft)]">
                     {faq.a}
                   </p>
                 </div>
@@ -377,7 +377,7 @@ export default async function WestEdmontonLocationPage() {
             <h2 className="font-[family-name:var(--font-display)] text-4xl sm:text-5xl text-[var(--ink)]">
               Ready to book your West Edmonton session?
             </h2>
-            <p className="mt-4 text-sm text-ink-soft max-w-md mx-auto">
+            <p className="mt-4 text-sm text-[var(--ink-soft)] max-w-md mx-auto">
               Select your service, choose a time, and lock your slot with a deposit. Takes under 60 seconds.
             </p>
             <div className="mt-8 flex justify-center gap-4">
