@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%" fill="none">
+  <!-- Monogram M -->
+  <g class="logo-mark" fill="currentColor">
+    <!-- Left flourished stem -->
+    <path d="M 120 120 C 145 120 170 145 185 195 L 205 270 L 165 270 L 165 295 L 212 295 L 180 405 L 140 405 L 140 420 L 225 420 L 225 405 L 196 405 L 228 295 L 275 295 L 275 270 L 235 270 L 202 165 C 190 125 160 105 120 105 C 105 105 95 110 88 115 C 95 120 108 120 120 120 Z" />
+    
+    <!-- Central V & Diagonal Stems -->
+    <!-- Left diagonal going down to center point -->
+    <path d="M 230 190 L 275 355 L 290 355 L 340 160 L 320 160 L 305 160 L 305 140 L 365 140 L 365 160 L 350 160 L 290 395 L 270 395 L 218 200 Z" />
+    
+    <!-- Right flourished stem -->
+    <path d="M 335 155 L 385 365 C 395 405 425 425 460 425 C 475 425 488 420 495 415 C 488 410 472 410 460 410 C 435 410 410 385 395 330 L 365 200 L 345 200 L 345 180 L 405 180 L 405 200 L 385 200 L 415 330 C 425 375 450 395 485 395 C 470 380 455 350 445 310 L 400 135 L 335 155 Z" />
+  </g>
+
+  <!-- Horizontal Brand Text: MARI ESTHETICS -->
+  <g class="logo-text" fill="currentColor">
+    <text x="250" y="290" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, "Manrope", "Montserrat", sans-serif" font-size="28" font-weight="600" letter-spacing="0.45em">MARI ESTHETICS</text>
+  </g>
+
+  <!-- Subtitle: PMU • FACIALS • LASHES -->
+  <g class="logo-subtitle" fill="currentColor" opacity="0.85">
+    <text x="250" y="445" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, "Manrope", "Montserrat", sans-serif" font-size="14" font-weight="500" letter-spacing="0.32em">PMU  •  FACIALS  •  LASHES</text>
+  </g>
+</svg>

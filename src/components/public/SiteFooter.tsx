@@ -61,7 +61,7 @@ export function SiteFooter() {
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
           {/* Brand Info */}
           <div>
-            <Logo size="lg" tagline />
+            <Logo size="lg" variant="full" tagline />
             <p className="mt-6 max-w-xs text-sm leading-relaxed text-[var(--ink-soft)]">
               A private esthetics studio serving {business.locality} and area.
               Personalized skin care in a calm, one-on-one setting.
