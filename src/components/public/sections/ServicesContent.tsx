@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Reveal } from "@/components/public/Reveal";
@@ -48,6 +49,56 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   brows: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
   general: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
 };
+
+function ServiceCardImage({
+  src,
+  alt,
+  category,
+  slug,
+  serviceName,
+}: {
+  src: string;
+  alt: string;
+  category: string;
+  slug?: string;
+  serviceName?: string;
+}) {
+  const normalizedSlug =
+    slug ||
+    serviceName
+      ?.toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "") ||
+    "";
+  const fallbackLocal = normalizedSlug ? `/images/services/${normalizedSlug}.jpg` : "";
+  const categoryFallback = CATEGORY_FALLBACK_IMAGES[category] || CATEGORY_FALLBACK_IMAGES.general;
+
+  const [imgSrc, setImgSrc] = useState(src || fallbackLocal || categoryFallback);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const handleError = () => {
+    if (retryCount === 0 && fallbackLocal && imgSrc !== fallbackLocal) {
+      setRetryCount(1);
+      setImgSrc(fallbackLocal);
+    } else if (retryCount <= 1 && imgSrc !== categoryFallback) {
+      setRetryCount(2);
+      setImgSrc(categoryFallback);
+    }
+  };
+
+  return (
+    <Image
+      src={imgSrc}
+      alt={alt}
+      fill
+      sizes="(max-width: 768px) 100vw, 50vw"
+      className="object-cover group-hover:scale-105 transition-transform duration-700"
+      onError={handleError}
+      unoptimized={imgSrc.includes("digitaloceanspaces.com") || imgSrc.includes("verifik.co")}
+    />
+  );
+}
 
 interface ServicesContentProps {
   services: ServiceItem[];
@@ -186,13 +237,12 @@ export function ServicesContent({
                         <div>
                           {/* Image Banner */}
                           <div className="relative aspect-[16/9] w-full overflow-hidden bg-[var(--background)]">
-                            <Image
+                            <ServiceCardImage
                               src={rawPhotoUrl}
                               alt={localized.name}
-                              fill
-                              sizes="(max-width: 768px) 100vw, 50vw"
-                              className="object-cover group-hover:scale-105 transition-transform duration-700"
-                              unoptimized={rawPhotoUrl.includes("digitaloceanspaces.com") || rawPhotoUrl.includes("verifik.co")}
+                              category={category}
+                              slug={service.slug}
+                              serviceName={service.name}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-[var(--card-bg)] via-transparent to-transparent opacity-80" />
 
@@ -237,7 +287,7 @@ export function ServicesContent({
                           </div>
 
                           <Link
-                            href={`/booking?serviceId=${service._id}`}
+                            href={`/book?serviceId=${service._id}`}
                             className="btn-primary text-xs !py-2.5 !px-5 shadow-sm hover:scale-105 transition-all"
                           >
                             {t("servicesPage.bookTreatment") !== "servicesPage.bookTreatment"
