@@ -13,9 +13,9 @@ export interface SocialItem {
 }
 
 const PLATFORM_PRESETS = [
-  { value: "instagram", label: "Instagram", icon: "📸", defaultUrl: "https://instagram.com/mariesthetics" },
-  { value: "facebook", label: "Facebook", icon: "👤", defaultUrl: "https://facebook.com/mariesthetics" },
-  { value: "tiktok", label: "TikTok", icon: "🎵", defaultUrl: "https://tiktok.com/@mariesthetics" },
+  { value: "instagram", label: "Instagram", icon: "📸", defaultUrl: "https://instagram.com/mariestheticsyeg" },
+  { value: "facebook", label: "Facebook", icon: "👤", defaultUrl: "https://facebook.com/mariestheticsyeg" },
+  { value: "tiktok", label: "TikTok", icon: "🎵", defaultUrl: "https://tiktok.com/@mariestheticsyeg" },
   { value: "whatsapp", label: "WhatsApp", icon: "💬", defaultUrl: "https://wa.me/18257853081" },
   { value: "youtube", label: "YouTube", icon: "▶️", defaultUrl: "https://youtube.com/@mariesthetics" },
   { value: "pinterest", label: "Pinterest", icon: "📌", defaultUrl: "https://pinterest.com/mariesthetics" },
@@ -58,7 +58,7 @@ export function SocialsManager({ initialSocials = [] }: { initialSocials?: Socia
     setEditingId(null);
     setPlatform("instagram");
     setLabel("Instagram");
-    setUrl("https://instagram.com/mariesthetics");
+    setUrl("https://instagram.com/mariestheticsyeg");
     setActive(true);
     setSortOrder(socials.length);
     setError("");

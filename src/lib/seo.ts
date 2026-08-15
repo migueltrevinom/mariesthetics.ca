@@ -46,8 +46,7 @@ export const business = {
     { days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], open: "09:00", close: "20:00" },
   ],
   sameAs: [
-    "https://www.instagram.com/mariesthetics",
-    "https://www.facebook.com/mariesthetics",
+    "https://www.instagram.com/mariestheticsyeg",
   ],
 } as const;
 

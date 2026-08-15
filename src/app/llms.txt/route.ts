@@ -54,7 +54,6 @@ ${plansList}
 
 ## Social Media & Portfolios
 - Instagram: ${business.sameAs[0]}
-- Facebook: ${business.sameAs[1]}
 `;
 
   return new Response(content, {

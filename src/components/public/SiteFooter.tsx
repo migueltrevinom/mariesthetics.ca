@@ -142,22 +142,13 @@ export function SiteFooter() {
             ) : (
               <div className="mt-4 flex flex-wrap gap-2">
                 <a
-                  href="https://instagram.com/mariesthetics"
+                  href="https://instagram.com/mariestheticsyeg"
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm group"
                 >
                   <SocialIcon platform="instagram" className="w-3.5 h-3.5 text-[#c8a86b] group-hover:scale-110 transition-transform" />
                   <span>Instagram</span>
-                </a>
-                <a
-                  href="https://facebook.com/mariesthetics"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--ink)] hover:border-[#c8a86b] hover:text-[#c8a86b] transition-all shadow-sm group"
-                >
-                  <SocialIcon platform="facebook" className="w-3.5 h-3.5 text-[#c8a86b] group-hover:scale-110 transition-transform" />
-                  <span>Facebook</span>
                 </a>
               </div>
             )}

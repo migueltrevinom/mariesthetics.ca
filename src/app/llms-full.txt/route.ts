@@ -76,7 +76,6 @@ ${faqList}
 - Book Online: ${siteUrl}/book
 - Gift Cards: ${siteUrl}/gift-cards
 - Instagram: ${business.sameAs[0]}
-- Facebook: ${business.sameAs[1]}
 `;
 
   return new Response(content, {

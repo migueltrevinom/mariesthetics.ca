@@ -414,7 +414,7 @@ export function MegaMenu({
                       rel="noreferrer"
                       className="text-[var(--ink-faint)] transition hover:text-gold-bright"
                     >
-                      {url.includes("instagram") ? "Instagram" : "Facebook"}
+                      {url.includes("instagram") ? "Instagram" : url.includes("tiktok") ? "TikTok" : "Social"}
                     </a>
                   ))}
                 </div>
