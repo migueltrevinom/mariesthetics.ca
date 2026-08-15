@@ -71,6 +71,36 @@ export default function RootLayout({
             __html: `
               (function() {
                 try {
+                  // Block crypto wallet injections and access
+                  try {
+                    Object.defineProperty(window, 'ethereum', { value: undefined, writable: false, configurable: false });
+                    Object.defineProperty(window, 'web3', { value: undefined, writable: false, configurable: false });
+                    Object.defineProperty(window, 'solana', { value: undefined, writable: false, configurable: false });
+                    Object.defineProperty(window, 'phantom', { value: undefined, writable: false, configurable: false });
+                  } catch (e) {}
+
+                  // Suppress unhandled third-party / crypto extension errors
+                  window.addEventListener('error', function(e) {
+                    if (e.filename && (e.filename.indexOf('chrome-extension:') !== -1 || e.filename.indexOf('moz-extension:') !== -1 || e.filename.indexOf('inpage.js') !== -1)) {
+                      e.stopImmediatePropagation();
+                      e.preventDefault();
+                      return true;
+                    }
+                    if (e.message && (e.message.indexOf('MetaMask') !== -1 || e.message.indexOf('ethereum') !== -1 || e.message.indexOf('wallet') !== -1)) {
+                      e.stopImmediatePropagation();
+                      e.preventDefault();
+                      return true;
+                    }
+                  }, true);
+
+                  window.addEventListener('unhandledrejection', function(e) {
+                    var reason = e.reason && (e.reason.message || e.reason.stack || String(e.reason));
+                    if (typeof reason === 'string' && (reason.indexOf('MetaMask') !== -1 || reason.indexOf('chrome-extension:') !== -1 || reason.indexOf('ethereum') !== -1 || reason.indexOf('wallet') !== -1)) {
+                      e.stopImmediatePropagation();
+                      e.preventDefault();
+                    }
+                  }, true);
+
                   var theme = localStorage.getItem('theme') || 'auto';
                   if (theme === 'dark') {
                     document.documentElement.classList.add('dark');
