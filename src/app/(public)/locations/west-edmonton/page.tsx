@@ -75,7 +75,7 @@ const localFaqs = [
   },
   {
     q: "How do I book an appointment?",
-    a: "Select your desired treatment on our online booking tool, pick a date & time in Edmonton local time, and secure your session with a deposit via credit card (Stripe) or Interac e-Transfer.",
+    a: "Select your desired treatment on our online booking tool, pick a date & time in Edmonton local time, and secure your session with a deposit via debit/credit card or Interac e-Transfer.",
   },
 ];
 

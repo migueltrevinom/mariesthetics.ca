@@ -6,7 +6,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "Book an Appointment",
   description:
-    "Book your esthetics appointment in Edmonton, AB. Pick a treatment and time slot, then secure your slot with a Stripe or Interac e-Transfer deposit.",
+    "Book your esthetics appointment in Edmonton, AB. Pick a treatment and time slot, then secure your slot with a debit/credit card or Interac e-Transfer deposit.",
   path: "/book",
 });
 

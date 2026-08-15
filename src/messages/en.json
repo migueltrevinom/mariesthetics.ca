@@ -102,5 +102,22 @@
       "brows": "Precision brow lamination, shaping, and tinting.",
       "general": "General luxury esthetics and specialized skin care."
     }
+  },
+  "bookingWizard": {
+    "eyebrow": "Online Reservation",
+    "title": "Reserve Your Treatment.",
+    "subtitle": "Select your service, choose a date & time slot, and secure your session with a deposit. Instant confirmation with Debit or Credit Card, or held for 2 hours with Interac e-Transfer.",
+    "allTreatments": "All Treatments",
+    "selectDate": "Select Date:",
+    "availableSlots": "Available Time Slots for",
+    "noSlots": "No appointments available on this date. Please select another day.",
+    "continueDetails": "Continue to Guest Details →",
+    "continuePayment": "Continue to Deposit →",
+    "nameLabel": "Full Name",
+    "emailLabel": "Email Address",
+    "phoneLabel": "Mobile Phone Number",
+    "couponLabel": "Promo Code or Gift Card",
+    "apply": "Apply",
+    "selectSlot": "Select Time Slot →"
   }
 }

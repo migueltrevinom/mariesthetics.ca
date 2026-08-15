@@ -298,7 +298,7 @@ function GiftCardsContent() {
               disabled={loading}
               className="btn-primary w-full py-3.5 text-xs font-bold shadow-xl cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span>{loading ? "Preparing Stripe Checkout..." : `💳 Checkout $${effectiveAmount.toFixed(2)} CAD via Stripe →`}</span>
+              <span>{loading ? "Preparing Card Checkout..." : `💳 Pay $${effectiveAmount.toFixed(2)} CAD via Card →`}</span>
             </button>
           </form>
 
@@ -348,7 +348,7 @@ function GiftCardsContent() {
               </div>
 
               <p className="text-[10px] text-[var(--ink-soft)] font-mono">
-                Code will be generated &amp; synced with Stripe upon checkout.
+                Unique redemption code will be generated upon checkout.
               </p>
             </div>
           </div>

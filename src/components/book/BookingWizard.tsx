@@ -172,15 +172,15 @@ export function BookingWizard({
         const payData = await payRes.json();
         if (!payRes.ok) {
           setError(
-            `Stripe Deposit Issue: ${payData.error || "Please check your Stripe keys in .env"}. You can also choose Interac e-Transfer below.`
+            `Deposit Payment Issue: ${payData.error || "Please check your payment details or choose Interac e-Transfer below."}`
           );
           setStep("pay");
         } else if (payData.checkoutUrl) {
-          setMessage("Redirecting to secure Stripe Checkout...");
+          setMessage("Redirecting to secure card checkout...");
           window.location.href = payData.checkoutUrl;
         } else {
           setMessage(
-            `Deposit Payment session created (${formatCad(payData.amountCents)}). Instant confirmation ready.`
+            `Deposit payment session ready (${formatCad(payData.amountCents)}). Instant confirmation.`
           );
           setStep("done");
           setEncourageAccount(true);
@@ -671,37 +671,106 @@ export function BookingWizard({
       {/* ── STEP 4: DEPOSIT & PAYMENT METHOD ── */}
       {step === "pay" && selectedService && (
         <div className="border border-[var(--border-color)] bg-[var(--card-bg)] p-6 sm:p-8 rounded-3xl space-y-6 shadow-sm">
-          <div className="flex items-center justify-between pb-4 border-b border-[var(--border-color)]">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-[var(--border-color)]">
             <button
               type="button"
-              className="text-xs text-[#c8a86b] hover:underline font-semibold cursor-pointer"
+              className="text-xs text-[#c8a86b] hover:underline font-semibold cursor-pointer flex items-center gap-1"
               onClick={() => setStep("details")}
             >
-              ← Back to Guest Details
+              <span>←</span>
+              <span>Back to Guest Details</span>
             </button>
-            <span className="text-xs text-[var(--ink-soft)]">{name} ({email})</span>
+            <div className="text-right">
+              <span className="text-xs font-semibold text-[var(--ink)] block">{name}</span>
+              <span className="text-[11px] text-[var(--ink-soft)]">{email}</span>
+            </div>
           </div>
 
-          {/* Pricing breakdown box */}
-          <div className="p-4 border border-[#c8a86b]/30 bg-[#c8a86b]/5 rounded-2xl space-y-2 text-xs text-[var(--ink)]">
-            <div className="flex justify-between">
-              <span className="text-[var(--ink-soft)]">Treatment Total:</span>
-              <span className="font-medium">{formatCad(selectedService.priceCents)}</span>
+          {/* Service & Slot Summary Badge */}
+          <div className="p-4 rounded-2xl bg-[var(--background)] border border-[var(--border-color)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <span className="text-[10px] uppercase font-bold tracking-widest text-[#c8a86b] block">
+                Reserved Treatment
+              </span>
+              <h3 className="text-base font-bold text-[var(--ink)] mt-0.5">
+                {getLocalizedService(selectedService, locale).name}
+              </h3>
+              <p className="text-xs text-[var(--ink-soft)] mt-0.5">
+                ⏱ {selectedService.durationMin} minutes · Private 1-on-1 Studio Session
+              </p>
             </div>
-            <div className="flex justify-between font-bold text-sm text-[#c8a86b]">
-              <span>Deposit Required Today:</span>
-              <span>{formatCad(selectedService.depositCents)}</span>
+            {date && selectedStart && (
+              <div className="sm:text-right border-t sm:border-t-0 pt-2 sm:pt-0 border-[var(--border-color)]">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--ink-soft)] block">
+                  Date & Time
+                </span>
+                <span className="text-xs font-semibold text-[var(--ink)] block">
+                  {date}
+                </span>
+                <span className="text-xs font-bold text-[#c8a86b]">
+                  {formatSlotTime(selectedStart)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Pricing Breakdown: 3-Pillar Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-4 rounded-2xl border border-[var(--border-color)] bg-[var(--background)] flex flex-col justify-between">
+              <span className="text-[11px] font-medium text-[var(--ink-soft)]">1. Total Treatment Price</span>
+              <span className="text-lg font-bold text-[var(--ink)] mt-2">{formatCad(selectedService.priceCents)}</span>
+              <span className="text-[10px] text-[var(--ink-soft)] mt-1">Full procedure cost</span>
             </div>
-            <div className="flex justify-between text-[var(--ink-soft)] border-t border-[#c8a86b]/20 pt-2">
-              <span>Balance Due at Appointment:</span>
-              <span>{formatCad(selectedService.priceCents - selectedService.depositCents)}</span>
+
+            <div className="p-4 rounded-2xl border-2 border-[#c8a86b] bg-[#c8a86b]/10 flex flex-col justify-between relative shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-[#c8a86b]">2. Deposit Due Today</span>
+                <span className="text-[9px] uppercase font-bold tracking-wider bg-[#c8a86b] text-black px-2 py-0.5 rounded-full font-sans">
+                  Locks Slot
+                </span>
+              </div>
+              <span className="text-2xl font-extrabold text-[#c8a86b] mt-2">{formatCad(selectedService.depositCents)}</span>
+              <span className="text-[10px] text-[var(--ink)] font-semibold mt-1">Deducted from your total</span>
             </div>
+
+            <div className="p-4 rounded-2xl border border-[var(--border-color)] bg-[var(--background)] flex flex-col justify-between">
+              <span className="text-[11px] font-medium text-[var(--ink-soft)]">3. Remaining Balance</span>
+              <span className="text-lg font-bold text-[var(--ink)] mt-2">
+                {formatCad(selectedService.priceCents - selectedService.depositCents)}
+              </span>
+              <span className="text-[10px] text-[var(--ink-soft)] mt-1">Pay at studio after session</span>
+            </div>
+          </div>
+
+          {/* Clear Deposit & Non-Refundable No-Show Policy Box */}
+          <div className="p-4 sm:p-5 border border-[#c8a86b]/40 bg-[#c8a86b]/5 rounded-2xl space-y-2.5 text-xs text-[var(--ink)]">
+            <div className="flex items-center gap-2 text-sm font-bold text-[var(--ink)]">
+              <span className="text-base">📋</span>
+              <span>How your reservation deposit works</span>
+            </div>
+
+            <ul className="space-y-2 text-[12px] leading-relaxed text-[var(--ink-soft)] pl-1">
+              <li className="flex items-start gap-2">
+                <span className="text-[#c8a86b] font-bold">✓</span>
+                <span>
+                  <strong className="text-[var(--ink)] font-semibold">Credited to your final total:</strong> Your{" "}
+                  <strong className="text-[#c8a86b] font-bold">{formatCad(selectedService.depositCents)}</strong> deposit secures this exclusive time slot and is deducted from the treatment price. You only pay the remaining{" "}
+                  <strong className="text-[var(--ink)] font-semibold">{formatCad(selectedService.priceCents - selectedService.depositCents)}</strong> upon completion of your visit.
+                </span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-amber-500 font-bold">⚠️</span>
+                <span>
+                  <strong className="text-amber-600 dark:text-amber-400 font-semibold">Strict No-Show Policy:</strong> Because this private studio session is reserved exclusively for you and prevents other clients from booking, the reservation deposit is <strong className="text-red-500 font-bold">100% non-refundable</strong> if you do not show up for your appointment.
+                </span>
+              </li>
+            </ul>
           </div>
 
           {/* Deposit Method Selector */}
           <div className="space-y-3">
             <label className="block text-xs uppercase tracking-wider font-bold text-[var(--ink-soft)]">
-              Choose Deposit Payment Method
+              Choose Payment Method for Deposit ({formatCad(selectedService.depositCents)})
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
@@ -709,13 +778,16 @@ export function BookingWizard({
                 onClick={() => setDepositMethod("stripe")}
                 className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                   depositMethod === "stripe"
-                    ? "border-[#c8a86b] bg-[#c8a86b]/15 text-[var(--ink)] font-bold shadow-md"
-                    : "border-[var(--border-color)] bg-white/[0.01] text-[var(--ink-soft)]"
+                    ? "border-[#c8a86b] bg-[#c8a86b]/15 text-[var(--ink)] font-bold shadow-md ring-1 ring-[#c8a86b]"
+                    : "border-[var(--border-color)] bg-[var(--background)] hover:border-[#c8a86b]/50 text-[var(--ink-soft)]"
                 }`}
               >
-                <p className="font-semibold text-sm">💳 Stripe / Credit Card</p>
-                <p className="text-[11px] text-[var(--ink-soft)] mt-1">
-                  Instant confirmation with Visa, Mastercard, or Apple Pay.
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-sm text-[var(--ink)]">💳 Debit or Credit Card</p>
+                  {depositMethod === "stripe" && <span className="text-[#c8a86b] font-bold text-xs">✓ Selected</span>}
+                </div>
+                <p className="text-[11px] text-[var(--ink-soft)] mt-1.5 leading-normal">
+                  Instant reservation confirmation with Visa, Mastercard, Debit, or Apple Pay.
                 </p>
               </button>
 
@@ -724,26 +796,33 @@ export function BookingWizard({
                 onClick={() => setDepositMethod("etransfer")}
                 className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
                   depositMethod === "etransfer"
-                    ? "border-[#c8a86b] bg-[#c8a86b]/15 text-[var(--ink)] font-bold shadow-md"
-                    : "border-[var(--border-color)] bg-white/[0.01] text-[var(--ink-soft)]"
+                    ? "border-[#c8a86b] bg-[#c8a86b]/15 text-[var(--ink)] font-bold shadow-md ring-1 ring-[#c8a86b]"
+                    : "border-[var(--border-color)] bg-[var(--background)] hover:border-[#c8a86b]/50 text-[var(--ink-soft)]"
                 }`}
               >
-                <p className="font-semibold text-sm">📲 Interac e-Transfer</p>
-                <p className="text-[11px] text-[var(--ink-soft)] mt-1">
-                  Slot held for 2 hours while e-Transfer deposit is verified.
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-sm text-[var(--ink)]">📲 Interac e-Transfer</p>
+                  {depositMethod === "etransfer" && <span className="text-[#c8a86b] font-bold text-xs">✓ Selected</span>}
+                </div>
+                <p className="text-[11px] text-[var(--ink-soft)] mt-1.5 leading-normal">
+                  Slot held for 2 hours while your deposit transfer is verified.
                 </p>
               </button>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[var(--border-color)] flex justify-end">
+          <div className="pt-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[11px] text-[var(--ink-soft)] text-center sm:text-left">
+              🔒 Safe & encrypted checkout · Only <strong className="text-[var(--ink)]">{formatCad(selectedService.depositCents)}</strong> is charged today.
+            </p>
+
             <button
               type="button"
               disabled={loading}
               onClick={createBooking}
-              className="btn-primary text-xs !py-3.5 !px-8 disabled:opacity-40 cursor-pointer shadow-lg"
+              className="btn-primary text-xs !py-3.5 !px-8 disabled:opacity-40 cursor-pointer shadow-lg w-full sm:w-auto"
             >
-              {loading ? "Processing..." : `Reserve & Pay Deposit (${formatCad(selectedService.depositCents)}) →`}
+              {loading ? "Securing Slot..." : `Pay Deposit & Confirm (${formatCad(selectedService.depositCents)}) →`}
             </button>
           </div>
         </div>

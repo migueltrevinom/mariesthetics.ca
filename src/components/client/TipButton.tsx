@@ -46,7 +46,7 @@ export function TipButton({ bookingId }: { bookingId: string }) {
         disabled={loading}
         onClick={() => void tip()}
       >
-        Tip via Stripe
+        Leave Tip (Card)
       </button>
       {error && <span className="text-xs text-blush">{error}</span>}
     </div>

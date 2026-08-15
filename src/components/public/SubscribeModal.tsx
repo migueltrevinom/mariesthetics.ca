@@ -266,7 +266,7 @@ export function SubscribeModal({
                       : "border-[var(--border-color)] bg-[var(--background)] text-[var(--ink-soft)]"
                   }`}
                 >
-                  💳 Credit Card (Stripe)
+                  💳 Debit or Credit Card
                 </button>
                 <button
                   type="button"

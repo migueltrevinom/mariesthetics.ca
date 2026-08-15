@@ -20,7 +20,7 @@ export function BookPageHeader() {
       <p className="max-w-2xl text-sm sm:text-base text-[var(--ink-soft)] leading-relaxed">
         {t("bookingWizard.subtitle") !== "bookingWizard.subtitle"
           ? t("bookingWizard.subtitle")
-          : "Select your service, choose a date & time slot, and secure your session with a deposit. Instant confirmation with Stripe or held for 2 hours with Interac e-Transfer."}
+          : "Select your service, choose a date & time slot, and secure your session with a deposit. Instant confirmation with Debit or Credit Card, or held for 2 hours with Interac e-Transfer."}
       </p>
     </div>
   );

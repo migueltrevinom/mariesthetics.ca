@@ -5,7 +5,7 @@ export const faqItems = [
   },
   {
     q: "How do deposits work?",
-    a: "A deposit secures your appointment. Pay by card through Stripe and your slot is locked instantly, or send an Interac e-Transfer and we hold the time for two hours while payment is confirmed.",
+    a: "A deposit secures your private appointment slot and is credited 100% toward your final treatment total. Pay by debit or credit card for instant confirmation, or send an Interac e-Transfer held for two hours. Because this dedicated time is held exclusively for you, reservation deposits are non-refundable in the event of a no-show.",
   },
   {
     q: "What services do you offer?",
@@ -13,7 +13,7 @@ export const faqItems = [
   },
   {
     q: "How do I pay the remaining balance or leave a tip?",
-    a: "You can settle the balance after your visit by cash, Interac e-Transfer, or a secure Stripe card link. Tipping is always optional and can be added through Stripe if you loved your service.",
+    a: "You only pay the remaining balance upon completing your treatment at the studio. You can settle the balance by cash, Interac e-Transfer, or debit/credit card. Tipping is always optional and can also be added by card if you loved your service.",
   },
   {
     q: "Do you offer memberships?",
