@@ -87,7 +87,8 @@ export function BookingWizard({
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedStart, setSelectedStart] = useState("");
   const [step, setStep] = useState<Step>("service");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [countryCode, setCountryCode] = useState("+1");
   const [phone, setPhone] = useState("");
@@ -104,6 +105,11 @@ export function BookingWizard({
   const selectedService = useMemo(
     () => services.find((s) => s._id === serviceId),
     [services, serviceId]
+  );
+
+  const name = useMemo(
+    () => [firstName.trim(), lastName.trim()].filter(Boolean).join(" "),
+    [firstName, lastName]
   );
 
   useEffect(() => {
@@ -590,18 +596,35 @@ export function BookingWizard({
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Full Name *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Sarah Jenkins"
-                className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoComplete="given-name"
+                  placeholder="e.g. Sarah"
+                  className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoComplete="family-name"
+                  placeholder="e.g. Jenkins"
+                  className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
@@ -658,7 +681,7 @@ export function BookingWizard({
           <div className="pt-4 border-t border-[var(--border-color)] flex justify-end">
             <button
               type="button"
-              disabled={!name || !email}
+              disabled={!firstName.trim() || !lastName.trim() || !email}
               onClick={() => setStep("pay")}
               className="btn-primary text-xs !py-3 !px-8 disabled:opacity-40 cursor-pointer"
             >
