@@ -26,4 +26,7 @@ export { GiftCard, type GiftCardDoc } from "./GiftCard";
 export { SocialReel, type SocialReelDoc } from "./SocialReel";
 export { SiteSettings, type SiteSettingsDoc, getOrCreateSettings, updateSettings } from "./SiteSettings";
 export { Category, type CategoryDoc } from "./Category";
+export { BlogPost, type BlogPostDoc } from "./BlogPost";
+export { NewsletterSubscriber, type NewsletterSubscriberDoc } from "./NewsletterSubscriber";
+export { NewsletterDispatch, type NewsletterDispatchDoc } from "./NewsletterDispatch";
 
