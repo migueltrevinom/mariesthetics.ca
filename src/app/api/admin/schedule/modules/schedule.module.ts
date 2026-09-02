@@ -13,7 +13,8 @@ export async function getScheduleConfig() {
 }
 
 export async function getEffectiveDaySchedule(dayIso: string) {
-  const schedule = await ScheduleRepository.getSchedule();
+  // Performance optimization: use lean query to avoid Mongoose document hydration overhead
+  const schedule = await ScheduleRepository.getSchedule({ lean: true });
 
   // Check for date override first
   const override = schedule.dateOverrides.find((o) => o.date === dayIso);

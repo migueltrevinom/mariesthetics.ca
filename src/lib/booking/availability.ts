@@ -13,7 +13,8 @@ const BUFFER_MIN = 30; // Minimum recovery break between appointments
 
 export async function getAvailableSlots(serviceId: string, dayIso: string) {
   await connectDb();
-  const service = await Service.findById(serviceId);
+  // Performance optimization: use .lean() to skip Mongoose document hydration on hot paths
+  const service = await Service.findById(serviceId).lean();
   if (!service || !service.active) {
     throw new Error("Service not found");
   }
@@ -29,12 +30,14 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
   const day = parseEdmontonDayIso(dayIso);
   const dayEnd = addMinutes(day, 24 * 60);
 
-  // Fetch existing bookings for the day
+  // Fetch existing bookings for the day (.lean() for reduced overhead)
   const existingBookings = await Booking.find({
     start: { $lt: dayEnd },
     end: { $gt: day },
     status: { $in: ["held", "confirmed"] },
-  }).select("start end holdExpiresAt status");
+  })
+    .select("start end holdExpiresAt status")
+    .lean();
 
   const now = new Date();
   const blockingBookings = existingBookings.filter((b) => {
@@ -45,11 +48,11 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
     return false;
   });
 
-  // Fetch blackout blocks for the day
+  // Fetch blackout blocks for the day (.lean() for reduced overhead)
   const blackoutBlocks = await CalendarBlock.find({
     start: { $lt: dayEnd },
     end: { $gt: day },
-  });
+  }).lean();
 
   const slots: { start: string; end: string }[] = [];
 
@@ -122,11 +125,11 @@ export async function assertSlotFree(
     throw new Error(`Appointments must fall within working shifts (${shiftSummary}).`);
   }
 
-  // 2. Check blackout blocks
+  // 2. Check blackout blocks (.lean() for faster query)
   const blackoutConflicts = await CalendarBlock.find({
     start: { $lt: end },
     end: { $gt: start },
-  });
+  }).lean();
 
   if (blackoutConflicts.length > 0) {
     const reason = blackoutConflicts[0].reason || "a scheduled blackout period";
@@ -144,7 +147,7 @@ export async function assertSlotFree(
     query._id = { $ne: excludeBookingId };
   }
 
-  const conflicts = await Booking.find(query);
+  const conflicts = await Booking.find(query).lean();
   const blocking = conflicts.filter((b) => {
     if (b.status === "confirmed") return true;
     return !b.holdExpiresAt || isAfter(b.holdExpiresAt, now);
