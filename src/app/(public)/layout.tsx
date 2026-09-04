@@ -8,7 +8,10 @@ import { Service } from "@/lib/db/models";
 async function getNavServices(): Promise<NavService[]> {
   try {
     await connectDb();
+    // ⚡ Bolt Optimization: Select only fields required by NavService (name, category, priceCents)
+    // to reduce DB document payload size and network transfer bandwidth on every public page request.
     const services = await Service.find({ active: true })
+      .select("name category priceCents")
       .sort({ sortOrder: 1 })
       .lean();
     return services.map((s) => ({
