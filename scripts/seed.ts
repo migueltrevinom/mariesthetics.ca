@@ -3,7 +3,8 @@ import { existsSync } from "fs";
 import { resolve } from "path";
 import mongoose from "mongoose";
 import { customAlphabet } from "nanoid";
-import { Category, Client, ClientSettings, Coupon, Manager, Product, Promotion, Service, ServiceImage, SubscriptionPlan } from "../src/lib/db/models";
+import { BlogPost, Category, Client, ClientSettings, Coupon, Manager, Product, Promotion, Service, ServiceImage, SubscriptionPlan } from "../src/lib/db/models";
+import { keepLashesPrettyEdmontonPost } from "../src/lib/blog/posts/keepLashesPrettyEdmonton";
 
 const envFile = resolve(process.cwd(), ".env");
 const envLocal = resolve(process.cwd(), ".env.local");
@@ -398,6 +399,19 @@ async function seed() {
 			await client.save();
 		}
 	}
+
+	await BlogPost.findOneAndUpdate(
+		{ slug: keepLashesPrettyEdmontonPost.slug },
+		{
+			...keepLashesPrettyEdmontonPost,
+			serviceIds: keepLashesPrettyEdmontonPost.serviceIds.map(
+				(id) => new mongoose.Types.ObjectId(id)
+			),
+			publishedAt: new Date(),
+		},
+		{ upsert: true, new: true },
+	);
+	console.log(`Blog post ready: ${keepLashesPrettyEdmontonPost.slug}`);
 
 	console.log("Sync complete! 13 Production services, prices & Pinata photos are now 100% active in dev!");
 	await mongoose.disconnect();

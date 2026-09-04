@@ -70,6 +70,7 @@ type BuildMetadataInput = {
   keywords?: string[];
   noindex?: boolean;
   ogImage?: string;
+  ogType?: "website" | "article";
 };
 
 export function buildMetadata({
@@ -79,6 +80,7 @@ export function buildMetadata({
   keywords,
   noindex = false,
   ogImage,
+  ogType = "website",
 }: BuildMetadataInput = {}): Metadata {
   const canonical = `${siteUrl}${path === "/" ? "" : path}`;
   const fullTitle = title ? `${title} · ${business.name}` : `${business.name} · Edmonton Esthetics Studio`;
@@ -94,7 +96,7 @@ export function buildMetadata({
       ? { index: false, follow: false }
       : { index: true, follow: true, "max-image-preview": "large" },
     openGraph: {
-      type: "website",
+      type: ogType,
       siteName: business.name,
       title: fullTitle,
       description,
@@ -106,6 +108,7 @@ export function buildMetadata({
       card: "summary_large_image",
       title: fullTitle,
       description,
+      images: ogImage ? [ogImage] : undefined,
     },
   };
 }
@@ -271,5 +274,46 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
       name: item.name,
       item: `${siteUrl}${item.path === "/" ? "" : item.path}`,
     })),
+  };
+}
+
+export function blogPostingJsonLd(post: {
+  title: string;
+  excerpt?: string;
+  description?: string;
+  slug: string;
+  coverImage?: string;
+  author?: string;
+  publishedAt?: string | Date | null;
+  updatedAt?: string | Date | null;
+  keywords?: string[];
+  category?: string;
+}) {
+  const url = `${siteUrl}/blog/${post.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description || post.excerpt || business.description,
+    image: post.coverImage || `${siteUrl}/opengraph-image`,
+    datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+    dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
+    author: {
+      "@type": "Person",
+      name: post.author || "Marinelle Tala",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: business.name,
+      url: siteUrl,
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    url,
+    keywords: post.keywords?.filter(Boolean).join(", ") || undefined,
+    articleSection: post.category || undefined,
+    inLanguage: "en-CA",
   };
 }
