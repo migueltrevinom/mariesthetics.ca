@@ -8,13 +8,19 @@ import {
 
 export class ScheduleRepository {
   /**
-   * Get or initialize the singleton CalendarSchedule document
+   * Get or initialize the singleton CalendarSchedule document.
+   * Pass { lean: true } for read-only performance optimization to skip document hydration.
    */
-  static async getSchedule() {
+  static async getSchedule(options?: { lean?: boolean }) {
     await connectDb();
+    if (options?.lean) {
+      const schedule = await CalendarSchedule.findOne().lean();
+      if (schedule) return schedule;
+    }
     let schedule = await CalendarSchedule.findOne();
     if (!schedule) {
       schedule = await CalendarSchedule.create({});
+      if (options?.lean) return schedule.toObject();
     }
     return schedule;
   }
@@ -75,14 +81,16 @@ export class ScheduleRepository {
   }
 
   /**
-   * Find blackout blocks overlapping a datetime range
+   * Find blackout blocks overlapping a datetime range (.lean() for read-only optimization)
    */
   static async findBlocksInRange(start: Date, end: Date) {
     await connectDb();
     return CalendarBlock.find({
       start: { $lt: end },
       end: { $gt: start },
-    }).sort({ start: 1 });
+    })
+      .sort({ start: 1 })
+      .lean();
   }
 
   /**
