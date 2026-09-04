@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { format, addDays, parseISO, isToday, isTomorrow } from "date-fns";
+import { format, addDays, parseISO } from "date-fns";
 import { formatCad } from "@/lib/money";
 import { COUNTRY_CODES } from "@/lib/constants/countryCodes";
 import { getFastIpfsUrl } from "@/lib/ipfs";
@@ -247,13 +247,28 @@ export function BookingWizard({
     }
   }
 
-  // Generate 14 available dates starting today
-  const dates = Array.from({ length: 14 }, (_, i) =>
-    format(addDays(new Date(), i), "yyyy-MM-dd")
+  // ⚡ Performance Optimization (Bolt):
+  // Memoize 14-day date array generation to avoid re-instantiating Date objects and re-formatting on every re-render.
+  const dates = useMemo(
+    () => Array.from({ length: 14 }, (_, i) => format(addDays(new Date(), i), "yyyy-MM-dd")),
+    []
   );
 
-  const morningSlots = slots.filter((s) => new Date(s.start).getHours() < 12);
-  const afternoonSlots = slots.filter((s) => new Date(s.start).getHours() >= 12);
+  // ⚡ Performance Optimization (Bolt):
+  // Categorize slots in a single pass with useMemo([slots]) to prevent parsing ISO date strings
+  // and re-filtering arrays on every keystroke/render during form input.
+  const { morningSlots, afternoonSlots } = useMemo(() => {
+    const morning: Slot[] = [];
+    const afternoon: Slot[] = [];
+    for (const s of slots) {
+      if (new Date(s.start).getHours() < 12) {
+        morning.push(s);
+      } else {
+        afternoon.push(s);
+      }
+    }
+    return { morningSlots: morning, afternoonSlots: afternoon };
+  }, [slots]);
 
   const STEPS: Step[] = ["service", "slot", "details", "pay", "done"];
   const STEP_LABELS: Record<Step, string> = {
