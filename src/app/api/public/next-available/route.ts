@@ -10,7 +10,11 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await connectDb();
-    const service = await Service.findOne({ active: true }).sort({ sortOrder: 1 });
+    // ⚡ Bolt Optimization: Select only required fields (_id, slug) and use .lean() to prevent Mongoose document hydration.
+    const service = await Service.findOne({ active: true })
+      .select("_id slug")
+      .sort({ sortOrder: 1 })
+      .lean();
     if (!service) {
       return NextResponse.json({ success: false, error: "No active service available" }, { status: 404 });
     }
