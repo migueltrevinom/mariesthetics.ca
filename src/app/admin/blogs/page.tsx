@@ -20,7 +20,7 @@ export default async function AdminBlogsPage() {
 
   const [postsData, rawServices, rawSubscribers, stats] = await Promise.all([
     BlogRepository.findAll({ limit: 50 }),
-    Service.find({ isActive: true }).select("_id name slug priceCents").lean(),
+    Service.find({ active: true }).select("_id name slug priceCents").lean(),
     SubscriberRepository.getAllSubscribers(),
     BlogRepository.getStats(),
   ]);
@@ -44,6 +44,7 @@ export default async function AdminBlogsPage() {
     viewsCount: p.viewsCount || 0,
     metaTitle: p.metaTitle || "",
     metaDescription: p.metaDescription || "",
+    keywords: Array.isArray(p.keywords) ? p.keywords : [],
     author: p.author || "Marinelle Tala",
     promoConfig: p.promoConfig || {
       enabled: false,

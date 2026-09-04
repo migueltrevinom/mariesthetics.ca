@@ -14,6 +14,7 @@ export const createBlogSchema = z.object({
   publishedAt: z.string().nullable().optional(),
   metaTitle: z.string().optional().default(""),
   metaDescription: z.string().optional().default(""),
+  keywords: z.array(z.string().trim().min(1)).optional().default([]),
   author: z.string().optional().default("Marinelle Tala"),
   promoConfig: z
     .object({
