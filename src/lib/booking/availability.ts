@@ -13,7 +13,7 @@ const BUFFER_MIN = 30; // Minimum recovery break between appointments
 
 export async function getAvailableSlots(serviceId: string, dayIso: string) {
   await connectDb();
-  const service = await Service.findById(serviceId);
+  const service = await Service.findById(serviceId).lean();
   if (!service || !service.active) {
     throw new Error("Service not found");
   }
@@ -29,61 +29,85 @@ export async function getAvailableSlots(serviceId: string, dayIso: string) {
   const day = parseEdmontonDayIso(dayIso);
   const dayEnd = addMinutes(day, 24 * 60);
 
-  // Fetch existing bookings for the day
+  // Fetch existing bookings for the day (.lean() avoids Mongoose document hydration overhead)
   const existingBookings = await Booking.find({
     start: { $lt: dayEnd },
     end: { $gt: day },
     status: { $in: ["held", "confirmed"] },
-  }).select("start end holdExpiresAt status");
+  })
+    .select("start end holdExpiresAt status")
+    .lean();
 
   const now = new Date();
   const blockingBookings = existingBookings.filter((b) => {
     if (b.status === "confirmed") return true;
     if (b.status === "held") {
-      return !b.holdExpiresAt || isAfter(b.holdExpiresAt, now);
+      return !b.holdExpiresAt || isAfter(new Date(b.holdExpiresAt), now);
     }
     return false;
   });
 
-  // Fetch blackout blocks for the day
+  // Fetch blackout blocks for the day (.lean() avoids Mongoose document hydration overhead)
   const blackoutBlocks = await CalendarBlock.find({
     start: { $lt: dayEnd },
     end: { $gt: day },
-  });
+  }).lean();
 
   const slots: { start: string; end: string }[] = [];
+
+  const nowMs = now.getTime();
+  const bufferMs = BUFFER_MIN * 60 * 1000;
+  const durationMs = service.durationMin * 60 * 1000;
+  const slotStepMs = SLOT_STEP_MIN * 60 * 1000;
+
+  // Performance optimization: Pre-parse bookings and blackout blocks into timestamp ranges.
+  // This avoids hundreds of repeated Date object allocations and date-fns function calls inside the slot calculation loops.
+  const parsedBlockingBookings = blockingBookings.map((b) => ({
+    startMs: new Date(b.start).getTime(),
+    bufferedEndMs: new Date(b.end).getTime() + bufferMs,
+  }));
+
+  const parsedBlackoutBlocks = blackoutBlocks.map((blk) => ({
+    startMs: new Date(blk.start).getTime(),
+    endMs: new Date(blk.end).getTime(),
+  }));
 
   // Iterate over each working shift for the day (e.g. Morning Shift 9-12, Afternoon Shift 1-8)
   for (const shift of schedule.shifts) {
     const [openHour, openMin] = shift.openTime.split(":").map(Number);
     const [closeHour, closeMin] = shift.closeTime.split(":").map(Number);
 
-    let cursor = createEdmontonDate(yyyy, mm, dd, openHour, openMin);
-    const shiftClose = createEdmontonDate(yyyy, mm, dd, closeHour, closeMin);
+    const shiftOpenDate = createEdmontonDate(yyyy, mm, dd, openHour, openMin);
+    const shiftCloseDate = createEdmontonDate(yyyy, mm, dd, closeHour, closeMin);
+
+    let cursorMs = shiftOpenDate.getTime();
+    const shiftCloseMs = shiftCloseDate.getTime();
 
     while (true) {
-      const proposedEnd = addMinutes(cursor, service.durationMin);
+      const proposedEndMs = cursorMs + durationMs;
       // Must finish on or before closing time of the current shift
-      if (isAfter(proposedEnd, shiftClose)) break;
+      if (proposedEndMs > shiftCloseMs) break;
 
-      if (!isBefore(cursor, now)) {
-        // 1. Check overlaps with existing bookings + 30-min buffer
-        const overlapsBooking = blockingBookings.some((b) => {
-          const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
-          return cursor < bufferedEnd && proposedEnd > new Date(b.start);
+      if (cursorMs >= nowMs) {
+        // 1. Check overlaps with existing bookings + 30-min buffer (numeric comparison is ~10-20x faster)
+        const overlapsBooking = parsedBlockingBookings.some((b) => {
+          return cursorMs < b.bufferedEndMs && proposedEndMs > b.startMs;
         });
 
         // 2. Check overlaps with blackout blocks (breaks/blocked times)
-        const overlapsBlackout = blackoutBlocks.some((blk) => {
-          return cursor < new Date(blk.end) && proposedEnd > new Date(blk.start);
+        const overlapsBlackout = parsedBlackoutBlocks.some((blk) => {
+          return cursorMs < blk.endMs && proposedEndMs > blk.startMs;
         });
 
         if (!overlapsBooking && !overlapsBlackout) {
-          slots.push({ start: cursor.toISOString(), end: proposedEnd.toISOString() });
+          slots.push({
+            start: new Date(cursorMs).toISOString(),
+            end: new Date(proposedEndMs).toISOString(),
+          });
         }
       }
 
-      cursor = addMinutes(cursor, SLOT_STEP_MIN);
+      cursorMs += slotStepMs;
     }
   }
 
@@ -122,18 +146,18 @@ export async function assertSlotFree(
     throw new Error(`Appointments must fall within working shifts (${shiftSummary}).`);
   }
 
-  // 2. Check blackout blocks
+  // 2. Check blackout blocks (.lean() avoids Mongoose document hydration overhead)
   const blackoutConflicts = await CalendarBlock.find({
     start: { $lt: end },
     end: { $gt: start },
-  });
+  }).lean();
 
   if (blackoutConflicts.length > 0) {
     const reason = blackoutConflicts[0].reason || "a scheduled blackout period";
     throw new Error(`That time slot conflicts with ${reason}.`);
   }
 
-  // 3. Check existing bookings + 30-min recovery buffer
+  // 3. Check existing bookings + 30-min recovery buffer (.lean() avoids Mongoose document hydration overhead)
   const bufferedStart = addMinutes(start, -BUFFER_MIN);
   const query: Record<string, unknown> = {
     start: { $lt: addMinutes(end, BUFFER_MIN) },
@@ -144,15 +168,21 @@ export async function assertSlotFree(
     query._id = { $ne: excludeBookingId };
   }
 
-  const conflicts = await Booking.find(query);
+  const conflicts = await Booking.find(query).lean();
   const blocking = conflicts.filter((b) => {
     if (b.status === "confirmed") return true;
-    return !b.holdExpiresAt || isAfter(b.holdExpiresAt, now);
+    return !b.holdExpiresAt || isAfter(new Date(b.holdExpiresAt), now);
   });
 
+  const startMs = start.getTime();
+  const endMs = end.getTime();
+  const bufferMs = BUFFER_MIN * 60 * 1000;
+
+  // Performance optimization: Pre-parse booking timestamps to avoid repeated Date instantiations in filter.
   const precise = blocking.filter((b) => {
-    const bufferedEnd = addMinutes(new Date(b.end), BUFFER_MIN);
-    return start < bufferedEnd && end > new Date(b.start);
+    const bStartMs = new Date(b.start).getTime();
+    const bBufferedEndMs = new Date(b.end).getTime() + bufferMs;
+    return startMs < bBufferedEndMs && endMs > bStartMs;
   });
 
   if (precise.length > 0) {
