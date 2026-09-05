@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-05 - Pre-flatten Static Translation Dictionaries and Memoize Root Language Context
+
+**Learning:** `LanguageContext.tsx` wraps the entire app. Unmemoized context value objects combined with runtime nested key parsing (`keyPath.split(".")`) inside translation functions create both unnecessary re-renders across all `useLanguage` consumers and cumulative main-thread string parsing overhead.
+
+**Action:** Pre-flatten static translation JSON files at module load time for O(1) dictionary access and memoize root context values (`useMemo` + `useCallback`) to preserve referential stability.
