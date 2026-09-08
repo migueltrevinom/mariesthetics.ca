@@ -11,9 +11,18 @@ import {
 const SLOT_STEP_MIN = 30;
 const BUFFER_MIN = 30; // Minimum recovery break between appointments
 
-export async function getAvailableSlots(serviceId: string, dayIso: string) {
+type ServiceInput = string | { durationMin: number; active: boolean; [key: string]: unknown };
+
+export async function getAvailableSlots(serviceInput: ServiceInput, dayIso: string) {
   await connectDb();
-  const service = await Service.findById(serviceId).lean();
+  let service: { durationMin: number; active: boolean; [key: string]: unknown } | null = null;
+  if (typeof serviceInput === "string") {
+    // Performance optimization: select only durationMin and active fields with .lean() to reduce DB payload size
+    service = await Service.findById(serviceInput).select("durationMin active").lean();
+  } else {
+    service = serviceInput;
+  }
+
   if (!service || !service.active) {
     throw new Error("Service not found");
   }
