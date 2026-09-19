@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - Eliminate Redundant Database Lookups in API Route Wrappers
+
+**Learning:** Route handlers wrapping availability and booking calculation helpers often perform initial `Model.findById` checks prior to passing IDs to helpers (`getAvailableSlots`) that perform the exact same database lookup. This doubles database roundtrips on hot request paths.
+
+**Action:** Audit helper function signatures and let helper functions manage document retrieval natively, catching expected errors (such as "Service not found") at the API layer to return standard 404 responses.
