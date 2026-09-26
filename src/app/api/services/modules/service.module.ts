@@ -2,14 +2,15 @@ import { connectDb } from "@/lib/db/connect";
 import Service from "../models/service.model";
 import "@/lib/db/models/ServiceImage";
 
+// Performance optimization: .lean() bypasses Mongoose document hydration overhead and reduces object allocations on read-only queries.
 export async function getActiveServices() {
   await connectDb();
-  return Service.find({ active: true }).sort({ sortOrder: 1 }).populate("images");
+  return Service.find({ active: true }).sort({ sortOrder: 1 }).populate("images").lean();
 }
 
 export async function getAllServices() {
   await connectDb();
-  return Service.find().sort({ sortOrder: 1 }).populate("images");
+  return Service.find().sort({ sortOrder: 1 }).populate("images").lean();
 }
 
 export async function createService(data: any) {
