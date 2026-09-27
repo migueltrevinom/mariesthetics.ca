@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-27 - Eliminate Redundant Model Fetches in Availability API Routes
+
+**Learning:** API route handlers wrapping domain helpers (e.g., `getAvailableSlots`) often duplicate database queries by fetching models before passing IDs to helper functions that fetch the exact same document.
+
+**Action:** Delegate model fetching and validation directly to domain helper functions that use `.lean()` queries, eliminating redundant DB round-trips in route wrappers.
