@@ -48,6 +48,19 @@ interface ReceiptData {
 	};
 }
 
+function calendarPaymentLines(kind: string, booking: BookingDetails, chargeCents: number) {
+	if (kind === "balance") {
+		return `Deposit Paid: ${formatCad(booking.depositCents)}\nRemaining Balance Paid: ${formatCad(chargeCents)}\nPaid to Date: ${formatCad(booking.paidCents)}\nBalance Due: ${formatCad(booking.balanceDueCents)}`;
+	}
+	if (kind === "tip") {
+		return `Tip Paid: ${formatCad(chargeCents)}\nBalance Due at Studio: ${formatCad(booking.balanceDueCents)}`;
+	}
+	if (kind === "custom") {
+		return `Paid Today: ${formatCad(chargeCents)}\nPaid to Date: ${formatCad(booking.paidCents)}\nBalance Due: ${formatCad(booking.balanceDueCents)}`;
+	}
+	return `Deposit Paid: ${formatCad(booking.depositCents)}\nBalance Due at Studio: ${formatCad(booking.balanceDueCents)}`;
+}
+
 function ConfettiEffect() {
 	return (
 		<div className="absolute inset-0 overflow-hidden pointer-events-none z-10 print:hidden">
@@ -185,7 +198,7 @@ function PaymentLinkContent() {
 
 		const icsText = generateIcsContent({
 			title: `Mari Esthetics — ${data.booking.serviceName}`,
-			description: `Appointment for ${data.booking.serviceName} at Mari Esthetics.\n\nDeposit Paid: ${formatCad(data.booking.depositCents)}\nBalance Due at Studio: ${formatCad(data.booking.balanceDueCents)}\nClient: ${data.booking.guestName}`,
+			description: `Appointment for ${data.booking.serviceName} at Mari Esthetics.\n\n${calendarPaymentLines(data.receipt.kind, data.booking, data.receipt.amountCents)}\nClient: ${data.booking.guestName}`,
 			location: data.provider.address,
 			start: startDate,
 			end: endDate,
@@ -221,7 +234,12 @@ function PaymentLinkContent() {
 			const res = await fetch("/api/bookings/send-email", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ bookingId: targetBookingId, email: sendEmailInput }),
+				body: JSON.stringify({
+					bookingId: targetBookingId,
+					email: sendEmailInput,
+					kind: data?.receipt?.kind,
+					amountCents: data?.receipt?.amountCents,
+				}),
 			});
 			const json = await res.json();
 			if (!res.ok) throw new Error(json.error || "Failed to send email.");
@@ -344,9 +362,23 @@ function PaymentLinkContent() {
 	const bookingStartDate = b?.start ? new Date(b.start) : null;
 	const bookingEndDate = b?.start ? new Date(b.end || bookingStartDate!.getTime() + (b.durationMin || 60) * 60_000) : null;
 
+	const paymentKind = data.receipt.kind || "deposit";
+	const isBalance = paymentKind === "balance";
+	const isDeposit = paymentKind === "deposit";
+	const paidTodayLabel = isBalance
+		? "Remaining Balance Paid"
+		: paymentKind === "tip"
+			? "Tip Paid Today"
+			: paymentKind === "custom"
+				? "Paid Today"
+				: "Deposit Paid Today";
+	const calendarDescription = b
+		? `Appointment for ${b.serviceName} at Mari Esthetics.\n\n${calendarPaymentLines(paymentKind, b, data.receipt.amountCents)}`
+		: "";
+
 	const googleCalendarUrl = bookingStartDate && b ? getGoogleCalendarUrl({
 		title: `Mari Esthetics — ${b.serviceName}`,
-		description: `Appointment for ${b.serviceName} at Mari Esthetics.\n\nDeposit Paid: ${formatCad(b.depositCents)}\nBalance Due at Studio: ${formatCad(b.balanceDueCents)}`,
+		description: calendarDescription,
 		location: data.provider.address,
 		start: bookingStartDate,
 		end: bookingEndDate!,
@@ -354,7 +386,7 @@ function PaymentLinkContent() {
 
 	const outlookCalendarUrl = bookingStartDate && b ? getOutlookCalendarUrl({
 		title: `Mari Esthetics — ${b.serviceName}`,
-		description: `Appointment for ${b.serviceName} at Mari Esthetics.\n\nDeposit Paid: ${formatCad(b.depositCents)}\nBalance Due at Studio: ${formatCad(b.balanceDueCents)}`,
+		description: calendarDescription,
 		location: data.provider.address,
 		start: bookingStartDate,
 		end: bookingEndDate!,
@@ -375,10 +407,14 @@ function PaymentLinkContent() {
 								✓
 							</div>
 							<h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
-								{b ? "Appointment Reserved & Confirmed!" : "Payment Successful!"}
+								{isBalance ? "Remaining Balance Paid" : b && isDeposit ? "Appointment Reserved & Confirmed!" : "Payment Successful!"}
 							</h2>
 							<p className="mt-1 text-xs text-[var(--ink-soft)]">
-								{b ? "Your deposit payment has been processed and your appointment slot is secured." : "Your payment has been securely processed. Thank you!"}
+								{isBalance
+									? "Your remaining balance has been paid and your appointment is confirmed."
+									: b && isDeposit
+										? "Your deposit payment has been processed and your appointment slot is secured."
+										: "Your payment has been securely processed. Thank you!"}
 							</p>
 						</>
 					) : (
@@ -387,10 +423,14 @@ function PaymentLinkContent() {
 								⏳
 							</div>
 							<h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">
-								Deposit Payment Pending
+								{isBalance ? "Balance Payment Pending" : isDeposit ? "Deposit Payment Pending" : "Payment Pending"}
 							</h2>
 							<p className="mt-1 text-xs text-[var(--ink-soft)]">
-								We are awaiting deposit confirmation. Your slot is reserved.
+								{isBalance
+									? "We are awaiting the remaining balance."
+									: isDeposit
+										? "We are awaiting deposit confirmation. Your slot is reserved."
+										: "We are awaiting payment confirmation."}
 							</p>
 						</>
 					)}
@@ -821,7 +861,7 @@ function PaymentLinkContent() {
 										</div>
 									)}
 									<div className="flex justify-between sm:justify-end gap-12">
-										<span className="text-[var(--ink-soft)] whitespace-nowrap">Deposit Paid Today</span>
+										<span className="text-[var(--ink-soft)] whitespace-nowrap">{paidTodayLabel}</span>
 										<span className="font-mono font-medium text-emerald-400 print:text-black">
 											{formatCad(data.receipt.amountCents)}
 										</span>

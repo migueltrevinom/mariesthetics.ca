@@ -82,37 +82,71 @@ export const GET = withManagerAuth(async (req: Request) => {
     let etransferCents = 0;
     let cashCents = 0;
 
-    // Process succeeded Payments
+    const countedSessionIds = new Set<string>();
+    // Stripe payments not yet paired to a payment-link row, keyed by booking + amount.
+    const unmatchedStripePayments = new Map<string, number>();
+
+    function bookingIdOf(bookingId: unknown): string {
+      if (!bookingId) return "";
+      if (typeof bookingId === "object" && bookingId !== null && "_id" in bookingId) {
+        return String((bookingId as { _id: unknown })._id);
+      }
+      return String(bookingId);
+    }
+
+    function addServiceCents(serviceId: unknown, cents: number) {
+      if (!serviceId) return;
+      const sId = String(serviceId);
+      const item = serviceMap.get(sId);
+      if (item) item.totalCents += cents;
+    }
+
+    function stripeMatchKey(bookingId: unknown, amountCents: number) {
+      return `${bookingIdOf(bookingId)}|${amountCents}`;
+    }
+
+    // Process succeeded Payments. Tips stay out of service revenue.
     for (const p of succeededPayments as any[]) {
+      if (p.kind === "tip") continue;
       const cents = p.amountCents || 0;
       totalRevenueCents += cents;
       if (p.method === "stripe") stripeCents += cents;
       else if (p.method === "etransfer") etransferCents += cents;
       else if (p.method === "cash") cashCents += cents;
 
-      if (p.bookingId?.serviceId) {
-        const sId = String(p.bookingId.serviceId);
-        if (serviceMap.has(sId)) {
-          const item = serviceMap.get(sId)!;
-          item.totalCents += cents;
-        }
+      addServiceCents(p.bookingId?.serviceId, cents);
+
+      if (p.method === "stripe") {
+        const sessionId = String(p.stripeCheckoutSessionId || "");
+        if (sessionId) countedSessionIds.add(sessionId);
+        const key = stripeMatchKey(p.bookingId, cents);
+        unmatchedStripePayments.set(key, (unmatchedStripePayments.get(key) ?? 0) + 1);
       }
     }
 
-    // Process paid Stripe Payment Links
+    function consumeStripePayment(bookingId: unknown, cents: number) {
+      const key = stripeMatchKey(bookingId, cents);
+      const unmatched = unmatchedStripePayments.get(key) ?? 0;
+      if (unmatched <= 0) return false;
+      unmatchedStripePayments.set(key, unmatched - 1);
+      return true;
+    }
+
+    // Paid Stripe links are the checkout for a payment, not a second charge.
+    // Count a link only when no succeeded Payment already represents it.
     for (const l of paidStripeLinks as any[]) {
+      if (l.kind === "tip") continue;
       const cents = l.amountCents || 0;
-      // Avoid double counting if already in Payments
+      const sessionId = String(l.stripeSessionId || "");
+      if (sessionId && countedSessionIds.has(sessionId)) {
+        consumeStripePayment(l.bookingId, cents);
+        continue;
+      }
+      if (consumeStripePayment(l.bookingId, cents)) continue;
+
       totalRevenueCents += cents;
       stripeCents += cents;
-
-      if (l.bookingId?.serviceId) {
-        const sId = String(l.bookingId.serviceId);
-        if (serviceMap.has(sId)) {
-          const item = serviceMap.get(sId)!;
-          item.totalCents += cents;
-        }
-      }
+      addServiceCents(l.bookingId?.serviceId, cents);
     }
 
     // Process confirmed bookings for booking count breakdown & service mapping

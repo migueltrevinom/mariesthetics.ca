@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { format } from "date-fns";
 import { connectDb } from "@/lib/db/connect";
-import { Booking } from "@/lib/db/models";
+import { Booking, Payment } from "@/lib/db/models";
 import { formatCad } from "@/lib/money";
 import { config } from "@/lib/config";
 import { generateIcsContent } from "@/lib/calendar/ics";
@@ -11,11 +11,14 @@ import { sendEmail } from "@/lib/mailgun";
 const bodySchema = z.object({
   bookingId: z.string().min(1),
   email: z.string().email().optional(),
+  kind: z.enum(["deposit", "balance", "tip", "custom"]).optional(),
+  amountCents: z.number().int().nonnegative().optional(),
 });
 
 export async function POST(req: Request) {
   try {
-    const { bookingId, email: overrideEmail } = bodySchema.parse(await req.json());
+    const { bookingId, email: overrideEmail, kind: requestedKind, amountCents: requestedAmount } =
+      bodySchema.parse(await req.json());
     await connectDb();
 
     const booking = await Booking.findById(bookingId).populate("serviceId");
@@ -39,16 +42,51 @@ export async function POST(req: Request) {
     const formattedTime = format(startDate, "h:mm a");
 
     const summary = booking.paymentSummary || {};
+    const depositCents = summary.depositCents || 0;
+    const paidCents = summary.paidCents || 0;
+    const balanceDueCents = summary.balanceDueCents || 0;
+
+    let kind = requestedKind;
+    let chargeCents = requestedAmount;
+    if (!kind || chargeCents == null) {
+      const latestPayment = await Payment.findOne({
+        bookingId: booking._id,
+        status: "succeeded",
+      }).sort({ createdAt: -1 });
+      const storedKind = latestPayment?.kind === "adjustment" ? "custom" : latestPayment?.kind;
+      kind = kind || (storedKind as "deposit" | "balance" | "tip" | "custom" | undefined) || "deposit";
+      if (chargeCents == null) chargeCents = latestPayment?.amountCents;
+    }
+
     const totalFormatted = formatCad(summary.totalCents || serviceObj?.priceCents || 0);
-    const depositPaidFormatted = formatCad(summary.depositCents || summary.paidCents || 0);
-    const balanceDueFormatted = formatCad(summary.balanceDueCents || 0);
+    const balanceDueFormatted = formatCad(balanceDueCents);
+    const paidToDateFormatted = formatCad(paidCents);
+    const depositPaidFormatted = formatCad(kind === "deposit" ? depositCents || chargeCents || paidCents : depositCents);
+
+    const isBalance = kind === "balance";
+    const paidLineLabel = isBalance
+      ? "Remaining Balance Paid"
+      : kind === "tip"
+        ? "Tip Paid"
+        : kind === "custom"
+          ? "Paid Today"
+          : "Deposit Paid Today";
+    const paidLineFormatted = formatCad(
+      isBalance || kind === "tip" || kind === "custom"
+        ? chargeCents ?? Math.max(0, paidCents - depositCents)
+        : depositCents || chargeCents || paidCents
+    );
+
+    const paymentLines = isBalance
+      ? `Deposit Paid: ${depositPaidFormatted}\nRemaining Balance Paid: ${paidLineFormatted}\nPaid to Date: ${paidToDateFormatted}\nBalance Due: ${balanceDueFormatted}`
+      : `Deposit Paid: ${depositPaidFormatted}\nBalance Due at Studio: ${balanceDueFormatted}`;
 
     const studioAddress = config.studioAddress;
 
     // Generate iCal .ics file content
     const icsContent = generateIcsContent({
       title: `Mari Esthetics — ${serviceName}`,
-      description: `Appointment for ${serviceName} at Mari Esthetics.\n\nDeposit Paid: ${depositPaidFormatted}\nBalance Due at Studio: ${balanceDueFormatted}\nClient: ${booking.guest?.name || ""}`,
+      description: `Appointment for ${serviceName} at Mari Esthetics.\n\n${paymentLines}\nClient: ${booking.guest?.name || ""}`,
       location: studioAddress,
       start: startDate,
       end: endDate,
@@ -68,7 +106,11 @@ export async function POST(req: Request) {
         durationMin,
         studioAddress,
         totalFormatted,
+        paymentKind: kind,
+        paidLineLabel,
+        paidLineFormatted,
         depositPaidFormatted,
+        paidToDateFormatted,
         balanceDueFormatted,
       },
       attachment: {

@@ -12,9 +12,13 @@ export interface AdminNotificationOptions {
     | "creation"
     | "deposit_initiated"
     | "deposit_paid"
+    | "balance_paid"
+    | "payment_paid"
     | "deposit_failed"
     | "rescheduled"
     | "cancelled";
+  /** Amount of this charge, in cents. Used for balance and other non-deposit payments. */
+  chargeCents?: number;
 }
 
 export async function notifyAdminsOfBooking(options: AdminNotificationOptions): Promise<void> {
@@ -50,7 +54,22 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
     const summary = booking.paymentSummary || {};
     const totalFormatted = formatCad(summary.totalCents || serviceObj?.priceCents || 0);
     const depositRequiredFormatted = formatCad(summary.depositCents || serviceObj?.depositCents || 0);
-    const depositPaidFormatted = formatCad(summary.paidCents || 0);
+    const separatesChargeFromDeposit =
+      options.eventType === "balance_paid" || options.eventType === "payment_paid";
+    const depositPaidFormatted = formatCad(
+      separatesChargeFromDeposit ? summary.depositCents || 0 : summary.paidCents || 0
+    );
+    const paidToDateFormatted = separatesChargeFromDeposit
+      ? formatCad(summary.paidCents || 0)
+      : "";
+    const chargeCents = options.chargeCents ?? 0;
+    const chargeFormatted = chargeCents > 0 ? formatCad(chargeCents) : "";
+    const chargeLabel =
+      options.eventType === "balance_paid"
+        ? "Remaining Balance Paid"
+        : options.eventType === "payment_paid"
+          ? "Payment Received"
+          : "";
     const balanceDueFormatted = formatCad(
       summary.balanceDueCents ?? Math.max(0, (summary.totalCents || 0) - (summary.paidCents || 0))
     );
@@ -69,6 +88,16 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
       case "deposit_paid":
         eventTitle = `✅ Deposit Payment Confirmed: ${serviceName}`;
         statusBadgeText = "DEPOSIT CONFIRMED";
+        statusBadgeColor = "#2e7d32";
+        break;
+      case "balance_paid":
+        eventTitle = `✅ Remaining Balance Paid: ${serviceName}`;
+        statusBadgeText = "BALANCE PAID";
+        statusBadgeColor = "#2e7d32";
+        break;
+      case "payment_paid":
+        eventTitle = `✅ Payment Received: ${serviceName}`;
+        statusBadgeText = "PAYMENT RECEIVED";
         statusBadgeColor = "#2e7d32";
         break;
       case "deposit_failed":
@@ -91,7 +120,9 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
     // Generate iCal .ics file
     const icsContent = generateIcsContent({
       title: `Client Appointment: ${booking.guest?.name || "Client"} (${serviceName})`,
-      description: `Client: ${booking.guest?.name || "Client"}\nEmail: ${booking.guest?.email || ""}\nPhone: ${booking.guest?.phone || ""}\nService: ${serviceName}\nStatus: ${statusBadgeText}\nDeposit Required: ${depositRequiredFormatted}\nDeposit Paid: ${depositPaidFormatted}\nBalance Due: ${balanceDueFormatted}`,
+      description: separatesChargeFromDeposit
+        ? `Client: ${booking.guest?.name || "Client"}\nEmail: ${booking.guest?.email || ""}\nPhone: ${booking.guest?.phone || ""}\nService: ${serviceName}\nStatus: ${statusBadgeText}\nDeposit Required: ${depositRequiredFormatted}\nDeposit Paid: ${depositPaidFormatted}\n${chargeLabel}: ${chargeFormatted || formatCad(0)}\nPaid to Date: ${paidToDateFormatted}\nBalance Due: ${balanceDueFormatted}`
+        : `Client: ${booking.guest?.name || "Client"}\nEmail: ${booking.guest?.email || ""}\nPhone: ${booking.guest?.phone || ""}\nService: ${serviceName}\nStatus: ${statusBadgeText}\nDeposit Required: ${depositRequiredFormatted}\nDeposit Paid: ${depositPaidFormatted}\nBalance Due: ${balanceDueFormatted}`,
       location: config.studioAddress,
       start: startDate,
       end: endDate,
@@ -121,6 +152,9 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
           totalFormatted,
           depositRequiredFormatted,
           depositPaidFormatted,
+          chargeLabel,
+          chargeFormatted,
+          paidToDateFormatted,
           balanceDueFormatted,
           notes: booking.notes || "",
         },

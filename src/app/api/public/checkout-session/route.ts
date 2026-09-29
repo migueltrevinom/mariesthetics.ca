@@ -8,10 +8,21 @@ import "@/lib/db/models/Service";
 
 export const dynamic = "force-dynamic";
 
+function normalizePaymentKind(kind: string | undefined | null): string {
+	if (!kind || kind === "adjustment") return kind === "adjustment" ? "custom" : "";
+	return kind;
+}
+
+function adminEventForKind(kind: string): "deposit_paid" | "balance_paid" | "payment_paid" {
+	if (kind === "balance") return "balance_paid";
+	if (kind === "deposit") return "deposit_paid";
+	return "payment_paid";
+}
+
 /**
- * Helper function to sync booking status and recalculate paid balance when a Stripe checkout session is completed.
+ * Sync booking status and paid balance when a Stripe checkout session is completed.
  */
-async function syncBookingOnPaidSession(bookingId: string, amountPaid: number): Promise<any> {
+async function syncBookingOnPaidSession(bookingId: string, amountPaid: number, kind: string): Promise<any> {
 	const currentBooking = await Booking.findById(bookingId);
 	if (!currentBooking) return null;
 
@@ -51,10 +62,10 @@ async function syncBookingOnPaidSession(bookingId: string, amountPaid: number): 
 	if (updated) {
 		await currentBooking.save();
 
-		// Notify admins of deposit payment confirmation with attached .ics file
 		void notifyAdminsOfBooking({
 			bookingId: String(currentBooking._id),
-			eventType: "deposit_paid",
+			eventType: adminEventForKind(kind),
+			chargeCents: amountPaid,
 		});
 	}
 
@@ -93,7 +104,12 @@ async function syncPaidCheckoutSession(params: {
 	// 3. Sync Booking status and paymentSummary if present via side function
 	if (updatedBooking) {
 		const amountPaid = session?.amount_total || updatedPaymentRecord?.amountCents || updatedLink?.amountCents || 0;
-		const syncedBooking = await syncBookingOnPaidSession(updatedBooking._id, amountPaid);
+		const kind =
+			normalizePaymentKind(updatedLink?.kind) ||
+			normalizePaymentKind(updatedPaymentRecord?.kind) ||
+			normalizePaymentKind(session?.metadata?.kind) ||
+			"deposit";
+		const syncedBooking = await syncBookingOnPaidSession(updatedBooking._id, amountPaid, kind);
 		if (syncedBooking) {
 			updatedBooking = syncedBooking;
 		}
@@ -181,7 +197,35 @@ export async function GET(req: Request) {
 		}
 
 		const serviceObj = booking?.serviceId;
-		const amountCents = session?.amount_total || paymentRecord?.amountCents || link?.amountCents || booking?.paymentSummary?.depositCents || 0;
+		const kind =
+			normalizePaymentKind(link?.kind) ||
+			normalizePaymentKind(paymentRecord?.kind) ||
+			normalizePaymentKind(session?.metadata?.kind) ||
+			"deposit";
+		const amountCents =
+			session?.amount_total ||
+			paymentRecord?.amountCents ||
+			link?.amountCents ||
+			(kind === "deposit" ? booking?.paymentSummary?.depositCents : 0) ||
+			0;
+		const serviceName = serviceObj?.name as string | undefined;
+		const description =
+			link?.description ||
+			(kind === "balance"
+				? serviceName
+					? `${serviceName} — Remaining Balance`
+					: "Remaining Balance"
+				: kind === "tip"
+					? serviceName
+						? `${serviceName} — Tip`
+						: "Tip"
+					: kind === "custom"
+						? serviceName
+							? `${serviceName} — Payment`
+							: "Payment"
+						: serviceName
+							? `${serviceName} — Reservation Deposit`
+							: "Esthetics Treatment Deposit");
 
 		return NextResponse.json({
 			paymentStatus: session?.payment_status || paymentRecord?.status || (booking?.status === "confirmed" ? "paid" : "pending"),
@@ -190,8 +234,8 @@ export async function GET(req: Request) {
 			receipt: {
 				id: String(link?._id || paymentRecord?._id || booking?._id || "RECEIPT"),
 				amountCents,
-				description: link?.description || (serviceObj ? `${serviceObj.name} — Reservation Deposit` : "Esthetics Treatment Deposit"),
-				kind: link?.kind || paymentRecord?.kind || "deposit",
+				description,
+				kind,
 				clientEmail: link?.clientEmail || booking?.guest?.email || session?.customer_details?.email || "",
 				createdAt: link?.createdAt
 					? new Date(link.createdAt).toISOString()
@@ -214,8 +258,8 @@ export async function GET(req: Request) {
 						serviceName: serviceObj?.name || "",
 						durationMin: serviceObj?.durationMin || 60,
 						totalCents: booking.paymentSummary?.totalCents || serviceObj?.priceCents || 0,
-						depositCents: booking.paymentSummary?.depositCents || amountCents,
-						paidCents: booking.paymentSummary?.paidCents || amountCents,
+						depositCents: booking.paymentSummary?.depositCents || 0,
+						paidCents: booking.paymentSummary?.paidCents || 0,
 						balanceDueCents: booking.paymentSummary?.balanceDueCents || 0,
 					}
 				: null,

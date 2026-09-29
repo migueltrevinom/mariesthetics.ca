@@ -58,10 +58,20 @@ async function applySucceededPayment(meta: {
 
   await booking.save();
 
-  if (meta.kind === "deposit") {
+  const eventType =
+    meta.kind === "deposit"
+      ? "deposit_paid"
+      : meta.kind === "balance"
+        ? "balance_paid"
+        : meta.kind === "tip" || meta.kind === "custom"
+          ? "payment_paid"
+          : null;
+
+  if (eventType) {
     void notifyAdminsOfBooking({
       bookingId: String(booking._id),
-      eventType: "deposit_paid",
+      eventType,
+      chargeCents: payment.amountCents,
     });
   }
 }

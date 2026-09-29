@@ -108,6 +108,26 @@
                     <%= depositPaidFormatted %>
                   </td>
                 </tr>
+                <% if (typeof chargeLabel !== 'undefined' && chargeLabel && typeof chargeFormatted !== 'undefined' && chargeFormatted) { %>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: #c8a86b; font-weight: 700;">
+                    <%= chargeLabel %>:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 14px; font-weight: 700; color: <%= typeof statusBadgeColor !== 'undefined' ? statusBadgeColor : '#c8a86b' %>;">
+                    <%= chargeFormatted %>
+                  </td>
+                </tr>
+                <% } %>
+                <% if (typeof paidToDateFormatted !== 'undefined' && paidToDateFormatted) { %>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
+                    Paid to Date:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 600; color: #f3efe6;">
+                    <%= paidToDateFormatted %>
+                  </td>
+                </tr>
+                <% } %>
                 <tr>
                   <td style="border-top: 1px solid rgba(243, 239, 230, 0.1); padding-top: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">
                     Balance Remaining:
