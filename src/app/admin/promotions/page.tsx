@@ -22,6 +22,7 @@ export default async function AdminPromotionsPage() {
     value: c.value,
     maxRedemptions: c.maxRedemptions,
     redemptionCount: c.redemptionCount || 0,
+    startsAt: c.startsAt ? new Date(c.startsAt).toISOString() : null,
     expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString() : null,
     stripeCouponId: c.stripeCouponId || "",
     stripePromotionCodeId: c.stripePromotionCodeId || "",

@@ -7,6 +7,7 @@ const CouponSchema = new Schema(
     value: { type: Number, required: true },
     maxRedemptions: { type: Number, default: null },
     redemptionCount: { type: Number, default: 0 },
+    startsAt: { type: Date, default: null },
     expiresAt: { type: Date, default: null },
     active: { type: Boolean, default: true, index: true },
     stripeCouponId: { type: String, default: "" },

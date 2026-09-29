@@ -5,9 +5,21 @@ export async function createCoupon(data: {
   type: "percent" | "fixed";
   value: number;
   maxRedemptions?: number | null;
+  startsAt?: Date | null;
   expiresAt?: Date | null;
 }) {
   return await PromotionRepository.createCoupon(data);
+}
+
+export async function updateCouponWindow(
+  id: string,
+  data: { startsAt: Date | null; expiresAt: Date | null },
+) {
+  return await PromotionRepository.updateCouponWindow(id, data);
+}
+
+export async function fetchCouponRedemptions(id: string) {
+  return await PromotionRepository.getCouponRedemptions(id);
 }
 
 export async function fetchCoupons() {

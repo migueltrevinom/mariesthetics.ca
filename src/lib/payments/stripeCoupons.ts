@@ -1,3 +1,4 @@
+import type Stripe from "stripe";
 import { getStripe, isStripeConfigured } from "./stripe";
 
 export interface SyncCouponParams {
@@ -8,36 +9,53 @@ export interface SyncCouponParams {
   expiresAt?: Date | null;
 }
 
-export async function syncCouponToStripe(params: SyncCouponParams): Promise<{
+export interface SyncCouponResult {
   stripeCouponId: string;
   stripePromotionCodeId: string;
-}> {
+}
+
+function couponIdFromPromo(promo: Stripe.PromotionCode): string {
+  const coupon = promo.promotion?.coupon;
+  if (typeof coupon === "string") return coupon;
+  if (coupon && typeof coupon === "object" && "id" in coupon) return coupon.id;
+  return "";
+}
+
+function unixSeconds(date: Date): number {
+  return Math.floor(date.getTime() / 1000);
+}
+
+/**
+ * Creates or reuses a Stripe coupon and promotion code.
+ * Throws with the Stripe error so callers can show it. A missing secret key
+ * is the only case that mentions STRIPE_SECRET_KEY.
+ */
+export async function syncCouponToStripe(params: SyncCouponParams): Promise<SyncCouponResult> {
   if (!isStripeConfigured()) {
-    console.warn("[Stripe Coupon Sync]: STRIPE_SECRET_KEY not set. Skipping Stripe sync.");
-    return { stripeCouponId: "", stripePromotionCodeId: "" };
+    throw new Error("STRIPE_SECRET_KEY is not configured.");
   }
 
-  try {
-    const stripe = getStripe();
-    const cleanCode = params.code.toUpperCase().trim();
+  const stripe = getStripe();
+  const cleanCode = params.code.toUpperCase().trim();
+  const expiresAt = params.expiresAt ? unixSeconds(new Date(params.expiresAt)) : undefined;
+  const maxRedemptions =
+    params.maxRedemptions && params.maxRedemptions > 0 ? params.maxRedemptions : undefined;
 
-    // Check if promo code already exists in Stripe
-    try {
-      const existingPromoCodes = await stripe.promotionCodes.list({ code: cleanCode, limit: 1 });
-      if (existingPromoCodes.data.length > 0) {
-        const existingPromo: any = existingPromoCodes.data[0];
-        const couponId = typeof existingPromo.coupon === "string" ? existingPromo.coupon : existingPromo.coupon?.id || "";
-        return {
-          stripeCouponId: couponId,
-          stripePromotionCodeId: existingPromo.id,
-        };
+  try {
+    const existingPromoCodes = await stripe.promotionCodes.list({ code: cleanCode, limit: 1 });
+    const existingPromo = existingPromoCodes.data[0];
+    if (existingPromo) {
+      const couponId = couponIdFromPromo(existingPromo);
+      if (!couponId) {
+        throw new Error(`Stripe promotion code ${existingPromo.id} has no coupon id.`);
       }
-    } catch {
-      // Continue to creation if check fails
+      return {
+        stripeCouponId: couponId,
+        stripePromotionCodeId: existingPromo.id,
+      };
     }
 
-    // 1. Create Coupon in Stripe
-    const couponParams: any = {
+    const couponParams: Stripe.CouponCreateParams = {
       duration: "once",
       name: `Promo Code: ${cleanCode}`,
     };
@@ -49,34 +67,31 @@ export async function syncCouponToStripe(params: SyncCouponParams): Promise<{
       couponParams.currency = "cad";
     }
 
-    if (params.maxRedemptions && params.maxRedemptions > 0) {
-      couponParams.max_redemptions = params.maxRedemptions;
-    }
-
-    if (params.expiresAt) {
-      couponParams.redeem_by = Math.floor(new Date(params.expiresAt).getTime() / 1000);
-    }
+    if (maxRedemptions) couponParams.max_redemptions = maxRedemptions;
+    if (expiresAt) couponParams.redeem_by = expiresAt;
 
     const stripeCoupon = await stripe.coupons.create(couponParams);
 
-    // 2. Create matching Promotion Code in Stripe
-    const promoCodeParams: any = {
-      coupon: stripeCoupon.id,
+    const promoCode = await stripe.promotionCodes.create({
+      promotion: {
+        type: "coupon",
+        coupon: stripeCoupon.id,
+      },
       code: cleanCode,
-    };
-
-    if (params.maxRedemptions && params.maxRedemptions > 0) {
-      promoCodeParams.max_redemptions = params.maxRedemptions;
-    }
-
-    const promoCode = await stripe.promotionCodes.create(promoCodeParams);
+      ...(maxRedemptions ? { max_redemptions: maxRedemptions } : {}),
+      ...(expiresAt ? { expires_at: expiresAt } : {}),
+    });
 
     return {
       stripeCouponId: stripeCoupon.id,
       stripePromotionCodeId: promoCode.id,
     };
-  } catch (err: any) {
-    console.error("[Stripe Coupon Sync Error]:", err.message);
-    return { stripeCouponId: "", stripePromotionCodeId: "" };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Stripe coupon sync failed";
+    console.error("[Stripe Coupon Sync Error]:", message);
+    if (message === "STRIPE_SECRET_KEY is not configured." || message.startsWith("Stripe promotion code ")) {
+      throw err;
+    }
+    throw new Error(message);
   }
 }

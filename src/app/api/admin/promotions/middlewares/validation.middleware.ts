@@ -6,6 +6,7 @@ export const createCouponSchema = z.object({
   type: z.enum(["percent", "fixed"]),
   value: z.number().positive("Value must be greater than zero"),
   maxRedemptions: z.number().optional().nullable(),
+  startsAt: z.string().optional().nullable(),
   expiresAt: z.string().optional().nullable(),
 });
 

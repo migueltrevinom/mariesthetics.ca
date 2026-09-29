@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export interface CouponItem {
@@ -10,6 +10,7 @@ export interface CouponItem {
   value: number;
   maxRedemptions?: number | null;
   redemptionCount?: number;
+  startsAt?: string | null;
   expiresAt?: string | null;
   stripeCouponId?: string;
   stripePromotionCodeId?: string;
@@ -29,6 +30,55 @@ export interface GiftCardItem {
   stripePromotionCodeId?: string;
   active: boolean;
   createdAt?: string;
+}
+
+interface CouponRedemption {
+  id: string;
+  guestName: string;
+  guestEmail: string;
+  serviceName: string;
+  start: string | null;
+  status: string;
+  discountCents: number;
+}
+
+function formatCouponDay(iso?: string | null) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-CA", {
+    timeZone: "America/Edmonton",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function toDateInput(iso?: string | null) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Edmonton" });
+}
+
+function formatCouponWindow(startsAt?: string | null, expiresAt?: string | null) {
+  if (!startsAt && !expiresAt) return "No date limit";
+  const start = startsAt ? formatCouponDay(startsAt) : "Now";
+  const end = expiresAt ? formatCouponDay(expiresAt) : "No end";
+  return `${start} – ${end}`;
+}
+
+function mapCoupon(coupon: any): CouponItem {
+  return {
+    _id: String(coupon._id),
+    code: coupon.code,
+    type: coupon.type,
+    value: coupon.value,
+    maxRedemptions: coupon.maxRedemptions,
+    redemptionCount: coupon.redemptionCount || 0,
+    startsAt: coupon.startsAt ? new Date(coupon.startsAt).toISOString() : null,
+    expiresAt: coupon.expiresAt ? new Date(coupon.expiresAt).toISOString() : null,
+    stripeCouponId: coupon.stripeCouponId || "",
+    stripePromotionCodeId: coupon.stripePromotionCodeId || "",
+    active: Boolean(coupon.active),
+    createdAt: coupon.createdAt ? new Date(coupon.createdAt).toISOString() : undefined,
+  };
 }
 
 interface PromotionsManagerProps {
@@ -57,8 +107,16 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
   const [couponType, setCouponType] = useState<"percent" | "fixed">("percent");
   const [couponValue, setCouponValue] = useState<number>(20);
   const [couponMaxRedemptions, setCouponMaxRedemptions] = useState<string>("");
+  const [couponStartsAt, setCouponStartsAt] = useState("");
+  const [couponExpiresAt, setCouponExpiresAt] = useState("");
   const [couponSaving, setCouponSaving] = useState(false);
   const [couponError, setCouponError] = useState("");
+  const [windowStart, setWindowStart] = useState("");
+  const [windowEnd, setWindowEnd] = useState("");
+  const [savingWindow, setSavingWindow] = useState(false);
+  const [redemptions, setRedemptions] = useState<CouponRedemption[]>([]);
+  const [redemptionsLoading, setRedemptionsLoading] = useState(false);
+  const [redemptionsError, setRedemptionsError] = useState("");
 
   // Gift Card modal state
   const [isGiftCardModalOpen, setIsGiftCardModalOpen] = useState(false);
@@ -81,6 +139,64 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
     setTimeout(() => setCopiedKey(""), 2000);
   };
 
+  const openCouponId = drawerItem?.type === "coupon" ? drawerItem.item._id : "";
+
+  useEffect(() => {
+    if (!openCouponId) {
+      setRedemptions([]);
+      setRedemptionsError("");
+      return;
+    }
+    const coupon = drawerItem?.type === "coupon" ? (drawerItem.item as CouponItem) : null;
+    setWindowStart(toDateInput(coupon?.startsAt));
+    setWindowEnd(toDateInput(coupon?.expiresAt));
+
+    let cancelled = false;
+    setRedemptionsLoading(true);
+    setRedemptionsError("");
+    void fetch(`/api/admin/promotions/coupons/${openCouponId}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load redemptions");
+        if (!cancelled) setRedemptions(data.redemptions || []);
+      })
+      .catch((err: any) => {
+        if (!cancelled) setRedemptionsError(err.message || "Failed to load redemptions");
+      })
+      .finally(() => {
+        if (!cancelled) setRedemptionsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [openCouponId, drawerItem]);
+
+  async function handleSaveCouponWindow(couponId: string) {
+    setSavingWindow(true);
+    try {
+      const res = await fetch(`/api/admin/promotions/coupons/${couponId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startsAt: windowStart || null,
+          expiresAt: windowEnd || null,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Failed to update coupon dates");
+      const updated = mapCoupon(data.coupon);
+      setCoupons((prev) => prev.map((c) => (c._id === couponId ? updated : c)));
+      setDrawerItem({ type: "coupon", item: updated });
+      showMsg(`Dates saved for ${updated.code}`);
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message || "Failed to update coupon dates");
+    } finally {
+      setSavingWindow(false);
+    }
+  }
+
   async function handleSyncCouponToStripe(couponId: string) {
     setSyncingStripe(true);
     try {
@@ -92,19 +208,7 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Failed to sync with Stripe");
 
-      const updatedCoupon: CouponItem = {
-        _id: String(data.coupon._id),
-        code: data.coupon.code,
-        type: data.coupon.type,
-        value: data.coupon.value,
-        maxRedemptions: data.coupon.maxRedemptions,
-        redemptionCount: data.coupon.redemptionCount || 0,
-        expiresAt: data.coupon.expiresAt ? new Date(data.coupon.expiresAt).toISOString() : null,
-        stripeCouponId: data.coupon.stripeCouponId || "",
-        stripePromotionCodeId: data.coupon.stripePromotionCodeId || "",
-        active: Boolean(data.coupon.active),
-        createdAt: data.coupon.createdAt ? new Date(data.coupon.createdAt).toISOString() : undefined,
-      };
+      const updatedCoupon = mapCoupon(data.coupon);
 
       setCoupons((prev) => prev.map((c) => (c._id === couponId ? updatedCoupon : c)));
       if (drawerItem && drawerItem.item._id === couponId) {
@@ -129,6 +233,8 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
         type: couponType,
         value: Number(couponValue),
         maxRedemptions: couponMaxRedemptions ? parseInt(couponMaxRedemptions, 10) : null,
+        startsAt: couponStartsAt || null,
+        expiresAt: couponExpiresAt || null,
       };
 
       const res = await fetch("/api/admin/promotions/coupons", {
@@ -140,10 +246,17 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Failed to create coupon");
 
-      setCoupons((prev) => [data.coupon, ...prev]);
+      const created = mapCoupon(data.coupon);
+      setCoupons((prev) => [created, ...prev]);
       setIsCouponModalOpen(false);
       setCouponCode("");
-      showMsg("Discount Coupon created & synced with Stripe!");
+      setCouponStartsAt("");
+      setCouponExpiresAt("");
+      showMsg(
+        data.stripeError
+          ? `Coupon created. Stripe sync failed: ${data.stripeError}`
+          : "Discount Coupon created & synced with Stripe!",
+      );
       router.refresh();
     } catch (err: any) {
       setCouponError(err.message || "An error occurred");
@@ -306,6 +419,7 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
                 <tr className="border-b border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink-soft)] uppercase font-bold tracking-wider text-[10px]">
                   <th className="p-4">Coupon Code</th>
                   <th className="p-4">Discount Value</th>
+                  <th className="p-4">Valid</th>
                   <th className="p-4">Redemptions</th>
                   <th className="p-4">Stripe Integration</th>
                   <th className="p-4 text-right">Actions</th>
@@ -314,7 +428,7 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
               <tbody className="divide-y divide-[var(--border-color)]">
                 {coupons.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-8 text-center text-[var(--ink-soft)] italic">
+                    <td colSpan={6} className="p-8 text-center text-[var(--ink-soft)] italic">
                       No discount coupons created yet. Click "+ Create Discount Coupon" above to build one.
                     </td>
                   </tr>
@@ -332,6 +446,9 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
                       </td>
                       <td className="p-4 font-bold text-sm text-[var(--ink)]">
                         {c.type === "percent" ? `${c.value}% OFF` : `$${c.value.toFixed(2)} CAD OFF`}
+                      </td>
+                      <td className="p-4 text-[var(--ink-soft)] font-medium whitespace-nowrap">
+                        {formatCouponWindow(c.startsAt, c.expiresAt)}
                       </td>
                       <td className="p-4 text-[var(--ink-soft)] font-medium">
                         {c.redemptionCount || 0} / {c.maxRedemptions ? c.maxRedemptions : "∞"}
@@ -611,11 +728,79 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
                             <span className="text-[var(--ink-soft)]">Status:</span>
                             <span className="font-semibold text-emerald-400">Active</span>
                           </div>
-                          {c.expiresAt && (
-                            <div className="flex justify-between">
-                              <span className="text-[var(--ink-soft)]">Expires On:</span>
-                              <span className="font-mono text-[var(--ink)]">{new Date(c.expiresAt).toLocaleDateString()}</span>
-                            </div>
+                          <div className="flex justify-between">
+                            <span className="text-[var(--ink-soft)]">Valid:</span>
+                            <span className="font-medium text-[var(--ink)] text-right">{formatCouponWindow(c.startsAt, c.expiresAt)}</span>
+                          </div>
+                        </div>
+
+                        <div className="p-4 rounded-2xl border border-[var(--border-color)] bg-black/5 dark:bg-white/[0.02] space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-[#c8a86b] border-b border-[var(--border-color)]/50 pb-2">
+                            Active dates
+                          </h4>
+                          <p className="text-[11px] text-[var(--ink-soft)]">
+                            Clients can apply this code only between these Edmonton dates. Leave either field blank for no limit.
+                          </p>
+                          <div className="grid grid-cols-2 gap-3">
+                            <label className="block text-[11px] text-[var(--ink-soft)]">
+                              Starts
+                              <input
+                                type="date"
+                                value={windowStart}
+                                onChange={(e) => setWindowStart(e.target.value)}
+                                className="mt-1 w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-2 py-2 rounded-lg text-xs text-[var(--ink)]"
+                              />
+                            </label>
+                            <label className="block text-[11px] text-[var(--ink-soft)]">
+                              Ends
+                              <input
+                                type="date"
+                                value={windowEnd}
+                                onChange={(e) => setWindowEnd(e.target.value)}
+                                className="mt-1 w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-2 py-2 rounded-lg text-xs text-[var(--ink)]"
+                              />
+                            </label>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={savingWindow}
+                            onClick={() => void handleSaveCouponWindow(c._id)}
+                            className="w-full btn-primary text-xs !py-2 font-bold cursor-pointer disabled:opacity-40"
+                          >
+                            {savingWindow ? "Saving dates..." : "Save dates"}
+                          </button>
+                        </div>
+
+                        <div className="p-4 rounded-2xl border border-[var(--border-color)] bg-black/5 dark:bg-white/[0.02] space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-wider text-[#c8a86b] border-b border-[var(--border-color)]/50 pb-2">
+                            Who used it
+                          </h4>
+                          {redemptionsLoading ? (
+                            <p className="text-xs text-[var(--ink-soft)]">Loading redemptions...</p>
+                          ) : redemptionsError ? (
+                            <p className="text-xs text-rose-400">{redemptionsError}</p>
+                          ) : redemptions.length === 0 ? (
+                            <p className="text-xs text-[var(--ink-soft)]">No one has used this coupon yet.</p>
+                          ) : (
+                            <ul className="space-y-3">
+                              {redemptions.map((redemption) => (
+                                <li key={redemption.id} className="text-xs border-b border-[var(--border-color)]/40 pb-2 last:border-0">
+                                  <div className="flex justify-between gap-3">
+                                    <span className="font-semibold text-[var(--ink)]">{redemption.guestName}</span>
+                                    <span className="uppercase text-[10px] tracking-wide text-[var(--ink-soft)]">{redemption.status}</span>
+                                  </div>
+                                  {redemption.guestEmail && (
+                                    <p className="text-[var(--ink-soft)] font-mono">{redemption.guestEmail}</p>
+                                  )}
+                                  <p className="text-[var(--ink)]">{redemption.serviceName}</p>
+                                  <p className="text-[var(--ink-soft)]">
+                                    {redemption.start ? formatCouponDay(redemption.start) : "No appointment date"}
+                                    {" · "}
+                                    ${(redemption.discountCents / 100).toFixed(2)} off
+                                  </p>
+                                </li>
+                              ))}
+                            </ul>
                           )}
                         </div>
                       </div>
@@ -779,6 +964,31 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
                   value={couponValue}
                   onChange={(e) => setCouponValue(parseFloat(e.target.value) || 0)}
                   className={`${inputCls} font-mono`}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
+                  Starts (optional)
+                </label>
+                <input
+                  type="date"
+                  value={couponStartsAt}
+                  onChange={(e) => setCouponStartsAt(e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">
+                  Ends (optional)
+                </label>
+                <input
+                  type="date"
+                  value={couponExpiresAt}
+                  onChange={(e) => setCouponExpiresAt(e.target.value)}
+                  className={inputCls}
                 />
               </div>
             </div>

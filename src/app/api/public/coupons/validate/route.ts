@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectDb } from "@/lib/db/connect";
 import { Coupon, GiftCard } from "@/lib/db/models";
+import { couponAvailabilityError } from "@/lib/coupons";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +19,9 @@ export async function GET(req: Request) {
     // 1. Check Discount Coupons
     const coupon = await Coupon.findOne({ code, active: true });
     if (coupon) {
-      if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-        return NextResponse.json({ error: "Coupon code has expired" }, { status: 400 });
+      const windowError = couponAvailabilityError(coupon);
+      if (windowError) {
+        return NextResponse.json({ error: windowError }, { status: 400 });
       }
       if (coupon.maxRedemptions != null && coupon.redemptionCount >= coupon.maxRedemptions) {
         return NextResponse.json({ error: "Coupon code redemption limit reached" }, { status: 400 });

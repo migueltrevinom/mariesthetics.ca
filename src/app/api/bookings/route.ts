@@ -11,6 +11,7 @@ import { getSession } from "@/lib/auth/jwt";
 import { AuthError, requireManager } from "@/lib/auth/jwt";
 import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
 import { findOrCreateClientForGuest } from "@/lib/booking/clientResolver";
+import { couponAvailabilityError } from "@/lib/coupons";
 
 const createSchema = z.object({
 	serviceId: z.string().min(1),
@@ -212,11 +213,17 @@ export async function POST(req: Request) {
 				active: true,
 			});
 
-			if (
-				coupon &&
-				(!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) &&
-				(coupon.maxRedemptions == null || coupon.redemptionCount < coupon.maxRedemptions)
-			) {
+			if (coupon) {
+				const windowError = couponAvailabilityError(coupon);
+				if (windowError) {
+					return NextResponse.json({ error: windowError }, { status: 400 });
+				}
+				if (coupon.maxRedemptions != null && coupon.redemptionCount >= coupon.maxRedemptions) {
+					return NextResponse.json({ error: "Coupon code redemption limit reached" }, { status: 400 });
+				}
+			}
+
+			if (coupon) {
 				const discounted = applyDiscount(priceCents, coupon.type, coupon.value);
 				discountCents = priceCents - discounted;
 				priceCents = discounted;

@@ -1,5 +1,5 @@
 import { connectDb } from "@/lib/db/connect";
-import { Coupon, GiftCard } from "@/lib/db/models";
+import { Booking, Coupon, GiftCard } from "@/lib/db/models";
 import { syncCouponToStripe } from "@/lib/payments/stripeCoupons";
 import { sendEmail } from "@/lib/mailgun";
 import { config } from "@/lib/config";
@@ -13,8 +13,9 @@ export class PromotionRepository {
     type: "percent" | "fixed";
     value: number;
     maxRedemptions?: number | null;
+    startsAt?: Date | null;
     expiresAt?: Date | null;
-  }): Promise<any> {
+  }): Promise<{ coupon: any; stripeError: string | null }> {
     await connectDb();
     const cleanCode = data.code.toUpperCase().trim();
 
@@ -23,27 +24,36 @@ export class PromotionRepository {
       throw new Error(`Coupon code '${cleanCode}' already exists`);
     }
 
-    // Sync to Stripe
-    const stripeResult = await syncCouponToStripe({
-      code: cleanCode,
-      type: data.type,
-      value: data.value,
-      maxRedemptions: data.maxRedemptions,
-      expiresAt: data.expiresAt,
-    });
+    let stripeCouponId = "";
+    let stripePromotionCodeId = "";
+    let stripeError: string | null = null;
+    try {
+      const stripeResult = await syncCouponToStripe({
+        code: cleanCode,
+        type: data.type,
+        value: data.value,
+        maxRedemptions: data.maxRedemptions,
+        expiresAt: data.expiresAt,
+      });
+      stripeCouponId = stripeResult.stripeCouponId;
+      stripePromotionCodeId = stripeResult.stripePromotionCodeId;
+    } catch (err: any) {
+      stripeError = err?.message || "Stripe coupon sync failed";
+    }
 
     const coupon = await Coupon.create({
       code: cleanCode,
       type: data.type,
       value: data.value,
       maxRedemptions: data.maxRedemptions || null,
+      startsAt: data.startsAt || null,
       expiresAt: data.expiresAt || null,
-      stripeCouponId: stripeResult.stripeCouponId,
-      stripePromotionCodeId: stripeResult.stripePromotionCodeId,
+      stripeCouponId,
+      stripePromotionCodeId,
       active: true,
     });
 
-    return coupon;
+    return { coupon, stripeError };
   }
 
   /**
@@ -58,6 +68,44 @@ export class PromotionRepository {
   /**
    * Delete coupon by ID.
    */
+  static async updateCouponWindow(
+    id: string,
+    data: { startsAt: Date | null; expiresAt: Date | null },
+  ): Promise<any> {
+    await connectDb();
+    const coupon = await Coupon.findByIdAndUpdate(
+      id,
+      { startsAt: data.startsAt, expiresAt: data.expiresAt },
+      { new: true },
+    );
+    if (!coupon) throw new Error("Coupon not found");
+    return coupon;
+  }
+
+  static async getCouponRedemptions(id: string): Promise<{ coupon: any; redemptions: any[] }> {
+    await connectDb();
+    const coupon = await Coupon.findById(id).lean();
+    if (!coupon) throw new Error("Coupon not found");
+
+    const bookings = await Booking.find({ couponId: coupon._id })
+      .populate("serviceId", "name")
+      .sort({ start: -1 })
+      .select("guest serviceId start status paymentSummary")
+      .lean();
+
+    const redemptions = bookings.map((booking: any) => ({
+      id: String(booking._id),
+      guestName: booking.guest?.name || "Guest",
+      guestEmail: booking.guest?.email || "",
+      serviceName: booking.serviceId?.name || "Service",
+      start: booking.start ? new Date(booking.start).toISOString() : null,
+      status: booking.status || "",
+      discountCents: booking.paymentSummary?.discountCents || 0,
+    }));
+
+    return { coupon, redemptions };
+  }
+
   static async deleteCoupon(id: string): Promise<any> {
     await connectDb();
     const coupon = await Coupon.findByIdAndDelete(id);
@@ -85,13 +133,20 @@ export class PromotionRepository {
 
     const amountCents = Math.round(data.amountCad * 100);
 
-    // Sync fixed amount gift card promo code to Stripe
-    const stripeResult = await syncCouponToStripe({
-      code: generatedCode,
-      type: "fixed",
-      value: data.amountCad,
-      maxRedemptions: 1,
-    });
+    let stripeCouponId = "";
+    let stripePromotionCodeId = "";
+    try {
+      const stripeResult = await syncCouponToStripe({
+        code: generatedCode,
+        type: "fixed",
+        value: data.amountCad,
+        maxRedemptions: 1,
+      });
+      stripeCouponId = stripeResult.stripeCouponId;
+      stripePromotionCodeId = stripeResult.stripePromotionCodeId;
+    } catch (err: any) {
+      console.error("[Gift Card Stripe Sync Error]:", err?.message || err);
+    }
 
     const giftCard = await GiftCard.create({
       code: generatedCode,
@@ -102,8 +157,8 @@ export class PromotionRepository {
       recipientName: data.recipientName || "Valued Client",
       recipientEmail: data.recipientEmail.toLowerCase().trim(),
       message: data.message || "",
-      stripeCouponId: stripeResult.stripeCouponId,
-      stripePromotionCodeId: stripeResult.stripePromotionCodeId,
+      stripeCouponId,
+      stripePromotionCodeId,
       active: true,
     });
 

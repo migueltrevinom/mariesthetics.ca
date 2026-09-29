@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import {
   fetchCoupons,
   createCoupon,
+  updateCouponWindow,
+  fetchCouponRedemptions,
   removeCoupon,
   fetchGiftCards,
   issueGiftCard,
   removeGiftCard,
 } from "../modules/promotion.module";
+import { parseCouponDay } from "@/lib/coupons";
 import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
 import { config, getAppUrl } from "@/lib/config";
 
@@ -20,14 +24,53 @@ export async function handleGetCoupons(): Promise<NextResponse> {
   }
 }
 
+function couponWindowFromBody(body: { startsAt?: string | null; expiresAt?: string | null }) {
+  const startsAt = parseCouponDay(body.startsAt, "start");
+  const expiresAt = parseCouponDay(body.expiresAt, "end");
+  if (startsAt && expiresAt && startsAt > expiresAt) {
+    throw new Error("Coupon end date must be on or after the start date");
+  }
+  return { startsAt, expiresAt };
+}
+
 export async function handleCreateCoupon(req: Request, validatedData: any): Promise<NextResponse> {
   try {
-    const expiresAt = validatedData.expiresAt ? new Date(validatedData.expiresAt) : null;
-    const coupon = await createCoupon({ ...validatedData, expiresAt });
-    return NextResponse.json({ success: true, coupon }, { status: 201 });
+    const { startsAt, expiresAt } = couponWindowFromBody(validatedData);
+    const { coupon, stripeError } = await createCoupon({ ...validatedData, startsAt, expiresAt });
+    return NextResponse.json({ success: true, coupon, stripeError }, { status: 201 });
   } catch (err: any) {
     console.error("[Promotion Controller Create Coupon Error]:", err.message);
     return NextResponse.json({ error: err.message || "Failed to create coupon" }, { status: 500 });
+  }
+}
+
+const updateCouponSchema = z.object({
+  startsAt: z.string().nullable().optional(),
+  expiresAt: z.string().nullable().optional(),
+});
+
+export async function handleGetCoupon(id: string): Promise<NextResponse> {
+  try {
+    const { coupon, redemptions } = await fetchCouponRedemptions(id);
+    return NextResponse.json({ success: true, coupon, redemptions });
+  } catch (err: any) {
+    const status = err.message === "Coupon not found" ? 404 : 500;
+    return NextResponse.json({ error: err.message || "Failed to load coupon" }, { status });
+  }
+}
+
+export async function handleUpdateCoupon(req: Request, id: string): Promise<NextResponse> {
+  try {
+    const body = updateCouponSchema.parse(await req.json());
+    const { startsAt, expiresAt } = couponWindowFromBody(body);
+    const coupon = await updateCouponWindow(id, { startsAt, expiresAt });
+    return NextResponse.json({ success: true, coupon });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.issues[0]?.message || "Validation error" }, { status: 400 });
+    }
+    const status = err.message === "Coupon not found" ? 404 : 400;
+    return NextResponse.json({ error: err.message || "Failed to update coupon" }, { status });
   }
 }
 
