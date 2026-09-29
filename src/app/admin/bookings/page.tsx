@@ -17,22 +17,31 @@ export default async function AdminBookingsPage() {
     await connectDb();
     
     // 1. Fetch active services for selection dropdown
-    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 });
+    // ⚡ Bolt Optimization: Select only required fields and use .lean() to prevent document hydration overhead
+    const dbServices = await Service.find({ active: true })
+      .select("name durationMin priceCents depositCents")
+      .sort({ sortOrder: 1 })
+      .lean();
     formattedServices = dbServices.map((s) => ({
       id: String(s._id),
-      name: s.name,
-      durationMin: s.durationMin,
-      priceCents: s.priceCents,
-      depositCents: s.depositCents,
+      name: String(s.name),
+      durationMin: Number(s.durationMin),
+      priceCents: Number(s.priceCents),
+      depositCents: Number(s.depositCents),
     }));
 
     // 2. Fetch last 20 clients for initial selection
-    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20);
+    // ⚡ Bolt Optimization: Select only required fields and use .lean() to prevent document hydration overhead
+    const dbClients = await Client.find()
+      .select("name email phone")
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
     formattedClients = dbClients.map((c) => ({
       id: String(c._id),
-      name: c.name,
-      email: c.email,
-      phone: c.phone || "",
+      name: String(c.name),
+      email: String(c.email),
+      phone: String(c.phone || ""),
     }));
 
     // 3. Fetch held bookings that need manual verification (e.g. e-transfers awaiting confirmations)
