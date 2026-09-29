@@ -60,20 +60,30 @@ async function getData(): Promise<{
 }> {
   try {
     await connectDb();
-    const [services, plans, reviews] = await Promise.all([
-      Service.find({ active: true }).sort({ sortOrder: 1 }).limit(6).lean(),
+    // ⚡ Bolt Optimization: Use MongoDB aggregation for review stats ($avg, $sum) and limit JSON-LD schema reviews to top 10 with field selection.
+    // Avoids fetching all historical reviews into Node memory on every landing page request.
+    const [services, plans, reviewAgg, latestReviews] = await Promise.all([
+      Service.find({ active: true })
+        .select("name description durationMin priceCents depositCents category photos")
+        .sort({ sortOrder: 1 })
+        .limit(6)
+        .lean(),
       SubscriptionPlan.find({ active: true }).populate("includedServiceIds", "name priceCents").limit(2).lean(),
-      Review.find({ status: "submitted" }).sort({ submittedAt: -1 }).lean(),
+      Review.aggregate([
+        { $match: { status: "submitted" } },
+        { $group: { _id: null, ratingValue: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
+      ]),
+      Review.find({ status: "submitted" })
+        .select("guest.name rating comment submittedAt")
+        .sort({ submittedAt: -1 })
+        .limit(10)
+        .lean(),
     ]);
 
-    const reviewCount = reviews.length;
-    let ratingValue = 5;
-    if (reviewCount > 0) {
-      const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0);
-      ratingValue = sum / reviewCount;
-    }
+    const reviewCount = reviewAgg[0]?.reviewCount || 0;
+    const ratingValue = reviewAgg[0]?.ratingValue || 5;
 
-    const reviewItems: ReviewSchemaItem[] = reviews.slice(0, 10).map((r) => ({
+    const reviewItems: ReviewSchemaItem[] = (latestReviews as any[]).map((r) => ({
       author: String(r.guest?.name || "Verified Client"),
       rating: Number(r.rating) || 5,
       comment: r.comment ? String(r.comment) : undefined,
