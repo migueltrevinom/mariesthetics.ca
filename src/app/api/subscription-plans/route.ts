@@ -5,7 +5,8 @@ import { SubscriptionPlan } from "@/lib/db/models";
 export async function GET() {
   try {
     await connectDb();
-    const plans = await SubscriptionPlan.find({ active: true });
+    // ⚡ Bolt Optimization: Use .lean() to return plain Javascript objects and bypass Mongoose document hydration.
+    const plans = await SubscriptionPlan.find({ active: true }).lean();
     return NextResponse.json({ plans });
   } catch (err) {
     console.error(err);
