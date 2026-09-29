@@ -16,9 +16,10 @@ export default async function AdminBookingsPage() {
   try {
     await connectDb();
     
+    // Performance optimization: Use .lean() on read-only queries to bypass Mongoose document hydration
     // 1. Fetch active services for selection dropdown
-    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 });
-    formattedServices = dbServices.map((s) => ({
+    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 }).lean();
+    formattedServices = dbServices.map((s: any) => ({
       id: String(s._id),
       name: s.name,
       durationMin: s.durationMin,
@@ -27,8 +28,8 @@ export default async function AdminBookingsPage() {
     }));
 
     // 2. Fetch last 20 clients for initial selection
-    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20);
-    formattedClients = dbClients.map((c) => ({
+    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20).lean();
+    formattedClients = dbClients.map((c: any) => ({
       id: String(c._id),
       name: c.name,
       email: c.email,
