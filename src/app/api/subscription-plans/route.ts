@@ -5,7 +5,9 @@ import { SubscriptionPlan } from "@/lib/db/models";
 export async function GET() {
   try {
     await connectDb();
-    const plans = await SubscriptionPlan.find({ active: true });
+    // ⚡ Bolt Optimization: Use .lean() on read-only queries to bypass document hydration
+    // overhead and reduce memory allocations when fetching active subscription plans.
+    const plans = await SubscriptionPlan.find({ active: true }).lean();
     return NextResponse.json({ plans });
   } catch (err) {
     console.error(err);
