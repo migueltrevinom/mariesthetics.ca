@@ -25,6 +25,7 @@ const BlogPostSchema = new Schema(
     viewsCount: { type: Number, default: 0 },
     metaTitle: { type: String, default: "", trim: true },
     metaDescription: { type: String, default: "", trim: true },
+    keywords: [{ type: String, trim: true }],
     author: { type: String, default: "Marinelle Tala", trim: true },
     promoConfig: {
       enabled: { type: Boolean, default: false },
