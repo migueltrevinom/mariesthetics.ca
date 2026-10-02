@@ -4,12 +4,14 @@ import { TranslationModel, TranslationDoc } from "@/lib/db/models/Translation";
 export class TranslationRepository {
   async findAll(): Promise<TranslationDoc[]> {
     await connectDb();
-    return TranslationModel.find({}).sort({ page: 1, key: 1 }).exec();
+    // Performance optimization: .lean() bypasses Mongoose document hydration on read-only query
+    return TranslationModel.find({}).sort({ page: 1, key: 1 }).lean().exec() as unknown as TranslationDoc[];
   }
 
   async findByPage(page: string): Promise<TranslationDoc[]> {
     await connectDb();
-    return TranslationModel.find({ page }).sort({ key: 1 }).exec();
+    // Performance optimization: .lean() bypasses Mongoose document hydration on read-only query
+    return TranslationModel.find({ page }).sort({ key: 1 }).lean().exec() as unknown as TranslationDoc[];
   }
 
   async upsertTranslation(data: {
