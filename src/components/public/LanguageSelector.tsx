@@ -34,7 +34,7 @@ export function LanguageSelector() {
         aria-label="Select Language"
       >
         <span className="text-sm">{currentLang.flag}</span>
-        <span className="tracking-wide">{currentLang.label}</span>
+        <span className="tracking-wide">{currentLang.code.toUpperCase()}</span>
         <svg
           className="w-3.5 h-3.5 opacity-70 transition-transform duration-200"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
@@ -50,7 +50,7 @@ export function LanguageSelector() {
       {open && (
         <div
           style={{
-            backgroundColor: "var(--card-bg)",
+            backgroundColor: "var(--background)",
             color: "var(--ink)",
             borderColor: "var(--border-color)",
           }}
@@ -58,7 +58,7 @@ export function LanguageSelector() {
         >
           <div
             style={{ borderColor: "var(--border-color)", color: "var(--ink-soft)" }}
-            className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider border-b opacity-80"
+            className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider border-b"
           >
             Select Language
           </div>
@@ -80,7 +80,7 @@ export function LanguageSelector() {
               >
                 <span className="flex items-center gap-2.5">
                   <span className="text-sm">{lang.flag}</span>
-                  <span>{lang.label}</span>
+                  <span>{lang.code.toUpperCase()}</span>
                 </span>
                 {isSelected && (
                   <span className="text-[#c8a86b] font-bold">✓</span>
