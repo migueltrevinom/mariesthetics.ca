@@ -34,7 +34,7 @@ export function LanguageSelector() {
         aria-label="Select Language"
       >
         <span className="text-sm">{currentLang.flag}</span>
-        <span className="tracking-wide">{currentLang.label}</span>
+        <span className="tracking-wide">{currentLang.code.toUpperCase()}</span>
         <svg
           className="w-3.5 h-3.5 opacity-70 transition-transform duration-200"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
@@ -80,7 +80,7 @@ export function LanguageSelector() {
               >
                 <span className="flex items-center gap-2.5">
                   <span className="text-sm">{lang.flag}</span>
-                  <span>{lang.label}</span>
+                  <span>{lang.code.toUpperCase()}</span>
                 </span>
                 {isSelected && (
                   <span className="text-[#c8a86b] font-bold">✓</span>
