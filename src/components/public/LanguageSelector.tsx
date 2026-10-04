@@ -50,7 +50,7 @@ export function LanguageSelector() {
       {open && (
         <div
           style={{
-            backgroundColor: "var(--card-bg)",
+            backgroundColor: "var(--background)",
             color: "var(--ink)",
             borderColor: "var(--border-color)",
           }}
@@ -58,7 +58,7 @@ export function LanguageSelector() {
         >
           <div
             style={{ borderColor: "var(--border-color)", color: "var(--ink-soft)" }}
-            className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider border-b opacity-80"
+            className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider border-b"
           >
             Select Language
           </div>
