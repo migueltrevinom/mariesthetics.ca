@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
+import { MarkdownContent } from "@/lib/blog/markdown";
 
 const LANGUAGES = [
   { code: "all", label: "All Languages", flag: "🌐" },
@@ -28,6 +29,7 @@ export interface BlogPostItem {
   viewsCount: number;
   metaTitle?: string;
   metaDescription?: string;
+  keywords?: string[];
   author?: string;
   promoConfig?: {
     enabled: boolean;
@@ -114,6 +116,7 @@ export function BlogManager({
   const [formStatus, setFormStatus] = useState<"draft" | "published">("published");
   const [formMetaTitle, setFormMetaTitle] = useState("");
   const [formMetaDesc, setFormMetaDesc] = useState("");
+  const [formKeywords, setFormKeywords] = useState("");
   const [formPromoEnabled, setFormPromoEnabled] = useState(false);
   const [formPromoCode, setFormPromoCode] = useState("");
   const [formPromoText, setFormPromoText] = useState("");
@@ -169,6 +172,7 @@ export function BlogManager({
     setFormStatus("published");
     setFormMetaTitle("");
     setFormMetaDesc("");
+    setFormKeywords("");
     setFormPromoEnabled(true);
     setFormPromoCode("GLOW20");
     setFormPromoText("Enjoy $20 off your first tailored facial session at Mari Esthetics.");
@@ -193,6 +197,7 @@ export function BlogManager({
     setFormStatus(post.status === "published" ? "published" : "draft");
     setFormMetaTitle(post.metaTitle || "");
     setFormMetaDesc(post.metaDescription || "");
+    setFormKeywords((post.keywords || []).join(", "));
     setFormPromoEnabled(post.promoConfig?.enabled || false);
     setFormPromoCode(post.promoConfig?.promoCode || "");
     setFormPromoText(post.promoConfig?.customPromoText || "");
@@ -229,6 +234,10 @@ export function BlogManager({
       status: formStatus,
       metaTitle: formMetaTitle.trim(),
       metaDescription: formMetaDesc.trim(),
+      keywords: formKeywords
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean),
       promoConfig: {
         enabled: formPromoEnabled,
         promoCode: formPromoCode.trim().toUpperCase(),
@@ -883,6 +892,72 @@ export function BlogManager({
                 />
               </div>
 
+              {/* SEO */}
+              <div className="p-4 rounded-2xl border border-[var(--border-color)] bg-[var(--background)] space-y-3">
+                <div>
+                  <h4 className="text-xs font-bold text-[var(--ink)] uppercase tracking-wider">
+                    Search metadata
+                  </h4>
+                  <p className="text-[10px] text-[var(--ink-soft)] mt-0.5">
+                    Used for Google title, description, and local Edmonton keywords. Leave blank to fall back to the article title and excerpt.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-bold text-[var(--ink-soft)] uppercase tracking-wider text-[10px]">
+                      Meta title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Keep Lashes Pretty in Edmonton Weather"
+                      value={formMetaTitle}
+                      onChange={(e) => setFormMetaTitle(e.target.value)}
+                      maxLength={70}
+                      className="w-full px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                    />
+                    <span className="text-[10px] text-[var(--ink-soft)]">{formMetaTitle.length}/70</span>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-bold text-[var(--ink-soft)] uppercase tracking-wider text-[10px]">
+                      Category
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="lashes"
+                      value={formCategory}
+                      onChange={(e) => setFormCategory(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="font-bold text-[var(--ink-soft)] uppercase tracking-wider text-[10px]">
+                    Meta description
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Edmonton’s dry cold, chinooks, and indoor heat wreck lash extensions..."
+                    value={formMetaDesc}
+                    onChange={(e) => setFormMetaDesc(e.target.value)}
+                    maxLength={170}
+                    className="w-full px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  />
+                  <span className="text-[10px] text-[var(--ink-soft)]">{formMetaDesc.length}/170</span>
+                </div>
+                <div className="space-y-1">
+                  <label className="font-bold text-[var(--ink-soft)] uppercase tracking-wider text-[10px]">
+                    Keywords (comma-separated)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="lash extension aftercare Edmonton, lash fill West Edmonton"
+                    value={formKeywords}
+                    onChange={(e) => setFormKeywords(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)] text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  />
+                </div>
+              </div>
+
               {/* Linked Services Selector */}
               <div className="space-y-1.5">
                 <label className="font-bold text-[var(--ink)] uppercase tracking-wider text-[10px]">
@@ -928,7 +1003,7 @@ export function BlogManager({
                 </div>
 
                 {previewMode ? (
-                  <div className="p-6 rounded-2xl border border-[var(--border-color)] bg-[var(--background)] min-h-[300px] prose prose-invert max-w-none text-xs space-y-3 leading-relaxed">
+                  <div className="p-6 rounded-2xl border border-[var(--border-color)] bg-[var(--background)] min-h-[300px]">
                     {formCoverImage && (
                       <img
                         src={formCoverImage}
@@ -936,8 +1011,8 @@ export function BlogManager({
                         className="w-full max-h-64 object-cover rounded-2xl mb-4"
                       />
                     )}
-                    <h1 className="text-xl font-bold text-[var(--ink)]">{formTitle || "Article Title"}</h1>
-                    <div className="whitespace-pre-wrap text-[var(--ink)] text-sm">{formContent}</div>
+                    <h1 className="text-xl font-bold text-[var(--ink)] mb-4">{formTitle || "Article Title"}</h1>
+                    <MarkdownContent content={formContent} />
                   </div>
                 ) : (
                   <textarea

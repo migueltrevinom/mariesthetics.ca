@@ -3,6 +3,7 @@
     "home": "Home",
     "services": "Services & Pricing",
     "book": "Book Appointment",
+    "journal": "Journal",
     "contact": "Contact & Location",
     "admin": "Admin Portal"
   },
@@ -46,6 +47,7 @@
     "explore": "Explore",
     "allServices": "All services",
     "bookAppointment": "Book an appointment",
+    "journal": "Journal",
     "memberships": "Memberships",
     "contact": "Contact",
     "clientLogin": "Client login",

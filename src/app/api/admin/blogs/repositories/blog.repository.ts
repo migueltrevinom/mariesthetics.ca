@@ -88,7 +88,7 @@ export class BlogRepository {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate("serviceIds", "name slug priceCents")
+        .populate("serviceIds", "name slug priceCents durationMin")
         .lean(),
       BlogPost.countDocuments(query),
     ]);
