@@ -32,47 +32,52 @@ async function handleGetDetails(req: Request): Promise<NextResponse> {
 
     const bookingIds = bookings.map((b) => b._id);
 
-    // Fetch payments, deep populating booking service details
-    const payments = await Payment.find({ bookingId: { $in: bookingIds } })
-      .sort({ createdAt: -1 })
-      .populate({
-        path: "bookingId",
-        populate: { path: "serviceId" },
+    // ⚡ Bolt Optimization: Execute secondary queries in parallel with Promise.all
+    // to cut database round-trip latency from 6 sequential DB waits down to 1 concurrent batch.
+    const [
+      payments,
+      sessionImages,
+      creditCards,
+      subscriptions,
+      reviews,
+      quizSubmissions,
+    ] = await Promise.all([
+      Payment.find({ bookingId: { $in: bookingIds } })
+        .sort({ createdAt: -1 })
+        .populate({
+          path: "bookingId",
+          populate: { path: "serviceId" },
+        })
+        .lean(),
+
+      ServiceImage.find({ clientId: id })
+        .sort({ createdAt: -1 })
+        .populate("serviceId")
+        .lean(),
+
+      ClientCreditCard.find({ clientId: id })
+        .sort({ createdAt: -1 })
+        .lean(),
+
+      ClientSubscription.find({ clientId: id })
+        .sort({ createdAt: -1 })
+        .populate("planId")
+        .lean(),
+
+      Review.find({
+        $or: [{ clientId: id }, { bookingId: { $in: bookingIds } }],
       })
-      .lean();
+        .sort({ createdAt: -1 })
+        .populate("serviceId")
+        .populate("bookingId")
+        .lean(),
 
-    // Fetch session images (treatment logs)
-    const sessionImages = await ServiceImage.find({ clientId: id })
-      .sort({ createdAt: -1 })
-      .populate("serviceId")
-      .lean();
-
-    // Fetch credit cards (billing info)
-    const creditCards = await ClientCreditCard.find({ clientId: id })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    // Fetch subscriptions
-    const subscriptions = await ClientSubscription.find({ clientId: id })
-      .sort({ createdAt: -1 })
-      .populate("planId")
-      .lean();
-
-    // Fetch client reviews
-    const reviews = await Review.find({
-      $or: [{ clientId: id }, { bookingId: { $in: bookingIds } }],
-    })
-      .sort({ createdAt: -1 })
-      .populate("serviceId")
-      .populate("bookingId")
-      .lean();
-
-    // Fetch quiz submissions
-    const quizSubmissions = await QuizSubmission.find({ clientId: id })
-      .sort({ createdAt: -1 })
-      .populate("quizId")
-      .populate("recommendedServiceId")
-      .lean();
+      QuizSubmission.find({ clientId: id })
+        .sort({ createdAt: -1 })
+        .populate("quizId")
+        .populate("recommendedServiceId")
+        .lean(),
+    ]);
 
     return NextResponse.json({
       bookings,
