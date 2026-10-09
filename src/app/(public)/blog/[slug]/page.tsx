@@ -15,9 +15,9 @@ import {
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   getPublishedBlogPostBySlug,
-  getPublishedBlogSlugs,
   incrementBlogPostViews,
 } from "@/lib/blog/queries";
+import { blogPostPath, normalizeBlogSlugForLookup } from "@/lib/blog/slug";
 import type { Locale } from "@/components/i18n/LanguageContext";
 import {
   articleJsonLd,
@@ -27,21 +27,18 @@ import {
   siteUrl,
 } from "@/lib/seo";
 
-export const revalidate = 300;
+/** Avoid stale ISR 404s for non-Latin slugs; resolve from DB per request. */
+export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ slug: string }> };
-
-export async function generateStaticParams() {
-  const slugs = await getPublishedBlogSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
-    return buildMetadata({ title: "Article not found", path: `/blog/${slug}`, noindex: true });
+    const path = blogPostPath(normalizeBlogSlugForLookup(slug) || slug);
+    return buildMetadata({ title: "Article not found", path, noindex: true });
   }
 
   const title = post.metaTitle || post.title;
@@ -57,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return buildMetadata({
     title,
     description,
-    path: `/blog/${post.slug}`,
+    path: blogPostPath(post.slug),
     ogImage,
     ogType: "article",
     publishedTime: post.publishedAt ?? undefined,
@@ -171,7 +168,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               [
                 { name: "Home", path: "/" },
                 { name: "Blog", path: "/blog" },
-                { name: post.title, path: `/blog/${post.slug}` },
+                { name: post.title, path: blogPostPath(post.slug) },
               ],
               { inLanguage }
             ),

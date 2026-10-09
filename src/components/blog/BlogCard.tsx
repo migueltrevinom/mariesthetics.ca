@@ -4,6 +4,7 @@ import Link from "next/link";
 import { formatBlogDate } from "@/components/blog/formatBlogDate";
 import { useLanguage, LANGUAGES } from "@/components/i18n/LanguageContext";
 import type { BlogListItem } from "@/lib/blog/types";
+import { blogPostPath } from "@/lib/blog/slug";
 
 export function BlogCard({ post }: { post: BlogListItem }) {
   const { locale, t } = useLanguage();
@@ -18,7 +19,7 @@ export function BlogCard({ post }: { post: BlogListItem }) {
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--card-bg)] shadow-sm transition-all duration-300 hover:border-[#c8a86b]/40 hover:shadow-lg">
-      <Link href={`/blog/${post.slug}`} className="relative block aspect-[16/10] overflow-hidden bg-[var(--mist)]">
+      <Link href={blogPostPath(post.slug)} className="relative block aspect-[16/10] overflow-hidden bg-[var(--mist)]">
         {post.coverImage ? (
           <img
             src={post.coverImage}
@@ -52,7 +53,7 @@ export function BlogCard({ post }: { post: BlogListItem }) {
           ) : null}
         </div>
         <h2 className="mt-2 text-xl font-semibold leading-snug text-[var(--ink)] transition-colors group-hover:text-gold-bright">
-          <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+          <Link href={blogPostPath(post.slug)}>{post.title}</Link>
         </h2>
         {post.excerpt ? (
           <p className="mt-3 flex-1 text-sm leading-relaxed text-[var(--ink-soft)] line-clamp-3">
@@ -60,7 +61,7 @@ export function BlogCard({ post }: { post: BlogListItem }) {
           </p>
         ) : null}
         <Link
-          href={`/blog/${post.slug}`}
+          href={blogPostPath(post.slug)}
           className="mt-5 inline-flex text-sm font-semibold text-gold transition-colors hover:text-gold-bright"
         >
           Read article →

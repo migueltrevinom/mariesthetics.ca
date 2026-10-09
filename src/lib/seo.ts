@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { blogPostPath } from "@/lib/blog/slug";
 
 /**
  * Central SEO configuration for Mari Esthetics.
@@ -142,7 +143,7 @@ export function articleJsonLd(post: {
   modifiedAt?: string | null;
   inLanguage?: string;
 }) {
-  const url = `${siteUrl}/blog/${post.slug}`;
+  const url = `${siteUrl}${blogPostPath(post.slug)}`;
   const image = post.coverImage
     ? post.coverImage.startsWith("http")
       ? post.coverImage

@@ -4,13 +4,14 @@ import { sendEmail } from "@/lib/mailgun";
 import { config } from "@/lib/config";
 import { resolveBlogPromo } from "@/lib/blog/resolvePromo";
 import type { ResolvedBlogPromo } from "@/lib/blog/types";
+import { blogPostPath } from "@/lib/blog/slug";
 
 export function generateNewsletterHtml(
   blog: any,
   baseUrl: string,
   resolvedPromo: ResolvedBlogPromo
 ): string {
-  const postUrl = `${baseUrl}/blog/${blog.slug}`;
+  const postUrl = `${baseUrl}${blogPostPath(blog.slug)}`;
 
   let promoSectionHtml = "";
   if (resolvedPromo.enabled) {

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage, LANGUAGES, Locale } from "@/components/i18n/LanguageContext";
 import { useBlogTranslationSlugs } from "@/components/blog/BlogTranslationContext";
+import { blogPostPath, normalizeBlogSlugForLookup } from "@/lib/blog/slug";
 
 export function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
@@ -79,10 +80,13 @@ export function LanguageSelector() {
 
                   const postMatch = pathname?.match(/^\/blog\/([^/]+)\/?$/);
                   if (postMatch) {
-                    const currentSlug = postMatch[1];
+                    const currentSlug = normalizeBlogSlugForLookup(postMatch[1]);
                     const targetSlug = blogSlugs?.[code];
-                    if (targetSlug && targetSlug !== currentSlug) {
-                      router.push(`/blog/${targetSlug}`);
+                    if (
+                      targetSlug &&
+                      normalizeBlogSlugForLookup(targetSlug) !== currentSlug
+                    ) {
+                      router.push(blogPostPath(targetSlug));
                     } else {
                       router.refresh();
                     }
