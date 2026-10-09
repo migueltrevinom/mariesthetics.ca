@@ -20,7 +20,8 @@ export async function GET(req: Request) {
     });
 
     await connectDb();
-    const service = await Service.findById(parsed.serviceId);
+    // ⚡ Bolt Optimization: Use .lean() on read-only Service lookup to avoid document hydration overhead.
+    const service = await Service.findById(parsed.serviceId).lean();
     if (!service) {
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
