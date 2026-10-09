@@ -5,6 +5,7 @@ import { BlogPostBody } from "@/components/blog/BlogPostBody";
 import { BlogPromoCta } from "@/components/blog/BlogPromoCta";
 import { BlogRelatedServices } from "@/components/blog/BlogRelatedServices";
 import { BlogTranslationProvider } from "@/components/blog/BlogTranslationContext";
+import { BlogLocaleFallbackNotice } from "@/components/blog/BlogLocaleFallbackNotice";
 import { formatBlogDate } from "@/components/blog/formatBlogDate";
 import {
   blogLanguageDir,
@@ -108,6 +109,8 @@ export default async function BlogPostPage({ params }: PageProps) {
             </Link>
           </nav>
 
+          <BlogLocaleFallbackNotice postLanguage={post.language} />
+
           <header className="mt-8">
             {post.category ? (
               <p className="eyebrow">{post.category}</p>
@@ -140,7 +143,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             </div>
           ) : null}
 
-          <BlogPromoCta promo={post.promoConfig} variant="inline" />
+          <BlogPromoCta promo={post.resolvedPromo} variant="inline" />
 
           <div className="mt-10">
             <BlogPostBody content={post.content} />
@@ -148,7 +151,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
           <BlogRelatedServices services={post.serviceIds} />
 
-          <BlogPromoCta promo={post.promoConfig} variant="closing" />
+          <BlogPromoCta promo={post.resolvedPromo} variant="closing" />
         </div>
 
         <JsonLd

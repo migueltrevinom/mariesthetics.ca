@@ -49,6 +49,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem("mari_locale") as Locale | null;
     if (saved && ["en", "tl", "pa", "ar", "es"].includes(saved)) {
       setLocaleState(saved);
+      document.cookie = `NEXT_LOCALE=${saved}; path=/; max-age=31536000; SameSite=Lax`;
       const targetDir = saved === "ar" ? "rtl" : "ltr";
       setDir(targetDir);
       document.documentElement.setAttribute("dir", targetDir);

@@ -10,6 +10,11 @@ import {
   getPreviewPostBySlug,
   getPreviewTranslationsForPost,
 } from "@/lib/blog/previewPosts";
+import {
+  PREVIEW_MOCK_COUPON,
+  resolveBlogPromo,
+  resolveBlogPromoPreview,
+} from "@/lib/blog/resolvePromo";
 
 const PUBLISHED_SORT = { publishedAt: -1 as const, createdAt: -1 as const };
 
@@ -116,9 +121,16 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBl
   if (BLOG_DEV_PREVIEW_ENABLED) {
     const post = getPreviewPostBySlug(normalized);
     if (!post) return null;
+    const resolvedPromo = resolveBlogPromoPreview({
+      promoConfig: post.promoConfig,
+      serviceIds: post.serviceIds,
+      language: post.language,
+      mockCoupon: post.slug.includes("aftercare") ? PREVIEW_MOCK_COUPON : null,
+    });
     return {
       ...post,
       translations: getPreviewTranslationsForPost(post.translationGroupId),
+      resolvedPromo,
     };
   }
 
@@ -138,7 +150,13 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBl
 
     const map = await loadPublishedTranslationMap();
     const post = serializeBlogPost(doc as Record<string, unknown>);
-    return attachTranslations(post, map);
+    const withTranslations = attachTranslations(post, map);
+    const resolvedPromo = await resolveBlogPromo({
+      promoConfig: withTranslations.promoConfig,
+      serviceIds: withTranslations.serviceIds,
+      language: withTranslations.language,
+    });
+    return { ...withTranslations, resolvedPromo };
   } catch {
     return null;
   }

@@ -12,6 +12,9 @@ const CouponSchema = new Schema(
     active: { type: Boolean, default: true, index: true },
     stripeCouponId: { type: String, default: "" },
     stripePromotionCodeId: { type: String, default: "" },
+    firstTimeClientsOnly: { type: Boolean, default: false },
+    serviceIds: [{ type: Schema.Types.ObjectId, ref: "Service" }],
+    categoryIds: { type: [String], default: [] },
   },
   { timestamps: true }
 );
