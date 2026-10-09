@@ -4,7 +4,8 @@ import { requireManager } from "@/lib/auth/jwt";
 import { BlogRepository } from "@/app/api/admin/blogs/repositories/blog.repository";
 import { SubscriberRepository } from "@/app/api/admin/blogs/repositories/subscriber.repository";
 import { connectDb } from "@/lib/db/connect";
-import { Service } from "@/lib/db/models";
+import { Coupon, Service } from "@/lib/db/models";
+import { formatCouponDiscountLabel, isCouponRedeemable } from "@/lib/coupons";
 import { BlogManager } from "@/components/admin/BlogManager";
 
 export const metadata: Metadata = {
@@ -18,11 +19,12 @@ export default async function AdminBlogsPage() {
   await requireManager();
   await connectDb();
 
-  const [postsData, rawServices, rawSubscribers, stats] = await Promise.all([
+  const [postsData, rawServices, rawSubscribers, stats, rawCoupons] = await Promise.all([
     BlogRepository.findAll({ limit: 50 }),
     Service.find({ isActive: true }).select("_id name slug priceCents").lean(),
     SubscriberRepository.getAllSubscribers(),
     BlogRepository.getStats(),
+    Coupon.find().sort({ code: 1 }).lean(),
   ]);
 
   const formattedPosts = postsData.posts.map((p: any) => ({
@@ -46,12 +48,13 @@ export default async function AdminBlogsPage() {
     metaTitle: p.metaTitle || "",
     metaDescription: p.metaDescription || "",
     author: p.author || "Marinelle Tala",
-    promoConfig: p.promoConfig || {
-      enabled: false,
-      promoCode: "",
-      customPromoText: "",
-      ctaButtonText: "Book Treatment Now →",
-      ctaUrl: "/book",
+    promoConfig: {
+      enabled: Boolean(p.promoConfig?.enabled),
+      couponId: p.promoConfig?.couponId ? String(p.promoConfig.couponId) : null,
+      promoCode: p.promoConfig?.promoCode || "",
+      customPromoText: p.promoConfig?.customPromoText || "",
+      ctaButtonText: p.promoConfig?.ctaButtonText || "Book Treatment Now →",
+      ctaUrl: p.promoConfig?.ctaUrl || "/book",
     },
     createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : new Date().toISOString(),
@@ -74,6 +77,25 @@ export default async function AdminBlogsPage() {
     subscribedAt: sub.subscribedAt ? new Date(sub.subscribedAt).toISOString() : new Date().toISOString(),
   }));
 
+  const formattedCoupons = rawCoupons.map((c: any) => ({
+    _id: String(c._id),
+    code: String(c.code),
+    type: c.type as "percent" | "fixed",
+    value: Number(c.value),
+    active: Boolean(c.active),
+    expiresAt: c.expiresAt ? new Date(c.expiresAt).toISOString() : null,
+    redeemable: isCouponRedeemable({
+      code: String(c.code),
+      type: c.type,
+      value: Number(c.value),
+      active: Boolean(c.active),
+      expiresAt: c.expiresAt,
+      maxRedemptions: c.maxRedemptions,
+      redemptionCount: c.redemptionCount,
+    }),
+    discountLabel: formatCouponDiscountLabel({ type: c.type, value: Number(c.value) }),
+  }));
+
   return (
     <AdminShell>
       <BlogManager
@@ -81,6 +103,7 @@ export default async function AdminBlogsPage() {
         initialServices={formattedServices}
         initialSubscribers={formattedSubscribers}
         initialStats={stats}
+        initialCoupons={formattedCoupons}
       />
     </AdminShell>
   );

@@ -8,6 +8,15 @@ export const createCouponSchema = z.object({
   maxRedemptions: z.number().optional().nullable(),
   startsAt: z.string().optional().nullable(),
   expiresAt: z.string().optional().nullable(),
+  firstTimeClientsOnly: z.boolean().optional().default(false),
+  serviceIds: z.array(z.string()).optional().default([]),
+  categoryIds: z.array(z.string()).optional().default([]),
+});
+
+export const updateCouponRulesSchema = z.object({
+  firstTimeClientsOnly: z.boolean().optional(),
+  serviceIds: z.array(z.string()).optional(),
+  categoryIds: z.array(z.string()).optional(),
 });
 
 export const issueGiftCardSchema = z.object({

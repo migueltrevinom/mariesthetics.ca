@@ -1,13 +1,26 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/components/i18n/LanguageContext";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { Reveal } from "@/components/public/Reveal";
 import type { BlogListItem } from "@/lib/blog/types";
 
-export function BlogPreview({ posts }: { posts: BlogListItem[] }) {
-  const { t } = useLanguage();
+export function BlogPreview({ posts: initialPosts }: { posts: BlogListItem[] }) {
+  const { locale, t } = useLanguage();
+  const [posts, setPosts] = useState(initialPosts);
+
+  useEffect(() => {
+    fetch(`/api/public/blogs?language=${locale}&limit=3`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.posts)) {
+          setPosts(data.posts);
+        }
+      })
+      .catch(() => {});
+  }, [locale]);
 
   if (!posts.length) return null;
 
@@ -43,7 +56,7 @@ export function BlogPreview({ posts }: { posts: BlogListItem[] }) {
 
         <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post, i) => (
-            <Reveal key={post._id} delay={i * 80}>
+            <Reveal key={`${post._id}-${locale}`} delay={i * 80}>
               <BlogCard post={post} />
             </Reveal>
           ))}

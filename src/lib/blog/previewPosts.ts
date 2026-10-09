@@ -1,4 +1,13 @@
-import type { BlogListItem, BlogTranslationRef, PublicBlogPost } from "@/lib/blog/types";
+import type { BlogListItem, BlogTranslationRef, PublicBlogPost, ResolvedBlogPromo } from "@/lib/blog/types";
+
+const PLACEHOLDER_RESOLVED: ResolvedBlogPromo = {
+  enabled: false,
+  hasValidCoupon: false,
+  headline: "",
+  ctaUrl: "/book",
+  ctaButtonText: "Book Treatment Now →",
+  eyebrow: "booking",
+};
 
 /** In-memory sample posts — only served when BLOG_DEV_PREVIEW=1 (never in production). */
 export const BLOG_DEV_PREVIEW_ENABLED = process.env.BLOG_DEV_PREVIEW === "1";
@@ -24,13 +33,15 @@ const PREVIEW: PublicBlogPost[] = [
     author: "Marinelle Tala",
     promoConfig: {
       enabled: true,
-      promoCode: "GLOW10",
-      customPromoText: "Save on your next facial when you book this month.",
+      couponId: "preview-mock",
+      promoCode: "",
+      customPromoText: "",
       ctaButtonText: "Book Treatment Now →",
       ctaUrl: "/book",
     },
     serviceIds: [],
     translations: [],
+    resolvedPromo: PLACEHOLDER_RESOLVED,
   },
   {
     _id: "preview-es-1",
@@ -49,6 +60,7 @@ const PREVIEW: PublicBlogPost[] = [
     promoConfig: { enabled: false, ctaUrl: "/book" },
     serviceIds: [],
     translations: [],
+    resolvedPromo: PLACEHOLDER_RESOLVED,
   },
   {
     _id: "preview-tl-1",
@@ -67,6 +79,7 @@ const PREVIEW: PublicBlogPost[] = [
     promoConfig: { enabled: false, ctaUrl: "/book" },
     serviceIds: [],
     translations: [],
+    resolvedPromo: PLACEHOLDER_RESOLVED,
   },
   {
     _id: "preview-pa-1",
@@ -85,6 +98,7 @@ const PREVIEW: PublicBlogPost[] = [
     promoConfig: { enabled: false, ctaUrl: "/book" },
     serviceIds: [],
     translations: [],
+    resolvedPromo: PLACEHOLDER_RESOLVED,
   },
   {
     _id: "preview-ar-1",
@@ -103,6 +117,7 @@ const PREVIEW: PublicBlogPost[] = [
     promoConfig: { enabled: false, ctaUrl: "/book" },
     serviceIds: [],
     translations: [],
+    resolvedPromo: PLACEHOLDER_RESOLVED,
   },
   {
     _id: "preview-en-2",
@@ -118,9 +133,10 @@ const PREVIEW: PublicBlogPost[] = [
     metaTitle: "",
     metaDescription: "Lash lift aftercare from Mari Esthetics.",
     author: "Marinelle Tala",
-    promoConfig: { enabled: false, ctaUrl: "/book", ctaButtonText: "Book Lash Lift →" },
+    promoConfig: { enabled: true, promoCode: "GLOW20", ctaUrl: "/book", ctaButtonText: "Book Lash Lift →" },
     serviceIds: [],
     translations: [],
+    resolvedPromo: PLACEHOLDER_RESOLVED,
   },
   {
     _id: "preview-en-3",
@@ -139,6 +155,7 @@ const PREVIEW: PublicBlogPost[] = [
     promoConfig: { enabled: false, ctaUrl: "/book" },
     serviceIds: [],
     translations: [],
+    resolvedPromo: PLACEHOLDER_RESOLVED,
   },
 ];
 

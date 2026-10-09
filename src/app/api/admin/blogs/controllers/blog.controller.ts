@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   createBlogPost,
+  createBlogTranslationSet,
   updateBlogPost,
   getBlogPosts,
   getBlogPostById,
@@ -48,6 +49,22 @@ export async function handleCreateBlog(req: Request, validatedData: any): Promis
   } catch (err: any) {
     console.error("[Blog Controller Create Error]:", err.message);
     return NextResponse.json({ error: err.message || "Failed to create blog" }, { status: 500 });
+  }
+}
+
+export async function handleCreateBlogTranslationSet(
+  req: Request,
+  validatedData: any
+): Promise<NextResponse> {
+  try {
+    const result = await createBlogTranslationSet(validatedData);
+    return NextResponse.json({ success: true, ...result }, { status: 201 });
+  } catch (err: any) {
+    console.error("[Blog Controller Translation Set Error]:", err.message);
+    return NextResponse.json(
+      { error: err.message || "Failed to create translation set" },
+      { status: 500 }
+    );
   }
 }
 

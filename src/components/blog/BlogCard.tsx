@@ -1,9 +1,20 @@
+"use client";
+
 import Link from "next/link";
 import { formatBlogDate } from "@/components/blog/formatBlogDate";
+import { useLanguage, LANGUAGES } from "@/components/i18n/LanguageContext";
 import type { BlogListItem } from "@/lib/blog/types";
 
 export function BlogCard({ post }: { post: BlogListItem }) {
+  const { locale, t } = useLanguage();
   const dateLabel = formatBlogDate(post.publishedAt);
+  const showFallback = post.localeFallback && locale !== post.language;
+  const langLabel =
+    LANGUAGES.find((l) => l.code === locale)?.label || locale.toUpperCase();
+  const fallbackNote =
+    t("blog.cardLocaleFallback") !== "blog.cardLocaleFallback"
+      ? t("blog.cardLocaleFallback").replace("{language}", langLabel)
+      : `Not yet in ${langLabel} — English version`;
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--card-bg)] shadow-sm transition-all duration-300 hover:border-[#c8a86b]/40 hover:shadow-lg">
@@ -28,11 +39,18 @@ export function BlogCard({ post }: { post: BlogListItem }) {
       </Link>
 
       <div className="flex flex-1 flex-col p-6">
-        {dateLabel ? (
-          <time dateTime={post.publishedAt ?? undefined} className="text-xs text-[var(--ink-soft)]">
-            {dateLabel}
-          </time>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {dateLabel ? (
+            <time dateTime={post.publishedAt ?? undefined} className="text-xs text-[var(--ink-soft)]">
+              {dateLabel}
+            </time>
+          ) : null}
+          {showFallback ? (
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] text-amber-200/90">
+              {fallbackNote}
+            </span>
+          ) : null}
+        </div>
         <h2 className="mt-2 text-xl font-semibold leading-snug text-[var(--ink)] transition-colors group-hover:text-gold-bright">
           <Link href={`/blog/${post.slug}`}>{post.title}</Link>
         </h2>

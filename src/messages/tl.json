@@ -8,12 +8,20 @@
     "admin": "Admin Portal"
   },
   "blog": {
+    "promo": {
+      "eyebrowOffer": "Espesyal na alok",
+      "eyebrowBooking": "Handa na para sa glow?",
+      "useCode": "Gamitin ang code",
+      "bookOnline": "kapag nag-book online."
+    },
     "eyebrow": "Skin care journal",
     "previewTitle": "Pinakabago sa blog",
     "previewSubtitle": "Mga tip, impormasyon sa treatment, at balita mula sa studio.",
     "viewAll": "Tingnan lahat ng artikulo",
     "emptyTitle": "Malapit nang mag-publish",
-    "emptySubtitle": "Inihahanda namin ang mga skin care tip. Samantala, tingnan ang mga serbisyo o mag-book ng appointment."
+    "emptySubtitle": "Inihahanda namin ang mga skin care tip. Samantala, tingnan ang mga serbisyo o mag-book ng appointment.",
+    "localeFallback": "Hindi pa available ang artikulong ito sa {language}. Ipapakita ang bersyong Ingles.",
+    "cardLocaleFallback": "Wala pa sa {language} — bersyong Ingles"
   },
   "hero": {
     "eyebrow": "Pribadong Studio · West Edmonton",

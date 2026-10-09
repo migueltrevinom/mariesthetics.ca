@@ -2,31 +2,41 @@ import { SubscriberRepository } from "../repositories/subscriber.repository";
 import { BlogRepository } from "../repositories/blog.repository";
 import { sendEmail } from "@/lib/mailgun";
 import { config } from "@/lib/config";
+import { resolveBlogPromo } from "@/lib/blog/resolvePromo";
+import type { ResolvedBlogPromo } from "@/lib/blog/types";
 
-export function generateNewsletterHtml(blog: any, baseUrl: string): string {
+export function generateNewsletterHtml(
+  blog: any,
+  baseUrl: string,
+  resolvedPromo: ResolvedBlogPromo
+): string {
   const postUrl = `${baseUrl}/blog/${blog.slug}`;
-  const promo = blog.promoConfig;
 
   let promoSectionHtml = "";
-  if (promo && promo.enabled) {
-    const promoCodeBox = promo.promoCode
+  if (resolvedPromo.enabled) {
+    const promoCodeBox = resolvedPromo.hasValidCoupon && resolvedPromo.code
       ? `<div style="background: #f7f4ed; border: 2px dashed #c8a86b; padding: 16px 20px; border-radius: 12px; margin: 18px 0; text-align: center;">
           <p style="margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #887d70; font-weight: bold;">Special Studio Offer</p>
-          <p style="margin: 6px 0 0 0; font-size: 22px; font-family: monospace; font-weight: bold; color: #24180a; letter-spacing: 2px;">${promo.promoCode}</p>
+          <p style="margin: 6px 0 0 0; font-size: 22px; font-family: monospace; font-weight: bold; color: #24180a; letter-spacing: 2px;">${resolvedPromo.code}</p>
+          ${resolvedPromo.discountLabel ? `<p style="margin: 8px 0 0; font-size: 12px; color: #5a5043;">${resolvedPromo.discountLabel}</p>` : ""}
         </div>`
       : "";
+
+    const ctaHref = resolvedPromo.ctaUrl.startsWith("http")
+      ? resolvedPromo.ctaUrl
+      : `${baseUrl}${resolvedPromo.ctaUrl}`;
 
     promoSectionHtml = `
       <div style="margin-top: 36px; padding: 24px; background: #ffffff; border-radius: 16px; border: 1px solid #e8e3d9; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
         <span style="font-size: 28px; display: block; margin-bottom: 6px;">✨</span>
         <h4 style="margin: 0 0 8px 0; color: #24180a; font-size: 18px; font-weight: 700;">Exclusive Client Promotion</h4>
         <p style="margin: 0; color: #5a5043; font-size: 13.5px; line-height: 1.5;">
-          ${promo.customPromoText || "Treat yourself to radiant skin with our tailored treatments."}
+          ${resolvedPromo.headline}
         </p>
         ${promoCodeBox}
         <div style="margin-top: 18px;">
-          <a href="${baseUrl}${promo.ctaUrl || "/book"}" style="background-color: #24180a; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 9999px; font-weight: 700; font-size: 13px; display: inline-block; letter-spacing: 0.5px;">
-            ${promo.ctaButtonText || "Book Your Treatment →"}
+          <a href="${ctaHref}" style="background-color: #24180a; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 9999px; font-weight: 700; font-size: 13px; display: inline-block; letter-spacing: 0.5px;">
+            ${resolvedPromo.ctaButtonText || "Book Your Treatment →"}
           </a>
         </div>
       </div>
@@ -116,7 +126,25 @@ export async function dispatchBlogNewsletter(params: {
   }
 
   const baseUrl = params.baseUrl || config.appUrl || "https://mariesthetics.ca";
-  const html = generateNewsletterHtml(blog, baseUrl);
+  const serviceIds = (blog.serviceIds || []).map((s: any) => ({
+    _id: String(s._id || s),
+    name: typeof s === "object" && s?.name ? String(s.name) : "Service",
+    slug: typeof s === "object" && s?.slug ? String(s.slug) : undefined,
+  }));
+  const rawPromo = (blog.promoConfig || {}) as Record<string, unknown>;
+  const resolvedPromo = await resolveBlogPromo({
+    promoConfig: {
+      enabled: Boolean(rawPromo.enabled),
+      couponId: rawPromo.couponId ? String(rawPromo.couponId) : null,
+      promoCode: rawPromo.promoCode ? String(rawPromo.promoCode) : "",
+      customPromoText: rawPromo.customPromoText ? String(rawPromo.customPromoText) : "",
+      ctaButtonText: rawPromo.ctaButtonText ? String(rawPromo.ctaButtonText) : "",
+      ctaUrl: rawPromo.ctaUrl ? String(rawPromo.ctaUrl) : "/book",
+    },
+    serviceIds,
+    language: blog.language,
+  });
+  const html = generateNewsletterHtml(blog, baseUrl, resolvedPromo);
 
   let successCount = 0;
   for (const subscriber of subscribers) {

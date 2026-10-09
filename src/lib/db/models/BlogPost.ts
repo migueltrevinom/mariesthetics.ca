@@ -35,6 +35,8 @@ const BlogPostSchema = new Schema(
     author: { type: String, default: "Marinelle Tala", trim: true },
     promoConfig: {
       enabled: { type: Boolean, default: false },
+      couponId: { type: Schema.Types.ObjectId, ref: "Coupon", default: null },
+      /** @deprecated Use couponId — kept for legacy posts until re-saved in admin. */
       promoCode: { type: String, default: "", trim: true },
       customPromoText: { type: String, default: "", trim: true },
       ctaButtonText: { type: String, default: "Book Treatment Now →", trim: true },
