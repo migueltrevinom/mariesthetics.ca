@@ -1,40 +1,14 @@
-import { connectDb } from "@/lib/db/connect";
-import { BlogPost } from "@/lib/db/models";
-import { BLOG_DEV_PREVIEW_ENABLED, getPreviewListItems } from "@/lib/blog/previewPosts";
+import { getPublishedPostsForDiscovery } from "@/lib/blog/queries";
 import { blogPostUrl } from "@/lib/blog/locales";
 import { business, siteUrl } from "@/lib/seo";
 
-type BlogLlmsRow = {
+export type LlmsBlogRow = {
   slug: string;
   language: string;
   title: string;
   excerpt: string;
   translationGroupId: string;
 };
-
-async function fetchPublishedBlogRows(): Promise<BlogLlmsRow[]> {
-  if (BLOG_DEV_PREVIEW_ENABLED) {
-    return getPreviewListItems().map((p) => ({
-      slug: p.slug,
-      language: p.language,
-      title: p.title,
-      excerpt: p.excerpt,
-      translationGroupId: p.translationGroupId,
-    }));
-  }
-  await connectDb();
-  const rows = await BlogPost.find({ status: "published" })
-    .select("slug language title excerpt translationGroupId")
-    .sort({ publishedAt: -1 })
-    .lean();
-  return rows.map((r) => ({
-    slug: String(r.slug),
-    language: String(r.language || "en"),
-    title: String(r.title),
-    excerpt: String(r.excerpt || ""),
-    translationGroupId: String(r.translationGroupId || r._id),
-  }));
-}
 
 function siteOverview(): string {
   return `# Mari Esthetics
@@ -52,12 +26,13 @@ function siteOverview(): string {
 `;
 }
 
-function formatBlogSection(rows: BlogLlmsRow[], full: boolean): string {
+/** Renders the blog section for llms.txt / llms-full.txt (exported for tests). */
+export function formatLlmsBlogSection(rows: LlmsBlogRow[], full: boolean): string {
   if (!rows.length) {
     return "\n## Blog\n\nNo published articles yet.\n";
   }
 
-  const byGroup = new Map<string, BlogLlmsRow[]>();
+  const byGroup = new Map<string, LlmsBlogRow[]>();
   for (const row of rows) {
     const gid = row.translationGroupId;
     if (!byGroup.has(gid)) byGroup.set(gid, []);
@@ -80,9 +55,17 @@ function formatBlogSection(rows: BlogLlmsRow[], full: boolean): string {
 }
 
 export async function buildLlmsTxt(full = false): Promise<string> {
-  const rows = await fetchPublishedBlogRows().catch(() => []);
+  const discovery = await getPublishedPostsForDiscovery();
+  const rows: LlmsBlogRow[] = discovery.map((r) => ({
+    slug: r.slug,
+    language: r.language,
+    title: r.title,
+    excerpt: r.excerpt,
+    translationGroupId: r.translationGroupId,
+  }));
+
   const header = siteOverview();
-  const blog = formatBlogSection(rows, full);
+  const blog = formatLlmsBlogSection(rows, full);
   const footer = full
     ? `\n## Business\n\n${business.description}\n\nAreas served: ${business.areasServed.join(", ")}.\n`
     : "";
