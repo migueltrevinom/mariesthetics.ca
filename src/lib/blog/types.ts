@@ -15,8 +15,15 @@ export type BlogServiceRef = {
   priceCents?: number;
 };
 
+export type BlogTranslationRef = {
+  language: BlogLanguage;
+  slug: string;
+  title: string;
+};
+
 export type PublicBlogPost = {
   _id: string;
+  translationGroupId: string;
   title: string;
   slug: string;
   excerpt: string;
@@ -25,16 +32,19 @@ export type PublicBlogPost = {
   language: BlogLanguage;
   category: string;
   publishedAt: string | null;
+  updatedAt?: string | null;
   metaTitle: string;
   metaDescription: string;
   author: string;
   promoConfig: BlogPromoConfig;
   serviceIds: BlogServiceRef[];
+  translations: BlogTranslationRef[];
 };
 
 export type BlogListItem = Pick<
   PublicBlogPost,
   | "_id"
+  | "translationGroupId"
   | "title"
   | "slug"
   | "excerpt"

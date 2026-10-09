@@ -74,6 +74,8 @@ type BuildMetadataInput = {
   publishedTime?: string;
   modifiedTime?: string;
   authors?: string[];
+  hreflangAlternates?: Record<string, string>;
+  ogLocale?: string;
 };
 
 export function buildMetadata({
@@ -87,6 +89,8 @@ export function buildMetadata({
   publishedTime,
   modifiedTime,
   authors,
+  hreflangAlternates,
+  ogLocale = "en_CA",
 }: BuildMetadataInput = {}): Metadata {
   const canonical = `${siteUrl}${path === "/" ? "" : path}`;
   const fullTitle = title ? `${title} · ${business.name}` : `${business.name} · Edmonton Esthetics Studio`;
@@ -100,6 +104,9 @@ export function buildMetadata({
     keywords: keywords ?? seoKeywords,
     alternates: {
       canonical,
+      ...(hreflangAlternates && Object.keys(hreflangAlternates).length > 0
+        ? { languages: hreflangAlternates }
+        : {}),
     },
     robots: noindex
       ? { index: false, follow: false }
@@ -110,7 +117,7 @@ export function buildMetadata({
       title: fullTitle,
       description,
       url: canonical,
-      locale: "en_CA",
+      locale: ogLocale,
       images: ogImages,
       ...(ogType === "article" && publishedTime ? { publishedTime } : {}),
       ...(ogType === "article" && modifiedTime ? { modifiedTime } : {}),
@@ -133,6 +140,7 @@ export function articleJsonLd(post: {
   author?: string;
   publishedAt?: string | null;
   modifiedAt?: string | null;
+  inLanguage?: string;
 }) {
   const url = `${siteUrl}/blog/${post.slug}`;
   const image = post.coverImage
@@ -147,18 +155,26 @@ export function articleJsonLd(post: {
     headline: post.title,
     description: post.description,
     image: [image],
+    inLanguage: post.inLanguage || "en-CA",
     author: {
       "@type": "Person",
       name: post.author || "Marinelle Tala",
     },
     publisher: {
-      "@type": "Organization",
+      "@type": ["Organization", "HealthAndBeautyBusiness"],
       name: business.name,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: business.locality,
+        addressRegion: business.region,
+        addressCountry: business.country,
+      },
       logo: {
         "@type": "ImageObject",
         url: `${siteUrl}/images/logo/mari-logo-full.svg`,
       },
     },
+    about: { "@id": `${siteUrl}/#business` },
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": url,
@@ -320,10 +336,14 @@ export function faqJsonLd(items: Array<{ q: string; a: string }>) {
   };
 }
 
-export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
+export function breadcrumbJsonLd(
+  items: Array<{ name: string; path: string }>,
+  options?: { inLanguage?: string }
+) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    inLanguage: options?.inLanguage || "en-CA",
     itemListElement: items.map((item, i) => ({
       "@type": "ListItem",
       position: i + 1,

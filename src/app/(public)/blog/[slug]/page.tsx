@@ -4,15 +4,27 @@ import { notFound } from "next/navigation";
 import { BlogPostBody } from "@/components/blog/BlogPostBody";
 import { BlogPromoCta } from "@/components/blog/BlogPromoCta";
 import { BlogRelatedServices } from "@/components/blog/BlogRelatedServices";
+import { BlogTranslationProvider } from "@/components/blog/BlogTranslationContext";
 import { formatBlogDate } from "@/components/blog/formatBlogDate";
+import {
+  blogLanguageDir,
+  buildBlogHreflangAlternates,
+  localeToHreflang,
+} from "@/lib/blog/locales";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
   getPublishedBlogPostBySlug,
   getPublishedBlogSlugs,
   incrementBlogPostViews,
 } from "@/lib/blog/queries";
-import { getServerLocale } from "@/lib/i18n/locale";
-import { articleJsonLd, breadcrumbJsonLd, buildMetadata, siteUrl } from "@/lib/seo";
+import type { Locale } from "@/components/i18n/LanguageContext";
+import {
+  articleJsonLd,
+  breadcrumbJsonLd,
+  buildMetadata,
+  localBusinessJsonLd,
+  siteUrl,
+} from "@/lib/seo";
 
 export const revalidate = 300;
 
@@ -25,8 +37,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const locale = await getServerLocale();
-  const post = await getPublishedBlogPostBySlug(slug, locale);
+  const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
     return buildMetadata({ title: "Article not found", path: `/blog/${slug}`, noindex: true });
@@ -40,6 +51,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : `${siteUrl}${post.coverImage}`
     : undefined;
 
+  const hreflangAlternates = buildBlogHreflangAlternates(post.translations);
+
   return buildMetadata({
     title,
     description,
@@ -47,14 +60,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     ogImage,
     ogType: "article",
     publishedTime: post.publishedAt ?? undefined,
+    modifiedTime: post.updatedAt ?? undefined,
     authors: [post.author],
+    hreflangAlternates,
+    ogLocale: localeToHreflang(post.language).replace("-", "_"),
   });
+}
+
+function slugsByLocale(
+  translations: Array<{ language: string; slug: string }>
+): Partial<Record<Locale, string>> {
+  const map: Partial<Record<Locale, string>> = {};
+  for (const t of translations) {
+    if (["en", "es", "tl", "pa", "ar"].includes(t.language)) {
+      map[t.language as Locale] = t.slug;
+    }
+  }
+  return map;
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const locale = await getServerLocale();
-  const post = await getPublishedBlogPostBySlug(slug, locale);
+  const post = await getPublishedBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -64,76 +91,90 @@ export default async function BlogPostPage({ params }: PageProps) {
 
   const dateLabel = formatBlogDate(post.publishedAt);
   const description = post.metaDescription || post.excerpt || post.title;
+  const dir = blogLanguageDir(post.language);
+  const inLanguage = localeToHreflang(post.language);
 
   return (
-    <article className="aurora grain relative min-h-[90svh] overflow-hidden pt-32 pb-24 md:pt-40 bg-[var(--background)]">
-      <div className="relative mx-auto max-w-3xl px-6 md:px-10">
-        <nav className="text-sm text-[var(--ink-soft)]">
-          <Link href="/blog" className="transition-colors hover:text-gold-bright">
-            ← Back to blog
-          </Link>
-        </nav>
+    <BlogTranslationProvider slugsByLocale={slugsByLocale(post.translations)}>
+      <article
+        lang={post.language}
+        dir={dir}
+        className="aurora grain relative min-h-[90svh] overflow-hidden pt-32 pb-24 md:pt-40 bg-[var(--background)]"
+      >
+        <div className="relative mx-auto max-w-3xl px-6 md:px-10">
+          <nav className="text-sm text-[var(--ink-soft)]">
+            <Link href="/blog" className="transition-colors hover:text-gold-bright">
+              ← Back to blog
+            </Link>
+          </nav>
 
-        <header className="mt-8">
-          {post.category ? (
-            <p className="eyebrow">{post.category}</p>
-          ) : (
-            <p className="eyebrow">Mari Esthetics</p>
-          )}
-          <h1 className="display mt-4 text-4xl text-[var(--ink)] md:text-5xl lg:text-6xl">{post.title}</h1>
-          {post.excerpt ? (
-            <p className="mt-6 text-lg leading-relaxed text-[var(--ink-soft)]">{post.excerpt}</p>
-          ) : null}
-          <p className="mt-6 text-sm text-[var(--ink-soft)]">
-            <span className="font-semibold text-[var(--ink)]">{post.author}</span>
-            {dateLabel ? (
-              <>
-                <span className="mx-2 opacity-40">·</span>
-                <time dateTime={post.publishedAt ?? undefined}>{dateLabel}</time>
-              </>
+          <header className="mt-8">
+            {post.category ? (
+              <p className="eyebrow">{post.category}</p>
+            ) : (
+              <p className="eyebrow">Mari Esthetics</p>
+            )}
+            <h1 className="display mt-4 text-4xl text-[var(--ink)] md:text-5xl lg:text-6xl">{post.title}</h1>
+            {post.excerpt ? (
+              <p className="mt-6 text-lg leading-relaxed text-[var(--ink-soft)]">{post.excerpt}</p>
             ) : null}
-          </p>
-        </header>
+            <p className="mt-6 text-sm text-[var(--ink-soft)]">
+              <span className="font-semibold text-[var(--ink)]">{post.author}</span>
+              {dateLabel ? (
+                <>
+                  <span className="mx-2 opacity-40">·</span>
+                  <time dateTime={post.publishedAt ?? undefined}>{dateLabel}</time>
+                </>
+              ) : null}
+            </p>
+          </header>
 
-        {post.coverImage ? (
-          <div className="mt-10 overflow-hidden rounded-2xl border border-[var(--border-color)]">
-            <img
-              src={post.coverImage}
-              alt=""
-              className="w-full max-h-[480px] object-cover"
-              fetchPriority="high"
-            />
+          {post.coverImage ? (
+            <div className="mt-10 overflow-hidden rounded-2xl border border-[var(--border-color)]">
+              <img
+                src={post.coverImage}
+                alt=""
+                className="w-full max-h-[480px] object-cover"
+                fetchPriority="high"
+              />
+            </div>
+          ) : null}
+
+          <BlogPromoCta promo={post.promoConfig} variant="inline" />
+
+          <div className="mt-10">
+            <BlogPostBody content={post.content} />
           </div>
-        ) : null}
 
-        <BlogPromoCta promo={post.promoConfig} variant="inline" />
+          <BlogRelatedServices services={post.serviceIds} />
 
-        <div className="mt-10">
-          <BlogPostBody content={post.content} />
+          <BlogPromoCta promo={post.promoConfig} variant="closing" />
         </div>
 
-        <BlogRelatedServices services={post.serviceIds} />
-
-        <BlogPromoCta promo={post.promoConfig} variant="closing" />
-      </div>
-
-      <JsonLd
-        data={[
-          articleJsonLd({
-            title: post.title,
-            description,
-            slug: post.slug,
-            coverImage: post.coverImage,
-            author: post.author,
-            publishedAt: post.publishedAt,
-          }),
-          breadcrumbJsonLd([
-            { name: "Home", path: "/" },
-            { name: "Blog", path: "/blog" },
-            { name: post.title, path: `/blog/${post.slug}` },
-          ]),
-        ]}
-      />
-    </article>
+        <JsonLd
+          data={[
+            localBusinessJsonLd(),
+            articleJsonLd({
+              title: post.title,
+              description,
+              slug: post.slug,
+              coverImage: post.coverImage,
+              author: post.author,
+              publishedAt: post.publishedAt,
+              modifiedAt: post.updatedAt,
+              inLanguage,
+            }),
+            breadcrumbJsonLd(
+              [
+                { name: "Home", path: "/" },
+                { name: "Blog", path: "/blog" },
+                { name: post.title, path: `/blog/${post.slug}` },
+              ],
+              { inLanguage }
+            ),
+          ]}
+        />
+      </article>
+    </BlogTranslationProvider>
   );
 }

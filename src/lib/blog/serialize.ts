@@ -32,6 +32,7 @@ function promoFromDoc(raw: unknown): PublicBlogPost["promoConfig"] {
 export function serializeBlogListItem(doc: Record<string, unknown>): BlogListItem {
   return {
     _id: String(doc._id),
+    translationGroupId: String(doc.translationGroupId ?? doc._id),
     title: String(doc.title ?? ""),
     slug: String(doc.slug ?? ""),
     excerpt: String(doc.excerpt ?? ""),
@@ -52,5 +53,7 @@ export function serializeBlogPost(doc: Record<string, unknown>): PublicBlogPost 
     author: String(doc.author ?? "Marinelle Tala"),
     promoConfig: promoFromDoc(doc.promoConfig),
     serviceIds: mapServices(doc.serviceIds),
+    updatedAt: doc.updatedAt ? new Date(doc.updatedAt as string | Date).toISOString() : null,
+    translations: [],
   };
 }
