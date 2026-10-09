@@ -10,6 +10,7 @@ import {
 } from "@/lib/seo";
 
 import { LanguageProvider } from "@/components/i18n/LanguageContext";
+import { LocaleRouteSync } from "@/components/i18n/LocaleRouteSync";
 
 const display = Fraunces({
   variable: "--font-display",
@@ -128,6 +129,7 @@ export default function RootLayout({
       </head>
       <body className={`${display.variable} ${body.variable} antialiased`}>
         <LanguageProvider>
+          <LocaleRouteSync />
           <a href="#main" className="skip-link">
             Skip to content
           </a>

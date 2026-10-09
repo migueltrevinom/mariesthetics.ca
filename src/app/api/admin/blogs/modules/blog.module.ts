@@ -44,6 +44,57 @@ export async function createBlogPost(data: any) {
   return await BlogRepository.create(postData);
 }
 
+export async function createBlogTranslationSet(data: {
+  translationGroupId?: string;
+  status: "draft" | "published" | "archived";
+  publishedAt?: string | null;
+  coverImage?: string;
+  category?: string;
+  author?: string;
+  serviceIds?: string[];
+  promoConfig?: Record<string, unknown>;
+  translations: Array<{
+    language: string;
+    title: string;
+    slug?: string;
+    excerpt?: string;
+    content: string;
+    metaTitle?: string;
+    metaDescription?: string;
+  }>;
+}) {
+  const translationGroupId = data.translationGroupId?.trim() || nanoid(12);
+  const publishedAt =
+    data.status === "published" ? data.publishedAt || new Date().toISOString() : null;
+
+  const created = [];
+  for (const entry of data.translations) {
+    const slug = entry.slug
+      ? slugify(entry.slug)
+      : await generateUniqueSlug(entry.title);
+    const post = await BlogRepository.create({
+      title: entry.title,
+      slug,
+      excerpt: entry.excerpt ?? "",
+      content: entry.content,
+      coverImage: data.coverImage ?? "",
+      language: entry.language,
+      translationGroupId,
+      serviceIds: data.serviceIds ?? [],
+      category: data.category ?? "",
+      status: data.status,
+      publishedAt,
+      metaTitle: entry.metaTitle ?? "",
+      metaDescription: entry.metaDescription ?? "",
+      author: data.author ?? "Marinelle Tala",
+      promoConfig: data.promoConfig,
+    });
+    created.push(post);
+  }
+
+  return { translationGroupId, posts: created };
+}
+
 export async function updateBlogPost(id: string, data: any) {
   let updateData = { ...data };
   if (data.title && !data.slug) {

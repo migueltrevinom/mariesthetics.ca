@@ -4,6 +4,7 @@ import {
   fetchCoupons,
   createCoupon,
   updateCouponWindow,
+  updateCouponRules,
   fetchCouponRedemptions,
   removeCoupon,
   fetchGiftCards,
@@ -47,6 +48,9 @@ export async function handleCreateCoupon(req: Request, validatedData: any): Prom
 const updateCouponSchema = z.object({
   startsAt: z.string().nullable().optional(),
   expiresAt: z.string().nullable().optional(),
+  firstTimeClientsOnly: z.boolean().optional(),
+  serviceIds: z.array(z.string()).optional(),
+  categoryIds: z.array(z.string()).optional(),
 });
 
 export async function handleGetCoupon(id: string): Promise<NextResponse> {
@@ -62,8 +66,25 @@ export async function handleGetCoupon(id: string): Promise<NextResponse> {
 export async function handleUpdateCoupon(req: Request, id: string): Promise<NextResponse> {
   try {
     const body = updateCouponSchema.parse(await req.json());
-    const { startsAt, expiresAt } = couponWindowFromBody(body);
-    const coupon = await updateCouponWindow(id, { startsAt, expiresAt });
+    let coupon;
+    if (body.startsAt !== undefined || body.expiresAt !== undefined) {
+      const { startsAt, expiresAt } = couponWindowFromBody(body);
+      coupon = await updateCouponWindow(id, { startsAt, expiresAt });
+    }
+    if (
+      body.firstTimeClientsOnly !== undefined ||
+      body.serviceIds !== undefined ||
+      body.categoryIds !== undefined
+    ) {
+      coupon = await updateCouponRules(id, {
+        firstTimeClientsOnly: body.firstTimeClientsOnly,
+        serviceIds: body.serviceIds,
+        categoryIds: body.categoryIds,
+      });
+    }
+    if (!coupon) {
+      return NextResponse.json({ error: "No coupon fields to update" }, { status: 400 });
+    }
     return NextResponse.json({ success: true, coupon });
   } catch (err: any) {
     if (err instanceof z.ZodError) {

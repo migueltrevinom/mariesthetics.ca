@@ -19,6 +19,7 @@ export const createBlogSchema = z.object({
   promoConfig: z
     .object({
       enabled: z.boolean().default(false),
+      couponId: z.string().nullable().optional(),
       promoCode: z.string().optional().default(""),
       customPromoText: z.string().optional().default(""),
       ctaButtonText: z.string().optional().default("Book Treatment Now →"),
@@ -39,6 +40,28 @@ export const updateBlogSchema = createBlogSchema.partial();
 export const sendNewsletterSchema = z.object({
   subject: z.string().min(1, "Subject line is required"),
   targetLanguage: z.enum(["all", "en", "es", "tl", "pa", "ar"]).default("all"),
+});
+
+const translationEntrySchema = z.object({
+  language: z.enum(["en", "es", "tl", "pa", "ar"]),
+  title: z.string().min(1).trim(),
+  slug: z.string().optional(),
+  excerpt: z.string().optional().default(""),
+  content: z.string().min(1),
+  metaTitle: z.string().optional().default(""),
+  metaDescription: z.string().optional().default(""),
+});
+
+export const createBlogTranslationSetSchema = z.object({
+  translationGroupId: z.string().trim().min(4).optional(),
+  status: z.enum(["draft", "published", "archived"]).default("draft"),
+  publishedAt: z.string().nullable().optional(),
+  coverImage: z.string().optional().default(""),
+  category: z.string().optional().default(""),
+  author: z.string().optional().default("Marinelle Tala"),
+  serviceIds: z.array(z.string()).optional().default([]),
+  promoConfig: createBlogSchema.shape.promoConfig.optional(),
+  translations: z.array(translationEntrySchema).min(1, "At least one translation is required"),
 });
 
 export const createSubscriberSchema = z.object({

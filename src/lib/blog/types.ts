@@ -2,10 +2,24 @@ export type BlogLanguage = "en" | "es" | "tl" | "pa" | "ar";
 
 export type BlogPromoConfig = {
   enabled: boolean;
+  couponId?: string | null;
+  /** Legacy free-text code; resolved via coupons collection when couponId is empty. */
   promoCode?: string;
   customPromoText?: string;
   ctaButtonText?: string;
   ctaUrl?: string;
+};
+
+export type ResolvedBlogPromo = {
+  enabled: boolean;
+  hasValidCoupon: boolean;
+  code?: string;
+  discountLabel?: string;
+  expiryLabel?: string | null;
+  headline: string;
+  ctaUrl: string;
+  ctaButtonText: string;
+  eyebrow: "offer" | "booking";
 };
 
 export type BlogServiceRef = {
@@ -37,6 +51,7 @@ export type PublicBlogPost = {
   metaDescription: string;
   author: string;
   promoConfig: BlogPromoConfig;
+  resolvedPromo: ResolvedBlogPromo;
   serviceIds: BlogServiceRef[];
   translations: BlogTranslationRef[];
 };
@@ -52,4 +67,7 @@ export type BlogListItem = Pick<
   | "language"
   | "category"
   | "publishedAt"
->;
+> & {
+  /** True when showing English (or another variant) because the viewer locale has no translation. */
+  localeFallback?: boolean;
+};

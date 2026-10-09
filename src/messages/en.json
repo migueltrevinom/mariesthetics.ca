@@ -8,12 +8,20 @@
     "admin": "Admin Portal"
   },
   "blog": {
+    "promo": {
+      "eyebrowOffer": "Special offer",
+      "eyebrowBooking": "Ready for your glow?",
+      "useCode": "Use code",
+      "bookOnline": "when you book online."
+    },
     "eyebrow": "Skin care journal",
     "previewTitle": "Latest from the blog",
     "previewSubtitle": "Tips, treatment insights, and studio updates from Mari.",
     "viewAll": "View all articles",
     "emptyTitle": "Articles coming soon",
-    "emptySubtitle": "We are preparing skin care tips and studio updates. In the meantime, explore our treatment menu or book your visit."
+    "emptySubtitle": "We are preparing skin care tips and studio updates. In the meantime, explore our treatment menu or book your visit.",
+    "localeFallback": "This article is not yet available in {language}. Showing the English version.",
+    "cardLocaleFallback": "Not yet in {language} — English version"
   },
   "hero": {
     "eyebrow": "Private Home Studio · West Edmonton",

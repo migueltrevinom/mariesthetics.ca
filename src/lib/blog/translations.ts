@@ -25,10 +25,8 @@ export function pickLocalizedPostsForListing(
   const selected: BlogListItem[] = [];
 
   for (const variants of byGroup.values()) {
-    const match =
-      variants.find((p) => p.language === locale) ||
-      variants.find((p) => p.language === "en") ||
-      variants[0];
+    const inLocale = variants.find((p) => p.language === locale);
+    const match = inLocale || variants.find((p) => p.language === "en") || variants[0];
     if (match) {
       selected.push({
         _id: match._id,
@@ -40,6 +38,7 @@ export function pickLocalizedPostsForListing(
         language: match.language,
         category: match.category,
         publishedAt: match.publishedAt,
+        localeFallback: !inLocale && locale !== match.language,
       });
     }
   }

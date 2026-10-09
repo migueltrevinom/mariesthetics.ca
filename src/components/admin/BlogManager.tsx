@@ -34,6 +34,7 @@ export interface BlogPostItem {
   author?: string;
   promoConfig?: {
     enabled: boolean;
+    couponId?: string | null;
     promoCode?: string;
     customPromoText?: string;
     ctaButtonText?: string;
@@ -60,15 +61,28 @@ export interface ServiceOption {
   priceCents: number;
 }
 
+export interface CouponOption {
+  _id: string;
+  code: string;
+  type: "percent" | "fixed";
+  value: number;
+  active: boolean;
+  expiresAt: string | null;
+  redeemable: boolean;
+  discountLabel: string;
+}
+
 export function BlogManager({
   initialPosts = [],
   initialServices = [],
   initialSubscribers = [],
   initialStats,
+  initialCoupons = [],
 }: {
   initialPosts?: BlogPostItem[];
   initialServices?: ServiceOption[];
   initialSubscribers?: SubscriberItem[];
+  initialCoupons?: CouponOption[];
   initialStats?: {
     totalPosts: number;
     publishedPosts: number;
@@ -117,8 +131,9 @@ export function BlogManager({
   const [formStatus, setFormStatus] = useState<"draft" | "published">("published");
   const [formMetaTitle, setFormMetaTitle] = useState("");
   const [formMetaDesc, setFormMetaDesc] = useState("");
+  const [coupons] = useState<CouponOption[]>(initialCoupons);
   const [formPromoEnabled, setFormPromoEnabled] = useState(false);
-  const [formPromoCode, setFormPromoCode] = useState("");
+  const [formCouponId, setFormCouponId] = useState("");
   const [formPromoText, setFormPromoText] = useState("");
   const [formCtaText, setFormCtaText] = useState("Book Treatment Now →");
   const [formCtaUrl, setFormCtaUrl] = useState("/book");
@@ -189,8 +204,8 @@ export function BlogManager({
     setFormStatus("published");
     setFormMetaTitle("");
     setFormMetaDesc("");
-    setFormPromoEnabled(true);
-    setFormPromoCode("GLOW20");
+    setFormPromoEnabled(false);
+    setFormCouponId("");
     setFormPromoText("Enjoy $20 off your first tailored facial session at Mari Esthetics.");
     setFormCtaText("Book Your Session Now →");
     setFormCtaUrl("/book");
@@ -214,7 +229,7 @@ export function BlogManager({
       const sIds = (base.serviceIds || []).map((s: any) => (typeof s === "string" ? s : s._id));
       setFormServiceIds(sIds);
       setFormPromoEnabled(base.promoConfig?.enabled || false);
-      setFormPromoCode(base.promoConfig?.promoCode || "");
+      setFormCouponId(base.promoConfig?.couponId || "");
       setFormPromoText(base.promoConfig?.customPromoText || "");
       setFormCtaText(base.promoConfig?.ctaButtonText || "Book Treatment Now →");
       setFormCtaUrl(base.promoConfig?.ctaUrl || "/book");
@@ -239,7 +254,13 @@ export function BlogManager({
     setFormMetaTitle(post.metaTitle || "");
     setFormMetaDesc(post.metaDescription || "");
     setFormPromoEnabled(post.promoConfig?.enabled || false);
-    setFormPromoCode(post.promoConfig?.promoCode || "");
+    const legacyCode = post.promoConfig?.promoCode?.toUpperCase();
+    const matchedLegacy = legacyCode
+      ? coupons.find((c) => c.code === legacyCode)
+      : undefined;
+    setFormCouponId(
+      post.promoConfig?.couponId || matchedLegacy?._id || ""
+    );
     setFormPromoText(post.promoConfig?.customPromoText || "");
     setFormCtaText(post.promoConfig?.ctaButtonText || "Book Treatment Now →");
     setFormCtaUrl(post.promoConfig?.ctaUrl || "/book");
@@ -276,10 +297,11 @@ export function BlogManager({
       metaDescription: formMetaDesc.trim(),
       promoConfig: {
         enabled: formPromoEnabled,
-        promoCode: formPromoCode.trim().toUpperCase(),
+        couponId: formPromoEnabled && formCouponId ? formCouponId : null,
+        promoCode: "",
         customPromoText: formPromoText.trim(),
         ctaButtonText: formCtaText.trim() || "Book Treatment Now →",
-        ctaUrl: formCtaUrl.trim() || "/book",
+        ctaUrl: "/book",
       },
       ...(formTranslationGroupId ? { translationGroupId: formTranslationGroupId } : {}),
     };
@@ -718,7 +740,11 @@ export function BlogManager({
                           {post.promoConfig?.enabled ? (
                             <span className="inline-flex items-center gap-1 text-[11px] text-leaf font-semibold">
                               <span>🎁</span>
-                              <span>{post.promoConfig.promoCode || "Offer Active"}</span>
+                              <span>
+                                {coupons.find((c) => c._id === post.promoConfig?.couponId)?.code ||
+                                  post.promoConfig?.promoCode ||
+                                  "Coupon linked"}
+                              </span>
                             </span>
                           ) : (
                             <span className="text-[10px] text-[var(--ink-soft)]">None</span>
@@ -1083,15 +1109,30 @@ export function BlogManager({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-[#c8a86b]/20 text-xs">
                     <div className="space-y-1">
                       <label className="font-bold text-[var(--ink-soft)] text-[10px] uppercase">
-                        Discount Promo Code (e.g. GLOW15)
+                        Studio coupon (from Promotions)
                       </label>
-                      <input
-                        type="text"
-                        placeholder="GLOW15"
-                        value={formPromoCode}
-                        onChange={(e) => setFormPromoCode(e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--background)] font-mono uppercase font-bold text-[#c8a86b]"
-                      />
+                      <select
+                        value={formCouponId}
+                        onChange={(e) => setFormCouponId(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--background)] font-mono text-[#c8a86b] font-bold"
+                      >
+                        <option value="">— No coupon —</option>
+                        {coupons.map((c) => (
+                          <option key={c._id} value={c._id} disabled={!c.redeemable && !c.active}>
+                            {c.code} · {c.discountLabel}
+                            {!c.redeemable ? " (inactive/expired)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                      {formCouponId ? (
+                        <p className="text-[10px] text-[var(--ink-soft)]">
+                          Discount text on the blog is generated from this coupon at publish time.
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-amber-500">
+                          Select a coupon created under Admin → Promotions. Free-text codes are no longer used.
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-1">

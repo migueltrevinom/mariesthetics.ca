@@ -20,8 +20,16 @@ function mapServices(raw: unknown): BlogServiceRef[] {
 
 function promoFromDoc(raw: unknown): PublicBlogPost["promoConfig"] {
   const p = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const couponRef = p.couponId;
+  const couponId =
+    couponRef && typeof couponRef === "object" && couponRef !== null && "_id" in couponRef
+      ? String((couponRef as { _id: unknown })._id)
+      : couponRef
+        ? String(couponRef)
+        : null;
   return {
     enabled: Boolean(p.enabled),
+    couponId,
     promoCode: p.promoCode ? String(p.promoCode) : "",
     customPromoText: p.customPromoText ? String(p.customPromoText) : "",
     ctaButtonText: p.ctaButtonText ? String(p.ctaButtonText) : "Book Treatment Now →",
@@ -55,5 +63,13 @@ export function serializeBlogPost(doc: Record<string, unknown>): PublicBlogPost 
     serviceIds: mapServices(doc.serviceIds),
     updatedAt: doc.updatedAt ? new Date(doc.updatedAt as string | Date).toISOString() : null,
     translations: [],
+    resolvedPromo: {
+      enabled: false,
+      hasValidCoupon: false,
+      headline: "",
+      ctaUrl: "/book",
+      ctaButtonText: "Book Treatment Now →",
+      eyebrow: "booking",
+    },
   };
 }

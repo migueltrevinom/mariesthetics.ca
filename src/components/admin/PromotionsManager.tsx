@@ -15,6 +15,9 @@ export interface CouponItem {
   stripeCouponId?: string;
   stripePromotionCodeId?: string;
   active: boolean;
+  firstTimeClientsOnly?: boolean;
+  serviceIds?: string[];
+  categoryIds?: string[];
   createdAt?: string;
 }
 
@@ -77,6 +80,13 @@ function mapCoupon(coupon: any): CouponItem {
     stripeCouponId: coupon.stripeCouponId || "",
     stripePromotionCodeId: coupon.stripePromotionCodeId || "",
     active: Boolean(coupon.active),
+    firstTimeClientsOnly: Boolean(coupon.firstTimeClientsOnly),
+    serviceIds: Array.isArray(coupon.serviceIds)
+      ? coupon.serviceIds.map((id: unknown) => String(id))
+      : [],
+    categoryIds: Array.isArray(coupon.categoryIds)
+      ? coupon.categoryIds.map((c: unknown) => String(c))
+      : [],
     createdAt: coupon.createdAt ? new Date(coupon.createdAt).toISOString() : undefined,
   };
 }
@@ -109,6 +119,7 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
   const [couponMaxRedemptions, setCouponMaxRedemptions] = useState<string>("");
   const [couponStartsAt, setCouponStartsAt] = useState("");
   const [couponExpiresAt, setCouponExpiresAt] = useState("");
+  const [couponFirstTimeOnly, setCouponFirstTimeOnly] = useState(false);
   const [couponSaving, setCouponSaving] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [windowStart, setWindowStart] = useState("");
@@ -235,6 +246,7 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
         maxRedemptions: couponMaxRedemptions ? parseInt(couponMaxRedemptions, 10) : null,
         startsAt: couponStartsAt || null,
         expiresAt: couponExpiresAt || null,
+        firstTimeClientsOnly: couponFirstTimeOnly,
       };
 
       const res = await fetch("/api/admin/promotions/coupons", {
@@ -252,6 +264,7 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
       setCouponCode("");
       setCouponStartsAt("");
       setCouponExpiresAt("");
+      setCouponFirstTimeOnly(false);
       showMsg(
         data.stripeError
           ? `Coupon created. Stripe sync failed: ${data.stripeError}`
@@ -992,6 +1005,16 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
                 />
               </div>
             </div>
+
+            <label className="flex items-center gap-2 text-xs font-semibold text-[var(--ink-soft)] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={couponFirstTimeOnly}
+                onChange={(e) => setCouponFirstTimeOnly(e.target.checked)}
+                className="rounded border-[var(--border-color)]"
+              />
+              First-time clients only
+            </label>
 
             <div>
               <label className="block text-xs font-bold text-[var(--ink-soft)] mb-1 uppercase tracking-wider">

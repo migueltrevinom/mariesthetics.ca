@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useLanguage, LANGUAGES, Locale } from "@/components/i18n/LanguageContext";
 import { useBlogTranslationSlugs } from "@/components/blog/BlogTranslationContext";
 
 export function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
   const router = useRouter();
+  const pathname = usePathname();
   const blogSlugs = useBlogTranslationSlugs();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,10 +76,20 @@ export function LanguageSelector() {
                 onClick={() => {
                   const code = lang.code as Locale;
                   setLocale(code);
-                  const targetSlug = blogSlugs?.[code];
-                  if (targetSlug) {
-                    router.push(`/blog/${targetSlug}`);
+
+                  const postMatch = pathname?.match(/^\/blog\/([^/]+)\/?$/);
+                  if (postMatch) {
+                    const currentSlug = postMatch[1];
+                    const targetSlug = blogSlugs?.[code];
+                    if (targetSlug && targetSlug !== currentSlug) {
+                      router.push(`/blog/${targetSlug}`);
+                    } else {
+                      router.refresh();
+                    }
+                  } else if (pathname === "/blog" || pathname === "/") {
+                    router.refresh();
                   }
+
                   setOpen(false);
                 }}
                 style={{

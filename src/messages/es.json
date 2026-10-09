@@ -8,12 +8,20 @@
     "admin": "Portal Admin"
   },
   "blog": {
+    "promo": {
+      "eyebrowOffer": "Oferta especial",
+      "eyebrowBooking": "¿Lista para tu glow?",
+      "useCode": "Usa el código",
+      "bookOnline": "al reservar en línea."
+    },
     "eyebrow": "Diario de cuidado de la piel",
     "previewTitle": "Lo último del blog",
     "previewSubtitle": "Consejos, información sobre tratamientos y novedades del estudio.",
     "viewAll": "Ver todos los artículos",
     "emptyTitle": "Artículos próximamente",
-    "emptySubtitle": "Estamos preparando consejos de cuidado de la piel. Mientras tanto, explore nuestros servicios o reserve su visita."
+    "emptySubtitle": "Estamos preparando consejos de cuidado de la piel. Mientras tanto, explore nuestros servicios o reserve su visita.",
+    "localeFallback": "Este artículo aún no está disponible en {language}. Se muestra la versión en inglés.",
+    "cardLocaleFallback": "Aún no en {language} — versión en inglés"
   },
   "hero": {
     "eyebrow": "Estudio Privado · West Edmonton",

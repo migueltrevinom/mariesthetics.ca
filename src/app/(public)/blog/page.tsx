@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { BlogCard } from "@/components/blog/BlogCard";
-import { BlogEmptyState } from "@/components/blog/BlogEmptyState";
+import { BlogListingSection } from "@/components/blog/BlogListingSection";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { Reveal } from "@/components/public/Reveal";
 import { getPublishedBlogPosts } from "@/lib/blog/queries";
 import { getServerLocale } from "@/lib/i18n/locale";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 
-export const revalidate = 300;
+/** Locale comes from NEXT_LOCALE cookie — must not serve one cached listing for all languages. */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = buildMetadata({
   title: "Blog",
@@ -37,19 +37,7 @@ export default async function BlogListingPage() {
           </p>
         </Reveal>
 
-        {posts.length === 0 ? (
-          <div className="mt-16">
-            <BlogEmptyState />
-          </div>
-        ) : (
-          <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post, i) => (
-              <Reveal key={post._id} delay={Math.min(i * 60, 300)}>
-                <BlogCard post={post} />
-              </Reveal>
-            ))}
-          </div>
-        )}
+        <BlogListingSection initialPosts={posts} />
       </div>
 
       <JsonLd
