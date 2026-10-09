@@ -10,7 +10,8 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await connectDb();
-    const service = await Service.findOne({ active: true }).sort({ sortOrder: 1 });
+    // Performance optimization (Bolt): Use .lean() to avoid Mongoose document hydration
+    const service = await Service.findOne({ active: true }).sort({ sortOrder: 1 }).lean();
     if (!service) {
       return NextResponse.json({ success: false, error: "No active service available" }, { status: 404 });
     }
@@ -20,14 +21,16 @@ export async function GET() {
 
     let foundSlot: { date: string; time: string; formattedLabel: string } | null = null;
 
-    // Scan the next 7 days for the soonest available slot
+    // Scan the next 7 days for the soonest available slot.
+    // Performance optimization (Bolt): Pass pre-fetched lean service directly into getAvailableSlots
+    // to eliminate up to 7 redundant database queries inside this loop.
     for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
       const targetDateObj = addDays(now, dayOffset);
       const targetParts = getEdmontonDateParts(targetDateObj);
       const dayIso = targetParts.isoDate;
 
       try {
-        const { slots } = await getAvailableSlots(String(service._id), dayIso);
+        const { slots } = await getAvailableSlots(service, dayIso);
 
         // Filter out past slots for today
         const validSlots = slots.filter((slot) => {
