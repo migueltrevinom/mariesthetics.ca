@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/seo";
 import { connectDb } from "@/lib/db/connect";
-import { Service } from "@/lib/db/models";
+import { BlogPost, Service } from "@/lib/db/models";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${siteUrl}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/gift-cards`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/locations/west-edmonton`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
   ];
 
   try {
@@ -27,6 +28,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: svc.updatedAt ? new Date(svc.updatedAt) : now,
           changeFrequency: "weekly",
           priority: 0.7,
+        });
+      }
+    });
+
+    const publishedPosts = await BlogPost.find({ status: "published" })
+      .select("slug publishedAt updatedAt")
+      .lean();
+    publishedPosts.forEach((post) => {
+      if (post.slug) {
+        routes.push({
+          url: `${siteUrl}/blog/${post.slug}`,
+          lastModified: post.publishedAt
+            ? new Date(post.publishedAt)
+            : post.updatedAt
+              ? new Date(post.updatedAt)
+              : now,
+          changeFrequency: "monthly",
+          priority: 0.6,
         });
       }
     });

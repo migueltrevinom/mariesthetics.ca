@@ -70,6 +70,10 @@ type BuildMetadataInput = {
   keywords?: string[];
   noindex?: boolean;
   ogImage?: string;
+  ogType?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
+  authors?: string[];
 };
 
 export function buildMetadata({
@@ -79,9 +83,16 @@ export function buildMetadata({
   keywords,
   noindex = false,
   ogImage,
+  ogType = "website",
+  publishedTime,
+  modifiedTime,
+  authors,
 }: BuildMetadataInput = {}): Metadata {
   const canonical = `${siteUrl}${path === "/" ? "" : path}`;
   const fullTitle = title ? `${title} · ${business.name}` : `${business.name} · Edmonton Esthetics Studio`;
+  const ogImages = ogImage
+    ? [{ url: ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}` }]
+    : [{ url: `${siteUrl}/opengraph-image` }];
 
   return {
     title: title ?? undefined,
@@ -94,19 +105,67 @@ export function buildMetadata({
       ? { index: false, follow: false }
       : { index: true, follow: true, "max-image-preview": "large" },
     openGraph: {
-      type: "website",
+      type: ogType,
       siteName: business.name,
       title: fullTitle,
       description,
       url: canonical,
       locale: "en_CA",
-      images: ogImage ? [{ url: ogImage }] : undefined,
+      images: ogImages,
+      ...(ogType === "article" && publishedTime ? { publishedTime } : {}),
+      ...(ogType === "article" && modifiedTime ? { modifiedTime } : {}),
+      ...(ogType === "article" && authors?.length ? { authors } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
+      images: ogImages.map((i) => i.url),
     },
+  };
+}
+
+export function articleJsonLd(post: {
+  title: string;
+  description: string;
+  slug: string;
+  coverImage?: string;
+  author?: string;
+  publishedAt?: string | null;
+  modifiedAt?: string | null;
+}) {
+  const url = `${siteUrl}/blog/${post.slug}`;
+  const image = post.coverImage
+    ? post.coverImage.startsWith("http")
+      ? post.coverImage
+      : `${siteUrl}${post.coverImage}`
+    : `${siteUrl}/opengraph-image`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    image: [image],
+    author: {
+      "@type": "Person",
+      name: post.author || "Marinelle Tala",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: business.name,
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/images/logo/mari-logo-full.svg`,
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    url,
+    ...(post.publishedAt ? { datePublished: post.publishedAt } : {}),
+    ...(post.modifiedAt ? { dateModified: post.modifiedAt } : {}),
   };
 }
 

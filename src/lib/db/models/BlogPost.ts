@@ -37,6 +37,8 @@ const BlogPostSchema = new Schema(
   { timestamps: true }
 );
 
+BlogPostSchema.index({ status: 1, language: 1, publishedAt: -1 });
+
 export type BlogPostDoc = InferSchemaType<typeof BlogPostSchema> & {
   _id: Types.ObjectId;
 };

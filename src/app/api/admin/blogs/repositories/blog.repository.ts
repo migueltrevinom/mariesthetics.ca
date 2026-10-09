@@ -85,7 +85,7 @@ export class BlogRepository {
 
     const [posts, total] = await Promise.all([
       BlogPost.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ publishedAt: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .populate("serviceIds", "name slug priceCents")

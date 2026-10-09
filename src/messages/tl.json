@@ -3,8 +3,17 @@
     "home": "Tahanan",
     "services": "Mga Serbisyo at Presyo",
     "book": "Mag-book ng Appointment",
+    "blog": "Blog",
     "contact": "Kontak at Lokasyon",
     "admin": "Admin Portal"
+  },
+  "blog": {
+    "eyebrow": "Skin care journal",
+    "previewTitle": "Pinakabago sa blog",
+    "previewSubtitle": "Mga tip, impormasyon sa treatment, at balita mula sa studio.",
+    "viewAll": "Tingnan lahat ng artikulo",
+    "emptyTitle": "Malapit nang mag-publish",
+    "emptySubtitle": "Inihahanda namin ang mga skin care tip. Samantala, tingnan ang mga serbisyo o mag-book ng appointment."
   },
   "hero": {
     "eyebrow": "Pribadong Studio · West Edmonton",
