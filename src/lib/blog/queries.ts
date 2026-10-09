@@ -163,6 +163,46 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBl
   }
 }
 
+export type PublishedBlogDiscoveryRow = {
+  slug: string;
+  language: string;
+  translationGroupId: string;
+  title: string;
+  excerpt: string;
+  publishedAt?: Date | null;
+  updatedAt?: Date | null;
+};
+
+/** Published posts for sitemap, llms.txt, and other discovery surfaces. */
+export async function getPublishedPostsForDiscovery(): Promise<PublishedBlogDiscoveryRow[]> {
+  if (BLOG_DEV_PREVIEW_ENABLED) {
+    return getPreviewListItems().map((p) => ({
+      slug: p.slug,
+      language: p.language,
+      translationGroupId: p.translationGroupId,
+      title: p.title,
+      excerpt: p.excerpt,
+      publishedAt: p.publishedAt ? new Date(p.publishedAt) : null,
+      updatedAt: null,
+    }));
+  }
+  await connectDb();
+  const rows = await BlogPost.find({ status: "published" })
+    .select("slug language title excerpt translationGroupId publishedAt updatedAt")
+    .sort({ publishedAt: -1 })
+    .lean();
+
+  return rows.map((r) => ({
+    slug: String(r.slug),
+    language: String(r.language || "en"),
+    translationGroupId: String(r.translationGroupId || r._id),
+    title: String(r.title ?? ""),
+    excerpt: String(r.excerpt ?? ""),
+    publishedAt: r.publishedAt ?? null,
+    updatedAt: r.updatedAt ?? null,
+  }));
+}
+
 export async function getPublishedPostsForSitemap(): Promise<
   Array<{
     slug: string;
@@ -172,20 +212,15 @@ export async function getPublishedPostsForSitemap(): Promise<
     updatedAt?: Date | null;
   }>
 > {
-  if (BLOG_DEV_PREVIEW_ENABLED) {
-    return getPreviewListItems().map((p) => ({
-      slug: p.slug,
-      language: p.language,
-      translationGroupId: p.translationGroupId,
-      publishedAt: p.publishedAt ? new Date(p.publishedAt) : null,
-      updatedAt: null,
-    }));
-  }
   try {
-    await connectDb();
-    return await BlogPost.find({ status: "published" })
-      .select("slug language translationGroupId publishedAt updatedAt")
-      .lean();
+    const rows = await getPublishedPostsForDiscovery();
+    return rows.map(({ slug, language, translationGroupId, publishedAt, updatedAt }) => ({
+      slug,
+      language,
+      translationGroupId,
+      publishedAt,
+      updatedAt,
+    }));
   } catch {
     return [];
   }
