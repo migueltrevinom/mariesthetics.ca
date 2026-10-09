@@ -7,7 +7,8 @@ import { AuthError, requireManager } from "@/lib/auth/jwt";
 export async function GET() {
   try {
     await connectDb();
-    const coupons = await Coupon.find({ active: true }).sort({ createdAt: -1 });
+    // Using .lean() avoids Mongoose document hydration overhead on read-only queries
+    const coupons = await Coupon.find({ active: true }).sort({ createdAt: -1 }).lean();
     return NextResponse.json({ coupons });
   } catch (err) {
     console.error(err);
