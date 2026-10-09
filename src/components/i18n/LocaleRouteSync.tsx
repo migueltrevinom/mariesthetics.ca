@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useLanguage, type Locale } from "@/components/i18n/LanguageContext";
 import { useBlogTranslationSlugs } from "@/components/blog/BlogTranslationContext";
+import { blogPostPath, normalizeBlogSlugForLookup } from "@/lib/blog/slug";
 
 /**
  * Keeps server-rendered blog/home content in sync with the client language cookie.
@@ -26,10 +27,10 @@ export function LocaleRouteSync() {
 
     const postMatch = pathname?.match(/^\/blog\/([^/]+)\/?$/);
     if (postMatch) {
-      const currentSlug = postMatch[1];
+      const currentSlug = normalizeBlogSlugForLookup(postMatch[1]);
       const targetSlug = blogSlugs?.[locale];
-      if (targetSlug && targetSlug !== currentSlug) {
-        router.push(`/blog/${targetSlug}`);
+      if (targetSlug && normalizeBlogSlugForLookup(targetSlug) !== currentSlug) {
+        router.push(blogPostPath(targetSlug));
         return;
       }
     }

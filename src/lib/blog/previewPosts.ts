@@ -1,4 +1,5 @@
 import type { BlogListItem, BlogTranslationRef, PublicBlogPost, ResolvedBlogPromo } from "@/lib/blog/types";
+import { normalizeBlogSlugForLookup } from "@/lib/blog/slug";
 
 const PLACEHOLDER_RESOLVED: ResolvedBlogPromo = {
   enabled: false,
@@ -190,7 +191,8 @@ export function getPreviewTranslationsForPost(translationGroupId: string): BlogT
 }
 
 export function getPreviewPostBySlug(slug: string): PublicBlogPost | null {
-  const post = PREVIEW.find((p) => p.slug === slug.toLowerCase()) ?? null;
+  const key = normalizeBlogSlugForLookup(slug);
+  const post = PREVIEW.find((p) => normalizeBlogSlugForLookup(p.slug) === key) ?? null;
   if (!post) return null;
   return {
     ...post,
