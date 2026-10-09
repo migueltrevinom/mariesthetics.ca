@@ -4,12 +4,14 @@ import "@/lib/db/models/ServiceImage";
 
 export async function getActiveServices() {
   await connectDb();
-  return Service.find({ active: true }).sort({ sortOrder: 1 }).populate("images");
+  // Performance optimization: Use .lean() to return plain JS objects and avoid Mongoose Document hydration overhead
+  return Service.find({ active: true }).sort({ sortOrder: 1 }).populate("images").lean();
 }
 
 export async function getAllServices() {
   await connectDb();
-  return Service.find().sort({ sortOrder: 1 }).populate("images");
+  // Performance optimization: Use .lean() to return plain JS objects and avoid Mongoose Document hydration overhead
+  return Service.find().sort({ sortOrder: 1 }).populate("images").lean();
 }
 
 export async function createService(data: any) {
