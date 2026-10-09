@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - Reuse Lean Models across Availability Scans
+
+**Learning:** `getAvailableSlots` in `availability.ts` was fetching full `Service` documents on every call. In route handlers like `/api/public/next-available` which scan 7 days, this resulted in up to 7 duplicate DB queries for the exact same `Service` document.
+
+**Action:** Allow core utility functions to accept pre-fetched lean service objects directly (or project only `.select("durationMin active").lean()`), avoiding duplicate database roundtrips in scanning loops and API handlers.
