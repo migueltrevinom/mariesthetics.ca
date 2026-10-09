@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { connectDb } from "@/lib/db/connect";
-import { Service } from "@/lib/db/models";
 import { getAvailableSlots } from "@/lib/booking/availability";
 import { expireStaleHolds } from "@/lib/booking/holds";
 
@@ -19,17 +17,16 @@ export async function GET(req: Request) {
       date: searchParams.get("date"),
     });
 
-    await connectDb();
-    const service = await Service.findById(parsed.serviceId);
-    if (!service) {
-      return NextResponse.json({ error: "Service not found" }, { status: 404 });
-    }
-
+    // Bolt Optimization: getAvailableSlots internally performs Service.findById(parsed.serviceId).lean().
+    // Removing duplicate Service.findById query here avoids an unnecessary database roundtrip on hot availability path.
     const { slots } = await getAvailableSlots(parsed.serviceId, parsed.date);
     return NextResponse.json({ slots });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
+    }
+    if (err instanceof Error && err.message === "Service not found") {
+      return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
     console.error(err);
     return NextResponse.json({ error: "Failed to load availability" }, { status: 500 });
