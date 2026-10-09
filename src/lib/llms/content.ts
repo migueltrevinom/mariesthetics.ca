@@ -1,5 +1,8 @@
 import { getPublishedPostsForDiscovery } from "@/lib/blog/queries";
 import { blogPostUrl } from "@/lib/blog/locales";
+import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
+import { getLandingContent } from "@/lib/services/landing/content";
+import { serviceLandingPath } from "@/lib/services/landing/paths";
 import { business, siteUrl } from "@/lib/seo";
 
 export type LlmsBlogRow = {
@@ -54,6 +57,22 @@ export function formatLlmsBlogSection(rows: LlmsBlogRow[], full: boolean): strin
   return out;
 }
 
+function formatLlmsServiceLandingsSection(): string {
+  let out = "\n## Service guides (West Edmonton)\n\n";
+  for (const def of SERVICE_LANDING_PAGES) {
+    const en = getLandingContent(def.key, "en");
+    out += `### ${en.h1}\n`;
+    out += `- Summary: ${en.metaDescription}\n`;
+    for (const locale of ["en", "es", "tl", "pa", "ar"] as const) {
+      const segment = def.slugs[locale];
+      if (!segment) continue;
+      out += `- [${locale}] ${siteUrl}${serviceLandingPath(segment)}\n`;
+    }
+    out += "\n";
+  }
+  return out;
+}
+
 export async function buildLlmsTxt(full = false): Promise<string> {
   const discovery = await getPublishedPostsForDiscovery();
   const rows: LlmsBlogRow[] = discovery.map((r) => ({
@@ -65,9 +84,10 @@ export async function buildLlmsTxt(full = false): Promise<string> {
   }));
 
   const header = siteOverview();
+  const services = formatLlmsServiceLandingsSection();
   const blog = formatLlmsBlogSection(rows, full);
   const footer = full
     ? `\n## Business\n\n${business.description}\n\nAreas served: ${business.areasServed.join(", ")}.\n`
     : "";
-  return `${header}${blog}${footer}`.trim() + "\n";
+  return `${header}${services}${blog}${footer}`.trim() + "\n";
 }
