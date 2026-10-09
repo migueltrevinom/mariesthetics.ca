@@ -57,7 +57,8 @@ export async function GET(req: Request) {
 			} else {
 				q = q.sort({ start: -1 }).limit(100);
 			}
-			const bookings = await q;
+			// ⚡ Bolt Optimization: Use .lean() to prevent document hydration overhead for read queries
+			const bookings = await q.lean();
 			return NextResponse.json({ bookings });
 		}
 
@@ -66,7 +67,8 @@ export async function GET(req: Request) {
 			return NextResponse.json({ bookings: [] });
 		}
 
-		const bookings = await Booking.find({ clientId: session.sub }).sort({ start: -1 }).populate("serviceId");
+		// ⚡ Bolt Optimization: Use .lean() to prevent document hydration overhead for read queries
+		const bookings = await Booking.find({ clientId: session.sub }).sort({ start: -1 }).populate("serviceId").lean();
 		return NextResponse.json({ bookings });
 	} catch (err) {
 		if (err instanceof AuthError) {

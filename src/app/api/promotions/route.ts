@@ -6,11 +6,14 @@ export async function GET() {
   try {
     await connectDb();
     const now = new Date();
+    // ⚡ Bolt Optimization: Use .lean() to eliminate Mongoose document hydration overhead
     const promotions = await Promotion.find({
       active: true,
       startsAt: { $lte: now },
       endsAt: { $gte: now },
-    }).populate("serviceIds");
+    })
+      .populate("serviceIds")
+      .lean();
     return NextResponse.json({ promotions });
   } catch (err) {
     console.error(err);

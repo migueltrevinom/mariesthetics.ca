@@ -43,29 +43,34 @@ export const GET = withManagerAuth(async (req: Request) => {
 
     const { start, end } = getTimeRangeInterval(range);
 
-    // 1. Fetch succeeded Payments in target range
-    const succeededPayments = await Payment.find({
-      status: "succeeded",
-      createdAt: { $gte: start, $lte: end },
-    }).populate("bookingId").lean();
+    // ⚡ Bolt Optimization: Execute independent analytics queries in parallel with Promise.all
+    // to cut API database latency from 4 sequential DB round-trips to 1 concurrent batch.
+    const [
+      succeededPayments,
+      paidStripeLinks,
+      confirmedBookings,
+      allServices,
+    ] = await Promise.all([
+      Payment.find({
+        status: "succeeded",
+        createdAt: { $gte: start, $lte: end },
+      }).populate("bookingId").lean(),
 
-    // 2. Fetch paid StripePaymentLinks in target range
-    const paidStripeLinks = await StripePaymentLink.find({
-      status: "paid",
-      $or: [
-        { paidAt: { $gte: start, $lte: end } },
-        { updatedAt: { $gte: start, $lte: end } },
-      ],
-    }).populate("bookingId").lean();
+      StripePaymentLink.find({
+        status: "paid",
+        $or: [
+          { paidAt: { $gte: start, $lte: end } },
+          { updatedAt: { $gte: start, $lte: end } },
+        ],
+      }).populate("bookingId").lean(),
 
-    // 3. Fetch confirmed bookings in target range
-    const confirmedBookings = await Booking.find({
-      status: { $in: ["confirmed", "completed"] },
-      start: { $gte: start, $lte: end },
-    }).populate("serviceId").lean();
+      Booking.find({
+        status: { $in: ["confirmed", "completed"] },
+        start: { $gte: start, $lte: end },
+      }).populate("serviceId").lean(),
 
-    // Fetch active services for complete mapping
-    const allServices = await Service.find().lean();
+      Service.find().lean(),
+    ]);
     const serviceMap = new Map<string, { id: string; name: string; totalCents: number; bookingCount: number }>();
 
     for (const s of allServices) {

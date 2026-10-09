@@ -7,10 +7,12 @@ export async function GET() {
   try {
     await requireManager();
     await connectDb();
+    // ⚡ Bolt Optimization: Use .lean() to eliminate Mongoose document hydration overhead on read query
     const payments = await Payment.find()
       .sort({ createdAt: -1 })
       .limit(100)
-      .populate("bookingId");
+      .populate("bookingId")
+      .lean();
     return NextResponse.json({ payments });
   } catch (err) {
     if (err instanceof AuthError) {
