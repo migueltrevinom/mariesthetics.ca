@@ -63,11 +63,19 @@ async function getData(): Promise<{
 }> {
   try {
     await connectDb();
+    // ⚡ Bolt Optimization:
+    // 1. Select only required fields for reviews to reduce document serialization & memory overhead on hot homepage requests.
+    // 2. Pre-index services in a Map for O(1) lookup when mapping subscription plan services.
     const [services, plans, reviews] = await Promise.all([
       Service.find({ active: true }).sort({ sortOrder: 1 }).limit(6).lean(),
       SubscriptionPlan.find({ active: true }).populate("includedServiceIds", "name priceCents").limit(2).lean(),
-      Review.find({ status: "submitted" }).sort({ submittedAt: -1 }).lean(),
+      Review.find({ status: "submitted" })
+        .select("guest.name rating comment submittedAt")
+        .sort({ submittedAt: -1 })
+        .lean(),
     ]);
+
+    const serviceMap = new Map((services as any[]).map((s: any) => [String(s._id), s]));
 
     const reviewCount = reviews.length;
     let ratingValue = 5;
@@ -107,7 +115,7 @@ async function getData(): Promise<{
               };
             }
             const srvId = typeof srv === "object" && srv !== null ? String(srv._id || srv) : String(srv);
-            const matched = services.find((s: any) => String(s._id) === srvId);
+            const matched = serviceMap.get(srvId);
             if (matched) {
               return {
                 _id: String(matched._id),
