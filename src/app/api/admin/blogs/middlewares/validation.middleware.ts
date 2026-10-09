@@ -8,6 +8,7 @@ export const createBlogSchema = z.object({
   content: z.string().min(1, "Content is required"),
   coverImage: z.string().optional().default(""),
   language: z.enum(["en", "es", "tl", "pa", "ar"]).default("en"),
+  translationGroupId: z.string().trim().min(4).optional(),
   serviceIds: z.array(z.string()).optional().default([]),
   category: z.string().optional().default(""),
   status: z.enum(["draft", "published", "archived"]).default("draft"),

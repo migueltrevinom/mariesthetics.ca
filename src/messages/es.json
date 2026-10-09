@@ -3,8 +3,17 @@
     "home": "Inicio",
     "services": "Servicios y Precios",
     "book": "Reservar Cita",
+    "blog": "Blog",
     "contact": "Contacto y Ubicación",
     "admin": "Portal Admin"
+  },
+  "blog": {
+    "eyebrow": "Diario de cuidado de la piel",
+    "previewTitle": "Lo último del blog",
+    "previewSubtitle": "Consejos, información sobre tratamientos y novedades del estudio.",
+    "viewAll": "Ver todos los artículos",
+    "emptyTitle": "Artículos próximamente",
+    "emptySubtitle": "Estamos preparando consejos de cuidado de la piel. Mientras tanto, explore nuestros servicios o reserve su visita."
   },
   "hero": {
     "eyebrow": "Estudio Privado · West Edmonton",

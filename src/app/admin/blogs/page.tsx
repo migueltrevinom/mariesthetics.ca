@@ -27,6 +27,7 @@ export default async function AdminBlogsPage() {
 
   const formattedPosts = postsData.posts.map((p: any) => ({
     _id: String(p._id),
+    translationGroupId: p.translationGroupId ? String(p.translationGroupId) : String(p._id),
     title: p.title,
     slug: p.slug,
     excerpt: p.excerpt || "",

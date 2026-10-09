@@ -45,6 +45,10 @@ export function SiteFooter() {
       label: t("nav.book") !== "nav.book" ? t("nav.book") : "Book an appointment",
     },
     {
+      href: "/blog",
+      label: t("nav.blog") !== "nav.blog" ? t("nav.blog") : "Blog",
+    },
+    {
       href: "/contact",
       label: t("nav.contact") !== "nav.contact" ? t("nav.contact") : "Contact",
     },

@@ -3,8 +3,17 @@
     "home": "Home",
     "services": "Services & Pricing",
     "book": "Book Appointment",
+    "blog": "Blog",
     "contact": "Contact & Location",
     "admin": "Admin Portal"
+  },
+  "blog": {
+    "eyebrow": "Skin care journal",
+    "previewTitle": "Latest from the blog",
+    "previewSubtitle": "Tips, treatment insights, and studio updates from Mari.",
+    "viewAll": "View all articles",
+    "emptyTitle": "Articles coming soon",
+    "emptySubtitle": "We are preparing skin care tips and studio updates. In the meantime, explore our treatment menu or book your visit."
   },
   "hero": {
     "eyebrow": "Private Home Studio · West Edmonton",
