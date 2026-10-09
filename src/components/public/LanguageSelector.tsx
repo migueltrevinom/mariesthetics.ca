@@ -5,12 +5,18 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLanguage, LANGUAGES, Locale } from "@/components/i18n/LanguageContext";
 import { useBlogTranslationSlugs } from "@/components/blog/BlogTranslationContext";
 import { blogPostPath, normalizeBlogSlugForLookup } from "@/lib/blog/slug";
+import { useServiceLandingSlugs } from "@/components/services/ServiceLandingTranslationContext";
+import {
+  normalizeServiceLandingSlugParam,
+  serviceLandingPath,
+} from "@/lib/services/landing/paths";
 
 export function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
   const blogSlugs = useBlogTranslationSlugs();
+  const serviceSlugs = useServiceLandingSlugs();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -90,8 +96,22 @@ export function LanguageSelector() {
                     } else {
                       router.refresh();
                     }
-                  } else if (pathname === "/blog" || pathname === "/") {
-                    router.refresh();
+                  } else {
+                    const serviceMatch = pathname?.match(/^\/services\/([^/]+)\/?$/);
+                    if (serviceMatch) {
+                      const currentSlug = normalizeServiceLandingSlugParam(serviceMatch[1]);
+                      const targetSlug = serviceSlugs?.[code];
+                      if (
+                        targetSlug &&
+                        normalizeServiceLandingSlugParam(targetSlug) !== currentSlug
+                      ) {
+                        router.push(serviceLandingPath(targetSlug));
+                      } else {
+                        router.refresh();
+                      }
+                    } else if (pathname === "/blog" || pathname === "/" || pathname === "/services") {
+                      router.refresh();
+                    }
                   }
 
                   setOpen(false);

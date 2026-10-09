@@ -325,6 +325,42 @@ export function serviceCatalogJsonLd(
   };
 }
 
+export function serviceLandingJsonLd(input: {
+  name: string;
+  description: string;
+  url: string;
+  image?: string;
+  offers: Array<{ name: string; priceCents: number }>;
+}) {
+  const image = input.image
+    ? input.image.startsWith("http")
+      ? input.image
+      : `${siteUrl}${input.image}`
+    : `${siteUrl}/opengraph-image`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: input.name,
+    description: input.description,
+    provider: { "@id": `${siteUrl}/#business` },
+    areaServed: business.areasServed.map((name) => ({
+      "@type": "City",
+      name,
+    })),
+    image,
+    url: input.url,
+    offers: input.offers.map((o) => ({
+      "@type": "Offer",
+      name: o.name,
+      priceCurrency: business.currency,
+      price: (o.priceCents / 100).toFixed(2),
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/book`,
+    })),
+  };
+}
+
 export function faqJsonLd(items: Array<{ q: string; a: string }>) {
   return {
     "@context": "https://schema.org",
