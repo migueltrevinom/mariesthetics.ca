@@ -1,16 +1,16 @@
 import { BlogRepository, type BlogFilterOptions } from "../repositories/blog.repository";
 import { BlogPost } from "@/lib/db/models";
+import { nanoid } from "nanoid";
 
 export function slugify(text: string): string {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
+  const raw = text.toString().normalize("NFKC").trim().toLowerCase();
+  const slug = raw
     .replace(/\s+/g, "-")
-    .replace(/[^\w\-]+/g, "")
+    .replace(/[^\p{L}\p{N}\-]+/gu, "")
     .replace(/\-\-+/g, "-")
     .replace(/^-+/, "")
     .replace(/-+$/, "");
+  return slug || "post";
 }
 
 export async function generateUniqueSlug(title: string, existingId?: string): Promise<string> {
@@ -34,9 +34,11 @@ export async function generateUniqueSlug(title: string, existingId?: string): Pr
 
 export async function createBlogPost(data: any) {
   const slug = data.slug ? slugify(data.slug) : await generateUniqueSlug(data.title);
+  const translationGroupId = data.translationGroupId?.trim() || nanoid(12);
   const postData = {
     ...data,
     slug,
+    translationGroupId,
     publishedAt: data.status === "published" ? data.publishedAt || new Date() : null,
   };
   return await BlogRepository.create(postData);

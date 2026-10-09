@@ -7,6 +7,7 @@ import {
   deleteBlogPost,
   getBlogStatistics,
 } from "../modules/blog.module";
+import { BlogRepository } from "../repositories/blog.repository";
 import { dispatchBlogNewsletter } from "../modules/newsletter.module";
 import { getAppUrl } from "@/lib/config";
 
@@ -56,7 +57,9 @@ export async function handleGetBlogById(req: Request, id: string): Promise<NextR
     if (!post) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-    return NextResponse.json({ success: true, post });
+    const translationGroupId = String((post as any).translationGroupId || post._id);
+    const translations = await BlogRepository.findByTranslationGroupId(translationGroupId);
+    return NextResponse.json({ success: true, post, translations });
   } catch (err: any) {
     console.error("[Blog Controller GetById Error]:", err.message);
     return NextResponse.json({ error: "Failed to fetch blog post" }, { status: 500 });

@@ -18,6 +18,9 @@ import { Testimonials } from "@/components/public/sections/Testimonials";
 import { SocialReels } from "@/components/public/sections/SocialReels";
 import { Faq } from "@/components/public/sections/Faq";
 import { CtaBand } from "@/components/public/sections/CtaBand";
+import { BlogPreview } from "@/components/public/sections/BlogPreview";
+import { getLatestPublishedPosts } from "@/lib/blog/queries";
+import { getServerLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
@@ -144,6 +147,8 @@ async function getData(): Promise<{
 
 export default async function HomePage() {
   const { services, plans, reviewStats } = await getData();
+  const locale = await getServerLocale();
+  const latestPosts = await getLatestPublishedPosts(locale, 3);
 
   return (
     <>
@@ -151,6 +156,7 @@ export default async function HomePage() {
       <ServicesPreview services={services} />
       <HowItWorks />
       <MembershipBand plans={plans} />
+      <BlogPreview posts={latestPosts} />
       <Testimonials />
       <SocialReels />
       <Faq />

@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useLanguage, LANGUAGES, Locale } from "@/components/i18n/LanguageContext";
+import { useBlogTranslationSlugs } from "@/components/blog/BlogTranslationContext";
 
 export function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
+  const router = useRouter();
+  const blogSlugs = useBlogTranslationSlugs();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -69,7 +73,12 @@ export function LanguageSelector() {
                 key={lang.code}
                 type="button"
                 onClick={() => {
-                  setLocale(lang.code as Locale);
+                  const code = lang.code as Locale;
+                  setLocale(code);
+                  const targetSlug = blogSlugs?.[code];
+                  if (targetSlug) {
+                    router.push(`/blog/${targetSlug}`);
+                  }
                   setOpen(false);
                 }}
                 style={{

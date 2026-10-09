@@ -1,4 +1,5 @@
 import { Schema, models, model, type InferSchemaType, type Types } from "mongoose";
+import { nanoid } from "nanoid";
 
 const BlogPostSchema = new Schema(
   {
@@ -7,6 +8,12 @@ const BlogPostSchema = new Schema(
     excerpt: { type: String, default: "", trim: true },
     content: { type: String, required: true },
     coverImage: { type: String, default: "", trim: true },
+    translationGroupId: {
+      type: String,
+      trim: true,
+      index: true,
+      default: () => nanoid(12),
+    },
     language: {
       type: String,
       enum: ["en", "es", "tl", "pa", "ar"],
@@ -36,6 +43,9 @@ const BlogPostSchema = new Schema(
   },
   { timestamps: true }
 );
+
+BlogPostSchema.index({ status: 1, language: 1, publishedAt: -1 });
+BlogPostSchema.index({ translationGroupId: 1, language: 1 }, { unique: true });
 
 export type BlogPostDoc = InferSchemaType<typeof BlogPostSchema> & {
   _id: Types.ObjectId;

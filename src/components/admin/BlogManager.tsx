@@ -13,8 +13,11 @@ const LANGUAGES = [
   { code: "ar", label: "Arabic", flag: "🇦🇪" },
 ];
 
+const POST_LANGUAGES = LANGUAGES.filter((l) => l.code !== "all");
+
 export interface BlogPostItem {
   _id: string;
+  translationGroupId?: string;
   title: string;
   slug: string;
   excerpt: string;
@@ -119,6 +122,7 @@ export function BlogManager({
   const [formPromoText, setFormPromoText] = useState("");
   const [formCtaText, setFormCtaText] = useState("Book Treatment Now →");
   const [formCtaUrl, setFormCtaUrl] = useState("/book");
+  const [formTranslationGroupId, setFormTranslationGroupId] = useState("");
 
   // Newsletter Dispatch Modal State
   const [newsletterModalOpen, setNewsletterModalOpen] = useState(false);
@@ -154,8 +158,24 @@ export function BlogManager({
   };
 
   // Open Create Modal
+  const translationCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of posts) {
+      const gid = p.translationGroupId || p._id;
+      map.set(gid, (map.get(gid) || 0) + 1);
+    }
+    return map;
+  }, [posts]);
+
+  const translationsInEditorGroup = useMemo(() => {
+    const gid = formTranslationGroupId || editingPost?.translationGroupId;
+    if (!gid) return [];
+    return posts.filter((p) => (p.translationGroupId || p._id) === gid);
+  }, [posts, formTranslationGroupId, editingPost]);
+
   const handleOpenCreate = () => {
     setEditingPost(null);
+    setFormTranslationGroupId("");
     setFormTitle("");
     setFormSlug("");
     setFormLanguage("en");
@@ -179,8 +199,33 @@ export function BlogManager({
   };
 
   // Open Edit Modal
+  const handleOpenAddTranslation = (langCode: string, source?: BlogPostItem) => {
+    const base = source || editingPost || translationsInEditorGroup[0];
+    setEditingPost(null);
+    setFormTranslationGroupId(base?.translationGroupId || formTranslationGroupId || "");
+    setFormLanguage(langCode);
+    setFormTitle("");
+    setFormSlug("");
+    setFormExcerpt("");
+    setFormContent("");
+    if (base) {
+      setFormCoverImage(base.coverImage || "");
+      setFormCategory(base.category || "");
+      const sIds = (base.serviceIds || []).map((s: any) => (typeof s === "string" ? s : s._id));
+      setFormServiceIds(sIds);
+      setFormPromoEnabled(base.promoConfig?.enabled || false);
+      setFormPromoCode(base.promoConfig?.promoCode || "");
+      setFormPromoText(base.promoConfig?.customPromoText || "");
+      setFormCtaText(base.promoConfig?.ctaButtonText || "Book Treatment Now →");
+      setFormCtaUrl(base.promoConfig?.ctaUrl || "/book");
+    }
+    setPreviewMode(false);
+    setEditorOpen(true);
+  };
+
   const handleOpenEdit = (post: BlogPostItem) => {
     setEditingPost(post);
+    setFormTranslationGroupId(post.translationGroupId || "");
     setFormTitle(post.title);
     setFormSlug(post.slug);
     setFormLanguage(post.language || "en");
@@ -236,6 +281,7 @@ export function BlogManager({
         ctaButtonText: formCtaText.trim() || "Book Treatment Now →",
         ctaUrl: formCtaUrl.trim() || "/book",
       },
+      ...(formTranslationGroupId ? { translationGroupId: formTranslationGroupId } : {}),
     };
 
     try {
@@ -560,6 +606,7 @@ export function BlogManager({
                   <tr>
                     <th className="p-3.5">Post / Title</th>
                     <th className="p-3.5">Language</th>
+                    <th className="p-3.5">Translations</th>
                     <th className="p-3.5">Linked Services</th>
                     <th className="p-3.5 text-center">Clicks / Views</th>
                     <th className="p-3.5">Status</th>
@@ -570,6 +617,8 @@ export function BlogManager({
                 <tbody className="divide-y divide-[var(--border-color)]">
                   {filteredPosts.map((post) => {
                     const langInfo = LANGUAGES.find((l) => l.code === post.language);
+                    const gid = post.translationGroupId || post._id;
+                    const translationCount = translationCounts.get(gid) || 1;
 
                     return (
                       <tr key={post._id} className="hover:bg-white/[0.02] transition">
@@ -608,6 +657,18 @@ export function BlogManager({
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[var(--background)] border border-[var(--border-color)]">
                             <span>{langInfo?.flag || "🌐"}</span>
                             <span>{langInfo?.label || post.language}</span>
+                          </span>
+                        </td>
+
+                        <td className="p-3.5 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                              translationCount >= 5
+                                ? "bg-leaf/15 text-leaf border border-leaf/30"
+                                : "bg-amber-500/10 text-amber-500 border border-amber-500/30"
+                            }`}
+                          >
+                            {translationCount}/5 langs
                           </span>
                         </td>
 
@@ -802,6 +863,50 @@ export function BlogManager({
                   ⚠️ {err}
                 </div>
               )}
+
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--background)] p-4 space-y-2">
+                <p className="font-bold text-[var(--ink)] uppercase tracking-wider text-[10px]">
+                  Translation set (link all 5 languages)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {POST_LANGUAGES.map((lang) => {
+                    const existing = translationsInEditorGroup.find((p) => p.language === lang.code);
+                    const isActive = formLanguage === lang.code;
+                    return (
+                      <button
+                        key={lang.code}
+                        type="button"
+                        onClick={() => {
+                          if (existing) {
+                            handleOpenEdit(existing);
+                          } else {
+                            handleOpenAddTranslation(lang.code);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold border transition cursor-pointer ${
+                          isActive
+                            ? "bg-[#c8a86b] text-black border-[#c8a86b]"
+                            : existing
+                              ? "border-leaf/40 text-leaf bg-leaf/10"
+                              : "border-[var(--border-color)] text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                        }`}
+                      >
+                        {lang.flag} {lang.code.toUpperCase()}
+                        {existing ? " ✓" : " +"}
+                      </button>
+                    );
+                  })}
+                </div>
+                {formTranslationGroupId ? (
+                  <p className="text-[10px] font-mono text-[var(--ink-soft)]">
+                    Group ID: {formTranslationGroupId}
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-[var(--ink-soft)]">
+                    Save the first language to create a group, then add ES / TL / PA / AR with localized slugs.
+                  </p>
+                )}
+              </div>
 
               {/* Title & Slug */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
