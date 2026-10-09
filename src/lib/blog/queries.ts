@@ -4,6 +4,7 @@ import type { Locale } from "@/components/i18n/LanguageContext";
 import { serializeBlogListItem, serializeBlogPost } from "@/lib/blog/serialize";
 import type { BlogListItem, BlogTranslationRef, PublicBlogPost } from "@/lib/blog/types";
 import { pickLocalizedPostsForListing } from "@/lib/blog/translations";
+import { normalizeBlogSlugForLookup } from "@/lib/blog/slug";
 import {
   BLOG_DEV_PREVIEW_ENABLED,
   getPreviewListItems,
@@ -115,7 +116,7 @@ export async function getPublishedBlogSlugs(): Promise<string[]> {
 }
 
 export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBlogPost | null> {
-  const normalized = slug.toLowerCase().trim();
+  const normalized = normalizeBlogSlugForLookup(slug);
   if (!normalized) return null;
 
   if (BLOG_DEV_PREVIEW_ENABLED) {
@@ -194,7 +195,7 @@ export async function incrementBlogPostViews(slug: string): Promise<void> {
   try {
     await connectDb();
     await BlogPost.updateOne(
-      { slug: slug.toLowerCase(), status: "published" },
+      { slug: normalizeBlogSlugForLookup(slug), status: "published" },
       { $inc: { viewsCount: 1 } }
     );
   } catch {

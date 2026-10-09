@@ -1,5 +1,6 @@
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost, type BlogPostDoc } from "@/lib/db/models";
+import { normalizeBlogSlugForLookup } from "@/lib/blog/slug";
 
 export interface BlogFilterOptions {
   language?: string;
@@ -38,7 +39,7 @@ export class BlogRepository {
 
   static async findBySlug(slug: string): Promise<BlogPostDoc | null> {
     await connectDb();
-    const post = await BlogPost.findOne({ slug: slug.toLowerCase() })
+    const post = await BlogPost.findOne({ slug: normalizeBlogSlugForLookup(slug) })
       .populate("serviceIds")
       .lean();
     return post as BlogPostDoc | null;
@@ -120,7 +121,9 @@ export class BlogRepository {
   static async incrementViews(idOrSlug: string): Promise<void> {
     await connectDb();
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
-    const query = isObjectId ? { _id: idOrSlug } : { slug: idOrSlug.toLowerCase() };
+    const query = isObjectId
+      ? { _id: idOrSlug }
+      : { slug: normalizeBlogSlugForLookup(idOrSlug) };
     await BlogPost.updateOne(query, { $inc: { viewsCount: 1 } });
   }
 

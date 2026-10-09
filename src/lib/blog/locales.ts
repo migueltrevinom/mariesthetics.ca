@@ -1,5 +1,6 @@
 import type { Locale } from "@/components/i18n/LanguageContext";
 import type { BlogLanguage } from "@/lib/blog/types";
+import { blogPostPath } from "@/lib/blog/slug";
 import { siteUrl } from "@/lib/seo";
 
 export const BLOG_LANGUAGES: BlogLanguage[] = ["en", "es", "tl", "pa", "ar"];
@@ -28,7 +29,7 @@ export type BlogTranslationLink = {
 };
 
 export function blogPostUrl(slug: string): string {
-  return `${siteUrl}/blog/${slug}`;
+  return `${siteUrl}${blogPostPath(slug)}`;
 }
 
 /** Build Next.js / sitemap `alternates.languages` map including x-default (English). */

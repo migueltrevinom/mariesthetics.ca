@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { buildBlogHreflangAlternates } from "@/lib/blog/locales";
+import { buildBlogHreflangAlternates, blogPostUrl } from "@/lib/blog/locales";
 import { getPublishedPostsForSitemap } from "@/lib/blog/queries";
 import { siteUrl } from "@/lib/seo";
 import { connectDb } from "@/lib/db/connect";
@@ -66,7 +66,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
     routes.push({
-      url: `${siteUrl}/blog/${post.slug}`,
+      url: blogPostUrl(post.slug),
       lastModified: post.publishedAt
         ? new Date(post.publishedAt)
         : post.updatedAt
