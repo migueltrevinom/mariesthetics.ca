@@ -5,6 +5,7 @@ import { config } from "@/lib/config";
 import { getStripe } from "@/lib/payments/stripe";
 import type Stripe from "stripe";
 import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { markStudioChargePaid } from "@/lib/payments/studioCharge";
 
 async function applySucceededPayment(meta: {
   bookingId?: string;
@@ -115,6 +116,10 @@ export async function POST(req: Request) {
       }
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        if (session.metadata?.kind === "studio_charge" && session.metadata.studioChargeId) {
+          await markStudioChargePaid(session.metadata.studioChargeId, session.id);
+          break;
+        }
         await applySucceededPayment({
           bookingId: session.metadata?.bookingId,
           paymentId: session.metadata?.paymentId,

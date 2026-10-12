@@ -10,7 +10,7 @@ import {
   subDays,
 } from "date-fns";
 import { connectDb } from "@/lib/db/connect";
-import { Booking, Payment, StripePaymentLink, Service } from "@/lib/db/models";
+import { Booking, Payment, StripePaymentLink, Service, StudioCharge } from "@/lib/db/models";
 import { withManagerAuth } from "@/lib/auth/jwt";
 
 export const dynamic = "force-dynamic";
@@ -147,6 +147,16 @@ export const GET = withManagerAuth(async (req: Request) => {
       totalRevenueCents += cents;
       stripeCents += cents;
       addServiceCents(l.bookingId?.serviceId, cents);
+    }
+
+    const paidStudioCharges = await StudioCharge.find({
+      status: "paid",
+      paidAt: { $gte: start, $lte: end },
+    }).lean();
+    for (const charge of paidStudioCharges) {
+      const cents = charge.baseAmountCents || 0;
+      totalRevenueCents += cents;
+      stripeCents += cents;
     }
 
     // Process confirmed bookings for booking count breakdown & service mapping
