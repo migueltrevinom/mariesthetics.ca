@@ -154,7 +154,7 @@ export const GET = withManagerAuth(async (req: Request) => {
       paidAt: { $gte: start, $lte: end },
     }).lean();
     for (const charge of paidStudioCharges) {
-      const cents = charge.baseAmountCents || 0;
+      const cents = charge.totalCents || (charge.baseAmountCents || 0) + (charge.tipCents || 0);
       totalRevenueCents += cents;
       stripeCents += cents;
     }

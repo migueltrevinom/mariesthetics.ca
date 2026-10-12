@@ -17,6 +17,7 @@ const StudioChargeSchema = new Schema(
       default: "open",
       index: true,
     },
+    tipChanges: { type: Number, default: 0, min: 0 },
     stripeCheckoutSessionId: { type: String, default: "" },
     checkoutUrl: { type: String, default: "" },
     paidAt: { type: Date, default: null },

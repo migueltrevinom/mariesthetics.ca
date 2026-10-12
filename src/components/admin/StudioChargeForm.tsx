@@ -16,6 +16,7 @@ type AdminStudioCharge = {
   totalCents: number;
   paidAt: string | null;
   createdAt: string | null;
+  payUrl?: string;
 };
 
 function tipLabel(charge: AdminStudioCharge) {
@@ -33,6 +34,28 @@ export function StudioChargeForm() {
   const [live, setLive] = useState(false);
   const [charges, setCharges] = useState<AdminStudioCharge[]>([]);
   const [listError, setListError] = useState("");
+  const [linkNotice, setLinkNotice] = useState("");
+
+  async function copyLink(url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      setLinkNotice("Pay link copied.");
+    } catch {
+      window.prompt("Copy this pay link", url);
+    }
+  }
+
+  async function emailLink(id: string) {
+    setLinkNotice("Sending...");
+    try {
+      const res = await fetch(`/api/admin/payments/studio-charge/${id}/email`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Email failed");
+      setLinkNotice("Pay link emailed to the client.");
+    } catch (err: unknown) {
+      setLinkNotice(err instanceof Error ? err.message : "Email failed");
+    }
+  }
 
   const loadCharges = useCallback(async () => {
     try {
@@ -96,7 +119,7 @@ export function StudioChargeForm() {
     >
       <h2 className="font-[family-name:var(--font-display)] text-2xl text-[var(--ink)]">In-studio charge</h2>
       <p className="mt-1 text-xs text-[var(--ink-soft)]">
-        Shows on the landing page with a 10% tip selected. Starting a new charge replaces the one that is still open.
+        Creates a private pay link (valid 7 days) with a 10% tip selected. Copy it or email it to the client. Starting a new charge replaces the one that is still open.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="block text-xs text-[var(--ink-soft)]">
@@ -144,18 +167,18 @@ export function StudioChargeForm() {
       {error ? <p className="mt-3 text-sm text-rose-400">{error}</p> : null}
       {live ? (
         <p className="mt-3 text-sm text-emerald-400">
-          Live on the landing page. The tip below updates when the customer chooses one.{" "}
-          <a href="/pay" className="underline">Open the pay screen</a>
+          Pay link ready. Copy or email it below; the tip updates when the client chooses one.
         </p>
       ) : null}
       <button type="submit" disabled={saving} className="btn-primary mt-4 cursor-pointer disabled:opacity-50">
-        {saving ? "Opening checkout..." : "Show on landing page"}
+        {saving ? "Opening checkout..." : "Create pay link"}
       </button>
     </form>
 
     <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--card-bg)] p-5">
       <h3 className="font-[family-name:var(--font-display)] text-xl text-[var(--ink)]">Recent in-studio charges</h3>
       {listError ? <p className="mt-3 text-sm text-rose-400">{listError}</p> : null}
+      {linkNotice ? <p className="mt-3 text-sm text-emerald-400">{linkNotice}</p> : null}
       {charges.length === 0 && !listError ? (
         <p className="mt-3 text-xs text-[var(--ink-soft)]">No in-studio charges yet.</p>
       ) : null}
@@ -188,7 +211,15 @@ export function StudioChargeForm() {
                   <td className="py-3 pr-4 font-mono text-xs">{formatCad(charge.baseAmountCents)}</td>
                   <td className="py-3 pr-4 text-xs font-semibold">{tipLabel(charge)}</td>
                   <td className="py-3 pr-4 font-mono text-xs">{formatCad(charge.totalCents)}</td>
-                  <td className="py-3 text-[10px] font-extrabold uppercase tracking-wider">{charge.status}</td>
+                  <td className="py-3 text-[10px] font-extrabold uppercase tracking-wider">
+                    {charge.status}
+                    {charge.status === "open" && charge.payUrl ? (
+                      <span className="mt-2 flex gap-2 normal-case tracking-normal">
+                        <button type="button" onClick={() => void copyLink(charge.payUrl!)} className="cursor-pointer underline">Copy link</button>
+                        <button type="button" onClick={() => void emailLink(charge.id)} className="cursor-pointer underline">Email link</button>
+                      </span>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>

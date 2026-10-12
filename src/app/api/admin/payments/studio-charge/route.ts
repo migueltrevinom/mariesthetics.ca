@@ -4,10 +4,11 @@ import { connectDb } from "@/lib/db/connect";
 import { StudioCharge } from "@/lib/db/models";
 import { withManagerAuth } from "@/lib/auth/jwt";
 import { isStripeConfigured } from "@/lib/payments/stripe";
+import { getAppUrl } from "@/lib/config";
+import { signStudioChargeToken } from "@/lib/payments/studioChargeToken";
 import {
   cancelOpenStudioCharges,
   openCheckoutForCharge,
-  publicStudioCharge,
   tipCentsFor,
 } from "@/lib/payments/studioCharge";
 
@@ -17,6 +18,10 @@ const bodySchema = z.object({
   clientEmail: z.string().email(),
   description: z.string().optional().default(""),
 });
+
+async function payUrlFor(chargeId: string, req: Request) {
+  return `${getAppUrl(req)}/pay?t=${encodeURIComponent(await signStudioChargeToken(chargeId))}`;
+}
 
 function adminStudioCharge(charge: {
   _id: unknown;
@@ -46,14 +51,20 @@ function adminStudioCharge(charge: {
   };
 }
 
-export const GET = withManagerAuth(async () => {
+export const GET = withManagerAuth(async (req: Request) => {
   try {
     await connectDb();
     const charges = await StudioCharge.find({ status: { $in: ["open", "paid", "cancelled"] } })
       .sort({ createdAt: -1 })
       .limit(20)
       .lean();
-    return NextResponse.json({ charges: charges.map(adminStudioCharge) });
+    const rows = await Promise.all(
+      charges.map(async (charge) => ({
+        ...adminStudioCharge(charge),
+        payUrl: charge.status === "open" ? await payUrlFor(String(charge._id), req) : "",
+      })),
+    );
+    return NextResponse.json({ charges: rows });
   } catch (err) {
     console.error("[Studio charge list]", err);
     return NextResponse.json({ error: "Failed to load charges" }, { status: 500 });
@@ -89,7 +100,10 @@ export const POST = withManagerAuth(async (req: Request) => {
     });
 
     const ready = await openCheckoutForCharge(String(charge._id), req);
-    return NextResponse.json({ success: true, charge: publicStudioCharge(ready) });
+    return NextResponse.json({
+      success: true,
+      charge: { ...adminStudioCharge(ready), payUrl: await payUrlFor(String(ready._id), req) },
+    });
   } catch (err: unknown) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.issues[0]?.message || "Invalid charge" }, { status: 400 });

@@ -4,13 +4,11 @@ import { useState } from "react";
 import { formatCad } from "@/lib/money";
 
 export type PublicStudioCharge = {
-  id: string;
   baseAmountCents: number;
   tipPercent: number;
   tipCents: number;
   totalCents: number;
-  clientName: string;
-  clientEmail: string;
+  clientFirstName: string;
   description: string;
   status: string;
   checkoutUrl: string;
@@ -27,17 +25,16 @@ const TIP_CHOICES = [
 
 export function StudioPayTerminal({
   charge: initialCharge,
-  variant,
+  token,
 }: {
   charge: PublicStudioCharge | null;
-  variant: "landing" | "page";
+  token: string;
 }) {
   const [charge, setCharge] = useState(initialCharge);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
 
-  if (!charge || (variant === "landing" && charge.status !== "open")) {
-    if (variant === "landing") return null;
+  if (!charge || !token) {
     return (
       <section className="mx-auto max-w-xl px-6 py-24 text-center">
         <p className="text-sm text-[var(--ink-soft)]">No payment is waiting right now.</p>
@@ -54,12 +51,9 @@ export function StudioPayTerminal({
           <h1 className="mt-2 font-[family-name:var(--font-display)] text-4xl text-[var(--ink)] print:text-black">Invoice</h1>
           <p className="mt-2 text-xs text-[var(--ink-soft)] print:text-black">
             {when.toLocaleString("en-CA", { timeZone: "America/Edmonton" })}
-            <br />
-            {charge.id}
           </p>
           <p className="mt-6 text-sm text-[var(--ink)] print:text-black">
-            {charge.clientName || "Client"}
-            {charge.clientEmail ? <><br />{charge.clientEmail}</> : null}
+            {charge.clientFirstName || "Client"}
           </p>
           <dl className="mt-6 space-y-3 text-sm">
             <div className="flex justify-between gap-4 border-b border-[var(--border-color)] pb-3 print:border-black/10">
@@ -96,7 +90,7 @@ export function StudioPayTerminal({
       const res = await fetch("/api/public/studio-charge/tip", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chargeId: charge.id, tipPercent }),
+        body: JSON.stringify({ token, tipPercent }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not update the tip");
@@ -109,11 +103,11 @@ export function StudioPayTerminal({
   }
 
   return (
-    <section className={variant === "landing" ? "mx-auto max-w-xl px-6 py-16" : "mx-auto max-w-xl px-6 py-16"}>
+    <section className="mx-auto max-w-xl px-6 py-16">
       <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-bg)] px-6 py-10 text-center shadow-xl">
         <p className="text-[11px] uppercase tracking-[0.22em] text-[#c8a86b]">Amount due</p>
-        {charge.clientName ? (
-          <p className="mt-3 text-sm text-[var(--ink-soft)]">{charge.clientName}</p>
+        {charge.clientFirstName ? (
+          <p className="mt-3 text-sm text-[var(--ink-soft)]">{charge.clientFirstName}</p>
         ) : null}
         <p className="mt-2 text-sm text-[var(--ink-soft)]">{charge.description}</p>
         <p className="mt-6 font-[family-name:var(--font-display)] text-7xl leading-none text-[var(--ink)] sm:text-8xl">

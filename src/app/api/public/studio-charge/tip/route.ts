@@ -3,44 +3,65 @@ import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
 import { StudioCharge } from "@/lib/db/models";
 import {
+  MAX_TIP_CHANGES,
   isTipPercent,
   openCheckoutForCharge,
   publicStudioCharge,
   tipCentsFor,
 } from "@/lib/payments/studioCharge";
+import { verifyStudioChargeToken } from "@/lib/payments/studioChargeToken";
 
 const bodySchema = z.object({
-  chargeId: z.string().min(1),
+  token: z.string().min(1),
   tipPercent: z.number().int(),
 });
 
 export async function POST(req: Request) {
+  let body: z.infer<typeof bodySchema>;
   try {
-    const body = bodySchema.parse(await req.json());
-    if (!isTipPercent(body.tipPercent)) {
-      return NextResponse.json({ error: "Choose 10%, 15%, 20%, or no tip" }, { status: 400 });
-    }
+    body = bodySchema.parse(await req.json());
+  } catch {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const chargeId = await verifyStudioChargeToken(body.token);
+  if (!chargeId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isTipPercent(body.tipPercent)) {
+    return NextResponse.json({ error: "Choose 10%, 15%, 20%, or no tip" }, { status: 400 });
+  }
 
+  try {
     await connectDb();
-    const charge = await StudioCharge.findById(body.chargeId);
-    if (!charge || charge.status !== "open") {
-      return NextResponse.json({ error: "This charge is no longer open" }, { status: 404 });
+    const existing = await StudioCharge.findById(chargeId).lean();
+    if (!existing || existing.status !== "open" || existing.paidAt) {
+      return NextResponse.json({ error: "This charge is no longer open" }, { status: 409 });
+    }
+    if (existing.tipPercent === body.tipPercent) {
+      return NextResponse.json({ charge: publicStudioCharge(existing) });
     }
 
-    const tipCents = tipCentsFor(charge.baseAmountCents, body.tipPercent);
-    charge.tipPercent = body.tipPercent;
-    charge.tipCents = tipCents;
-    charge.totalCents = charge.baseAmountCents + tipCents;
-    await charge.save();
+    // Atomic rate limit: only open, unpaid charges with remaining tip changes are updated.
+    const tipCents = tipCentsFor(existing.baseAmountCents, body.tipPercent);
+    const updated = await StudioCharge.findOneAndUpdate(
+      { _id: chargeId, status: "open", paidAt: null, tipChanges: { $lt: MAX_TIP_CHANGES } },
+      {
+        $set: { tipPercent: body.tipPercent, tipCents, totalCents: existing.baseAmountCents + tipCents },
+        $inc: { tipChanges: 1 },
+      },
+      { new: true },
+    );
+    if (!updated) {
+      return NextResponse.json(
+        { error: "Too many tip changes. Please ask Mari Esthetics for help." },
+        { status: 429 },
+      );
+    }
 
-    const ready = await openCheckoutForCharge(String(charge._id), req);
+    const ready = await openCheckoutForCharge(chargeId, req);
     return NextResponse.json({ charge: publicStudioCharge(ready) });
   } catch (err: unknown) {
-    if (err instanceof z.ZodError) {
-      return NextResponse.json({ error: err.issues[0]?.message || "Invalid tip" }, { status: 400 });
-    }
-    const message = err instanceof Error ? err.message : "Failed to update tip";
-    console.error("[Studio charge tip]", message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[Studio charge tip]", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "Failed to update tip" }, { status: 500 });
   }
 }

@@ -1,3 +1,4 @@
+import { signStudioChargeToken } from "@/lib/payments/studioChargeToken";
 import { connectDb } from "@/lib/db/connect";
 import { StudioCharge } from "@/lib/db/models/StudioCharge";
 import { getAppUrl } from "@/lib/config";
@@ -12,32 +13,31 @@ export function isTipPercent(value: number): value is TipPercent {
   return (TIP_OPTIONS as readonly number[]).includes(value);
 }
 
+export const MAX_TIP_CHANGES = 10;
+
 export function tipCentsFor(baseAmountCents: number, tipPercent: number): number {
   return Math.round((baseAmountCents * tipPercent) / 100);
 }
 
 export function publicStudioCharge(charge: {
-  _id: unknown;
   baseAmountCents: number;
   tipPercent: number;
   tipCents: number;
   totalCents: number;
-  clientName?: string;
-  clientEmail?: string;
   description?: string;
   status: string;
   checkoutUrl?: string;
   paidAt?: Date | null;
   createdAt?: Date;
+  clientName?: string;
 }) {
+  // Only served to a valid pay-link token holder. Never expose email or database id.
   return {
-    id: String(charge._id),
+    clientFirstName: (charge.clientName || "").trim().split(/\s+/)[0] || "",
     baseAmountCents: charge.baseAmountCents,
     tipPercent: charge.tipPercent,
     tipCents: charge.tipCents,
     totalCents: charge.totalCents,
-    clientName: charge.clientName || "",
-    clientEmail: charge.status === "paid" ? charge.clientEmail || "" : "",
     description: charge.description || "Mari Esthetics",
     status: charge.status,
     checkoutUrl: charge.status === "open" ? charge.checkoutUrl || "" : "",
@@ -76,6 +76,7 @@ export async function openCheckoutForCharge(chargeId: string, req?: Request) {
   const stripe = getStripe();
   const baseUrl = getAppUrl(req);
   const description = charge.description || "Mari Esthetics";
+  const payUrl = `${baseUrl}/pay?t=${encodeURIComponent(await signStudioChargeToken(String(charge._id)))}`;
   const lineItems: {
     quantity: number;
     price_data: {
@@ -108,8 +109,8 @@ export async function openCheckoutForCharge(chargeId: string, req?: Request) {
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: charge.clientEmail,
-    success_url: `${baseUrl}/pay?paid=1&charge=${charge._id}&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${baseUrl}/pay`,
+    success_url: `${payUrl}&paid=1&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: payUrl,
     line_items: lineItems,
     metadata: {
       kind: "studio_charge",
@@ -213,12 +214,13 @@ export async function markStudioChargePaid(chargeId: string, sessionId?: string)
   return charge;
 }
 
-export async function confirmStudioChargeFromSession(sessionId: string) {
+export async function confirmStudioChargeFromSession(sessionId: string, expectedChargeId: string) {
   if (!sessionId || !isStripeConfigured()) return null;
   const stripe = getStripe();
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   if (session.payment_status !== "paid") return null;
   const chargeId = session.metadata?.studioChargeId;
   if (!chargeId || session.metadata?.kind !== "studio_charge") return null;
+  if (chargeId !== expectedChargeId) return null;
   return markStudioChargePaid(chargeId, session.id);
 }

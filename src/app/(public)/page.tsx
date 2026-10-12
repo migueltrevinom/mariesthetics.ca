@@ -18,9 +18,6 @@ import { Testimonials } from "@/components/public/sections/Testimonials";
 import { SocialReels } from "@/components/public/sections/SocialReels";
 import { Faq } from "@/components/public/sections/Faq";
 import { CtaBand } from "@/components/public/sections/CtaBand";
-import { StudioPayTerminal, type PublicStudioCharge } from "@/components/public/StudioPayTerminal";
-import { StudioCharge } from "@/lib/db/models";
-import { publicStudioCharge } from "@/lib/payments/studioCharge";
 import { BlogPreview } from "@/components/public/sections/BlogPreview";
 import { getLatestPublishedPosts } from "@/lib/blog/queries";
 import { getServerLocale } from "@/lib/i18n/locale";
@@ -148,27 +145,13 @@ async function getData(): Promise<{
   }
 }
 
-async function getOpenCharge(): Promise<PublicStudioCharge | null> {
-  try {
-    await connectDb();
-    const charge = await StudioCharge.findOne({ status: "open" }).sort({ createdAt: -1 }).lean();
-    return charge ? publicStudioCharge(charge) : null;
-  } catch {
-    return null;
-  }
-}
-
 export default async function HomePage() {
+  const { services, plans, reviewStats } = await getData();
   const locale = await getServerLocale();
-  const [{ services, plans, reviewStats }, openCharge, latestPosts] = await Promise.all([
-    getData(),
-    getOpenCharge(),
-    getLatestPublishedPosts(locale, 3),
-  ]);
+  const latestPosts = await getLatestPublishedPosts(locale, 3);
 
   return (
     <>
-      <StudioPayTerminal charge={openCharge} variant="landing" />
       <Hero />
       <ServicesPreview services={services} />
       <HowItWorks />
