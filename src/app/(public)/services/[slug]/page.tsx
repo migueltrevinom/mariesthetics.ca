@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
+import { LEGACY_SERVICE_LANDING_REDIRECTS } from "@/lib/services/landing/registry";
+import { normalizeServiceLandingSlugParam } from "@/lib/services/landing/paths";
 import { ServiceLandingView } from "@/components/services/ServiceLandingView";
 import { ServiceLandingTranslationProvider } from "@/components/services/ServiceLandingTranslationContext";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -53,6 +55,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ServiceLandingPage({ params }: PageProps) {
   const { slug } = await params;
+  const legacyTarget = LEGACY_SERVICE_LANDING_REDIRECTS[normalizeServiceLandingSlugParam(slug)];
+  if (legacyTarget) permanentRedirect(serviceLandingPath(legacyTarget));
   const resolved = resolveLandingBySlugParam(slug);
   if (!resolved) notFound();
 
