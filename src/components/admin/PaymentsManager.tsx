@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { StudioChargeForm } from "@/components/admin/StudioChargeForm";
 import { useSearchParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { formatCad } from "@/lib/money";
@@ -510,6 +511,8 @@ export function PaymentsManager({
 					</button>
 				</div>
 			</div>
+
+			<StudioChargeForm />
 
 			{/* Tab Switcher */}
 			<div className="mt-6 flex border-b border-[var(--border-color)] text-sm font-medium">

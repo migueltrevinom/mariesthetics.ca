@@ -11,6 +11,7 @@ export { SubscriptionPlan } from "./SubscriptionPlan";
 export { ClientSubscription } from "./ClientSubscription";
 export { Booking } from "./Booking";
 export { Payment } from "./Payment";
+export { StudioCharge, type StudioChargeDoc } from "./StudioCharge";
 export { ServiceImage } from "./ServiceImage";
 export { StripePaymentLink } from "./StripePaymentLink";
 export { CalendarSchedule, type TimeShift, type WeeklyHourSetting, type DateOverrideSetting, type ICalendarSchedule } from "./CalendarSchedule";
