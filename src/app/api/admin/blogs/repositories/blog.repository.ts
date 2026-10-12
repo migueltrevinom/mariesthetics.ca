@@ -1,5 +1,6 @@
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost, type BlogPostDoc } from "@/lib/db/models";
+import { normalizeBlogSlugForLookup } from "@/lib/blog/slug";
 
 export interface BlogFilterOptions {
   language?: string;
@@ -36,12 +37,28 @@ export class BlogRepository {
     return post as BlogPostDoc | null;
   }
 
-  static async findBySlug(slug: string, language?: string): Promise<BlogPostDoc | null> {
+  static async findBySlug(slug: string): Promise<BlogPostDoc | null> {
     await connectDb();
-    const query: any = { slug: slug.toLowerCase() };
-    if (language) query.language = language;
-    const post = await BlogPost.findOne(query).populate("serviceIds").lean();
+    const post = await BlogPost.findOne({ slug: normalizeBlogSlugForLookup(slug) })
+      .populate("serviceIds")
+      .lean();
     return post as BlogPostDoc | null;
+  }
+
+  static async findByTranslationGroupId(
+    translationGroupId: string,
+    options?: { status?: string }
+  ): Promise<BlogPostDoc[]> {
+    await connectDb();
+    const query: Record<string, unknown> = { translationGroupId };
+    if (options?.status && options.status !== "all") {
+      query.status = options.status;
+    }
+    const posts = await BlogPost.find(query)
+      .sort({ language: 1 })
+      .populate("serviceIds", "name slug priceCents")
+      .lean();
+    return posts as BlogPostDoc[];
   }
 
   static async findAll(options: BlogFilterOptions = {}): Promise<{
@@ -85,7 +102,7 @@ export class BlogRepository {
 
     const [posts, total] = await Promise.all([
       BlogPost.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ publishedAt: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .populate("serviceIds", "name slug priceCents")
@@ -104,7 +121,9 @@ export class BlogRepository {
   static async incrementViews(idOrSlug: string): Promise<void> {
     await connectDb();
     const isObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
-    const query = isObjectId ? { _id: idOrSlug } : { slug: idOrSlug.toLowerCase() };
+    const query = isObjectId
+      ? { _id: idOrSlug }
+      : { slug: normalizeBlogSlugForLookup(idOrSlug) };
     await BlogPost.updateOne(query, { $inc: { viewsCount: 1 } });
   }
 

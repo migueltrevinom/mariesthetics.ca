@@ -137,6 +137,13 @@ export function MegaMenu({
           : "Memberships",
     },
     {
+      href: "/blog",
+      label:
+        t("nav.blog") !== "nav.blog"
+          ? t("nav.blog")
+          : "Blog",
+    },
+    {
       href: "/contact",
       label:
         t("megaMenu.contact") !== "megaMenu.contact"

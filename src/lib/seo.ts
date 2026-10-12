@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { blogPostPath } from "@/lib/blog/slug";
 
 /**
  * Central SEO configuration for Mari Esthetics.
@@ -70,6 +71,12 @@ type BuildMetadataInput = {
   keywords?: string[];
   noindex?: boolean;
   ogImage?: string;
+  ogType?: "website" | "article";
+  publishedTime?: string;
+  modifiedTime?: string;
+  authors?: string[];
+  hreflangAlternates?: Record<string, string>;
+  ogLocale?: string;
 };
 
 export function buildMetadata({
@@ -79,9 +86,18 @@ export function buildMetadata({
   keywords,
   noindex = false,
   ogImage,
+  ogType = "website",
+  publishedTime,
+  modifiedTime,
+  authors,
+  hreflangAlternates,
+  ogLocale = "en_CA",
 }: BuildMetadataInput = {}): Metadata {
   const canonical = `${siteUrl}${path === "/" ? "" : path}`;
   const fullTitle = title ? `${title} · ${business.name}` : `${business.name} · Edmonton Esthetics Studio`;
+  const ogImages = ogImage
+    ? [{ url: ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}` }]
+    : [{ url: `${siteUrl}/opengraph-image` }];
 
   return {
     title: title ?? undefined,
@@ -89,24 +105,84 @@ export function buildMetadata({
     keywords: keywords ?? seoKeywords,
     alternates: {
       canonical,
+      ...(hreflangAlternates && Object.keys(hreflangAlternates).length > 0
+        ? { languages: hreflangAlternates }
+        : {}),
     },
     robots: noindex
       ? { index: false, follow: false }
       : { index: true, follow: true, "max-image-preview": "large" },
     openGraph: {
-      type: "website",
+      type: ogType,
       siteName: business.name,
       title: fullTitle,
       description,
       url: canonical,
-      locale: "en_CA",
-      images: ogImage ? [{ url: ogImage }] : undefined,
+      locale: ogLocale,
+      images: ogImages,
+      ...(ogType === "article" && publishedTime ? { publishedTime } : {}),
+      ...(ogType === "article" && modifiedTime ? { modifiedTime } : {}),
+      ...(ogType === "article" && authors?.length ? { authors } : {}),
     },
     twitter: {
       card: "summary_large_image",
       title: fullTitle,
       description,
+      images: ogImages.map((i) => i.url),
     },
+  };
+}
+
+export function articleJsonLd(post: {
+  title: string;
+  description: string;
+  slug: string;
+  coverImage?: string;
+  author?: string;
+  publishedAt?: string | null;
+  modifiedAt?: string | null;
+  inLanguage?: string;
+}) {
+  const url = `${siteUrl}${blogPostPath(post.slug)}`;
+  const image = post.coverImage
+    ? post.coverImage.startsWith("http")
+      ? post.coverImage
+      : `${siteUrl}${post.coverImage}`
+    : `${siteUrl}/opengraph-image`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    image: [image],
+    inLanguage: post.inLanguage || "en-CA",
+    author: {
+      "@type": "Person",
+      name: post.author || "Marinelle Tala",
+    },
+    publisher: {
+      "@type": ["Organization", "HealthAndBeautyBusiness"],
+      name: business.name,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: business.locality,
+        addressRegion: business.region,
+        addressCountry: business.country,
+      },
+      logo: {
+        "@type": "ImageObject",
+        url: `${siteUrl}/images/logo/mari-logo-full.svg`,
+      },
+    },
+    about: { "@id": `${siteUrl}/#business` },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": url,
+    },
+    url,
+    ...(post.publishedAt ? { datePublished: post.publishedAt } : {}),
+    ...(post.modifiedAt ? { dateModified: post.modifiedAt } : {}),
   };
 }
 
@@ -249,6 +325,42 @@ export function serviceCatalogJsonLd(
   };
 }
 
+export function serviceLandingJsonLd(input: {
+  name: string;
+  description: string;
+  url: string;
+  image?: string;
+  offers: Array<{ name: string; priceCents: number }>;
+}) {
+  const image = input.image
+    ? input.image.startsWith("http")
+      ? input.image
+      : `${siteUrl}${input.image}`
+    : `${siteUrl}/opengraph-image`;
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: input.name,
+    description: input.description,
+    provider: { "@id": `${siteUrl}/#business` },
+    areaServed: business.areasServed.map((name) => ({
+      "@type": "City",
+      name,
+    })),
+    image,
+    url: input.url,
+    offers: input.offers.map((o) => ({
+      "@type": "Offer",
+      name: o.name,
+      priceCurrency: business.currency,
+      price: (o.priceCents / 100).toFixed(2),
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/book`,
+    })),
+  };
+}
+
 export function faqJsonLd(items: Array<{ q: string; a: string }>) {
   return {
     "@context": "https://schema.org",
@@ -261,10 +373,14 @@ export function faqJsonLd(items: Array<{ q: string; a: string }>) {
   };
 }
 
-export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
+export function breadcrumbJsonLd(
+  items: Array<{ name: string; path: string }>,
+  options?: { inLanguage?: string }
+) {
   return {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    inLanguage: options?.inLanguage || "en-CA",
     itemListElement: items.map((item, i) => ({
       "@type": "ListItem",
       position: i + 1,

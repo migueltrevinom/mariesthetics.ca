@@ -21,6 +21,9 @@ import { CtaBand } from "@/components/public/sections/CtaBand";
 import { StudioPayTerminal, type PublicStudioCharge } from "@/components/public/StudioPayTerminal";
 import { StudioCharge } from "@/lib/db/models";
 import { publicStudioCharge } from "@/lib/payments/studioCharge";
+import { BlogPreview } from "@/components/public/sections/BlogPreview";
+import { getLatestPublishedPosts } from "@/lib/blog/queries";
+import { getServerLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
@@ -156,7 +159,12 @@ async function getOpenCharge(): Promise<PublicStudioCharge | null> {
 }
 
 export default async function HomePage() {
-  const [{ services, plans, reviewStats }, openCharge] = await Promise.all([getData(), getOpenCharge()]);
+  const locale = await getServerLocale();
+  const [{ services, plans, reviewStats }, openCharge, latestPosts] = await Promise.all([
+    getData(),
+    getOpenCharge(),
+    getLatestPublishedPosts(locale, 3),
+  ]);
 
   return (
     <>
@@ -165,6 +173,7 @@ export default async function HomePage() {
       <ServicesPreview services={services} />
       <HowItWorks />
       <MembershipBand plans={plans} />
+      <BlogPreview posts={latestPosts} />
       <Testimonials />
       <SocialReels />
       <Faq />

@@ -8,6 +8,10 @@ import { formatCad } from "@/lib/money";
 import { useLanguage } from "@/components/i18n/LanguageContext";
 import { getLocalizedService } from "@/lib/i18n/serviceTranslations";
 import { MembershipBand } from "@/components/public/sections/MembershipBand";
+import { ServiceLandingQuickLinks } from "@/components/services/ServiceLandingQuickLinks";
+import { landingDefinitionForService } from "@/lib/services/landing/resolve";
+import { landingSlugForLocale } from "@/lib/services/landing/resolve";
+import { serviceLandingPath } from "@/lib/services/landing/paths";
 
 export type ServiceItem = {
   _id: string;
@@ -149,9 +153,11 @@ export function ServicesContent({
               : "Every treatment is tailored to your unique skin & beauty goals in a private, serene Edmonton studio. A deposit secures your appointment; the balance is settled upon completion."}
           </p>
 
+          <ServiceLandingQuickLinks />
+
           {/* Quick Anchor Bar */}
           {categories.length > 0 && (
-            <div className="reveal reveal-delay-3 mt-10 flex flex-wrap items-center gap-2.5">
+            <div className="reveal reveal-delay-3 mt-6 flex flex-wrap items-center gap-2.5">
               {categories.map((c) => {
                 const catName =
                   t(`servicesPage.categories.${c}`) !== `servicesPage.categories.${c}`
@@ -226,6 +232,13 @@ export function ServicesContent({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {categoryServices.map((service) => {
                   const localized = getLocalizedService(service, locale);
+                  const landingDef = landingDefinitionForService({
+                    category: service.category,
+                    slug: service.slug || "",
+                  });
+                  const landingHref = landingDef
+                    ? serviceLandingPath(landingSlugForLocale(landingDef, locale))
+                    : null;
                   const rawPhotoUrl =
                     service.photos && service.photos.length > 0
                       ? service.photos[0]
@@ -269,6 +282,14 @@ export function ServicesContent({
                             <p className="text-xs leading-relaxed text-[var(--ink-soft)] line-clamp-3">
                               {localized.description}
                             </p>
+                            {landingHref ? (
+                              <Link
+                                href={landingHref}
+                                className="inline-flex text-xs font-semibold text-gold hover:text-gold-bright"
+                              >
+                                West Edmonton guide →
+                              </Link>
+                            ) : null}
                           </div>
                         </div>
 

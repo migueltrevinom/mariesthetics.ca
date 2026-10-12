@@ -1,10 +1,22 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useLanguage, LANGUAGES, Locale } from "@/components/i18n/LanguageContext";
+import { useBlogTranslationSlugs } from "@/components/blog/BlogTranslationContext";
+import { blogPostPath, normalizeBlogSlugForLookup } from "@/lib/blog/slug";
+import { useServiceLandingSlugs } from "@/components/services/ServiceLandingTranslationContext";
+import {
+  normalizeServiceLandingSlugParam,
+  serviceLandingPath,
+} from "@/lib/services/landing/paths";
 
 export function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
+  const router = useRouter();
+  const pathname = usePathname();
+  const blogSlugs = useBlogTranslationSlugs();
+  const serviceSlugs = useServiceLandingSlugs();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -34,7 +46,7 @@ export function LanguageSelector() {
         aria-label="Select Language"
       >
         <span className="text-sm">{currentLang.flag}</span>
-        <span className="tracking-wide">{currentLang.label}</span>
+        <span className="tracking-wide">{currentLang.code.toUpperCase()}</span>
         <svg
           className="w-3.5 h-3.5 opacity-70 transition-transform duration-200"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
@@ -50,7 +62,7 @@ export function LanguageSelector() {
       {open && (
         <div
           style={{
-            backgroundColor: "var(--card-bg)",
+            backgroundColor: "var(--background)",
             color: "var(--ink)",
             borderColor: "var(--border-color)",
           }}
@@ -58,7 +70,7 @@ export function LanguageSelector() {
         >
           <div
             style={{ borderColor: "var(--border-color)", color: "var(--ink-soft)" }}
-            className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider border-b opacity-80"
+            className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider border-b"
           >
             Select Language
           </div>
@@ -69,7 +81,39 @@ export function LanguageSelector() {
                 key={lang.code}
                 type="button"
                 onClick={() => {
-                  setLocale(lang.code as Locale);
+                  const code = lang.code as Locale;
+                  setLocale(code);
+
+                  const postMatch = pathname?.match(/^\/blog\/([^/]+)\/?$/);
+                  if (postMatch) {
+                    const currentSlug = normalizeBlogSlugForLookup(postMatch[1]);
+                    const targetSlug = blogSlugs?.[code];
+                    if (
+                      targetSlug &&
+                      normalizeBlogSlugForLookup(targetSlug) !== currentSlug
+                    ) {
+                      router.push(blogPostPath(targetSlug));
+                    } else {
+                      router.refresh();
+                    }
+                  } else {
+                    const serviceMatch = pathname?.match(/^\/services\/([^/]+)\/?$/);
+                    if (serviceMatch) {
+                      const currentSlug = normalizeServiceLandingSlugParam(serviceMatch[1]);
+                      const targetSlug = serviceSlugs?.[code];
+                      if (
+                        targetSlug &&
+                        normalizeServiceLandingSlugParam(targetSlug) !== currentSlug
+                      ) {
+                        router.push(serviceLandingPath(targetSlug));
+                      } else {
+                        router.refresh();
+                      }
+                    } else if (pathname === "/blog" || pathname === "/" || pathname === "/services") {
+                      router.refresh();
+                    }
+                  }
+
                   setOpen(false);
                 }}
                 style={{
@@ -80,7 +124,7 @@ export function LanguageSelector() {
               >
                 <span className="flex items-center gap-2.5">
                   <span className="text-sm">{lang.flag}</span>
-                  <span>{lang.label}</span>
+                  <span>{lang.code.toUpperCase()}</span>
                 </span>
                 {isSelected && (
                   <span className="text-[#c8a86b] font-bold">✓</span>

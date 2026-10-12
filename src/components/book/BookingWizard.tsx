@@ -56,11 +56,13 @@ export function BookingWizard({
   initialServiceSlug,
   initialDate,
   initialTime,
+  initialCouponCode,
 }: {
   initialServiceId?: string;
   initialServiceSlug?: string;
   initialDate?: string;
   initialTime?: string;
+  initialCouponCode?: string;
 }) {
   const { locale, t } = useLanguage();
   const [services, setServices] = useState<Service[]>([]);
@@ -92,7 +94,8 @@ export function BookingWizard({
   const [email, setEmail] = useState("");
   const [countryCode, setCountryCode] = useState("+1");
   const [phone, setPhone] = useState("");
-  const [couponCode, setCouponCode] = useState("");
+  const [couponCode, setCouponCode] = useState(initialCouponCode?.toUpperCase().trim() ?? "");
+  const [couponMessage, setCouponMessage] = useState("");
   const [depositMethod, setDepositMethod] = useState<"stripe" | "etransfer">("stripe");
   const [bookingId, setBookingId] = useState("");
   const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
@@ -134,6 +137,24 @@ export function BookingWizard({
       })
       .catch(() => setError("Could not load services. Is MongoDB connected?"));
   }, [initialServiceId, initialServiceSlug, initialDate]);
+
+  useEffect(() => {
+    const code = initialCouponCode?.toUpperCase().trim();
+    if (!code) return;
+    setCouponCode(code);
+    const qs = new URLSearchParams({ code });
+    if (serviceId) qs.set("serviceId", serviceId);
+    fetch(`/api/public/coupons/validate?${qs.toString()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.message) {
+          setCouponMessage(data.message);
+        } else if (data.error) {
+          setCouponMessage(data.error);
+        }
+      })
+      .catch(() => {});
+  }, [initialCouponCode, serviceId]);
 
   useEffect(() => {
     if (!serviceId || step !== "slot") return;
@@ -688,8 +709,14 @@ export function BookingWizard({
                 placeholder="PROMO2026"
                 className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
                 value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
+                onChange={(e) => {
+                  setCouponCode(e.target.value);
+                  setCouponMessage("");
+                }}
               />
+              {couponMessage ? (
+                <p className="mt-1.5 text-xs text-[var(--ink-soft)]">{couponMessage}</p>
+              ) : null}
             </div>
           </div>
 

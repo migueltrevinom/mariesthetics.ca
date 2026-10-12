@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import {
   createBlogPost,
+  createBlogTranslationSet,
   updateBlogPost,
   getBlogPosts,
   getBlogPostById,
   deleteBlogPost,
   getBlogStatistics,
 } from "../modules/blog.module";
+import { BlogRepository } from "../repositories/blog.repository";
 import { dispatchBlogNewsletter } from "../modules/newsletter.module";
 import { getAppUrl } from "@/lib/config";
 
@@ -50,13 +52,31 @@ export async function handleCreateBlog(req: Request, validatedData: any): Promis
   }
 }
 
+export async function handleCreateBlogTranslationSet(
+  req: Request,
+  validatedData: any
+): Promise<NextResponse> {
+  try {
+    const result = await createBlogTranslationSet(validatedData);
+    return NextResponse.json({ success: true, ...result }, { status: 201 });
+  } catch (err: any) {
+    console.error("[Blog Controller Translation Set Error]:", err.message);
+    return NextResponse.json(
+      { error: err.message || "Failed to create translation set" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function handleGetBlogById(req: Request, id: string): Promise<NextResponse> {
   try {
     const post = await getBlogPostById(id);
     if (!post) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-    return NextResponse.json({ success: true, post });
+    const translationGroupId = String((post as any).translationGroupId || post._id);
+    const translations = await BlogRepository.findByTranslationGroupId(translationGroupId);
+    return NextResponse.json({ success: true, post, translations });
   } catch (err: any) {
     console.error("[Blog Controller GetById Error]:", err.message);
     return NextResponse.json({ error: "Failed to fetch blog post" }, { status: 500 });

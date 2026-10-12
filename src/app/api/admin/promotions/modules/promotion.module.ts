@@ -7,6 +7,9 @@ export async function createCoupon(data: {
   maxRedemptions?: number | null;
   startsAt?: Date | null;
   expiresAt?: Date | null;
+  firstTimeClientsOnly?: boolean;
+  serviceIds?: string[];
+  categoryIds?: string[];
 }) {
   return await PromotionRepository.createCoupon(data);
 }
@@ -16,6 +19,17 @@ export async function updateCouponWindow(
   data: { startsAt: Date | null; expiresAt: Date | null },
 ) {
   return await PromotionRepository.updateCouponWindow(id, data);
+}
+
+export async function updateCouponRules(
+  id: string,
+  data: {
+    firstTimeClientsOnly?: boolean;
+    serviceIds?: string[];
+    categoryIds?: string[];
+  },
+) {
+  return await PromotionRepository.updateCouponRules(id, data);
 }
 
 export async function fetchCouponRedemptions(id: string) {

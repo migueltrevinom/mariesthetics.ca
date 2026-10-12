@@ -11,7 +11,7 @@ import { getSession } from "@/lib/auth/jwt";
 import { AuthError, requireManager } from "@/lib/auth/jwt";
 import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
 import { findOrCreateClientForGuest } from "@/lib/booking/clientResolver";
-import { couponAvailabilityError } from "@/lib/coupons";
+import { mapCouponDocToRecord, validateCouponForBooking } from "@/lib/couponEligibility";
 
 const createSchema = z.object({
 	serviceId: z.string().min(1),
@@ -214,12 +214,14 @@ export async function POST(req: Request) {
 			});
 
 			if (coupon) {
-				const windowError = couponAvailabilityError(coupon);
-				if (windowError) {
-					return NextResponse.json({ error: windowError }, { status: 400 });
-				}
-				if (coupon.maxRedemptions != null && coupon.redemptionCount >= coupon.maxRedemptions) {
-					return NextResponse.json({ error: "Coupon code redemption limit reached" }, { status: 400 });
+				const couponRecord = mapCouponDocToRecord(coupon.toObject());
+				const eligibilityError = await validateCouponForBooking(couponRecord, {
+					serviceId: String(service._id),
+					serviceCategory: String(service.category || ""),
+					guestEmail: guest?.email || body.guest?.email,
+				});
+				if (eligibilityError) {
+					return NextResponse.json({ error: eligibilityError }, { status: 400 });
 				}
 			}
 

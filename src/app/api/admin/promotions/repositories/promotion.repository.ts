@@ -15,6 +15,9 @@ export class PromotionRepository {
     maxRedemptions?: number | null;
     startsAt?: Date | null;
     expiresAt?: Date | null;
+    firstTimeClientsOnly?: boolean;
+    serviceIds?: string[];
+    categoryIds?: string[];
   }): Promise<{ coupon: any; stripeError: string | null }> {
     await connectDb();
     const cleanCode = data.code.toUpperCase().trim();
@@ -48,6 +51,9 @@ export class PromotionRepository {
       maxRedemptions: data.maxRedemptions || null,
       startsAt: data.startsAt || null,
       expiresAt: data.expiresAt || null,
+      firstTimeClientsOnly: Boolean(data.firstTimeClientsOnly),
+      serviceIds: data.serviceIds ?? [],
+      categoryIds: data.categoryIds ?? [],
       stripeCouponId,
       stripePromotionCodeId,
       active: true,
@@ -68,6 +74,30 @@ export class PromotionRepository {
   /**
    * Delete coupon by ID.
    */
+  static async updateCouponRules(
+    id: string,
+    data: {
+      firstTimeClientsOnly?: boolean;
+      serviceIds?: string[];
+      categoryIds?: string[];
+    },
+  ): Promise<any> {
+    await connectDb();
+    const update: Record<string, unknown> = {};
+    if (data.firstTimeClientsOnly !== undefined) {
+      update.firstTimeClientsOnly = data.firstTimeClientsOnly;
+    }
+    if (data.serviceIds !== undefined) {
+      update.serviceIds = data.serviceIds;
+    }
+    if (data.categoryIds !== undefined) {
+      update.categoryIds = data.categoryIds;
+    }
+    const coupon = await Coupon.findByIdAndUpdate(id, update, { new: true });
+    if (!coupon) throw new Error("Coupon not found");
+    return coupon;
+  }
+
   static async updateCouponWindow(
     id: string,
     data: { startsAt: Date | null; expiresAt: Date | null },

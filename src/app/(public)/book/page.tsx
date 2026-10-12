@@ -13,7 +13,13 @@ export const metadata: Metadata = buildMetadata({
 export default async function BookPage({
   searchParams,
 }: {
-  searchParams: Promise<{ serviceId?: string; service?: string; date?: string; time?: string }>;
+  searchParams: Promise<{
+    serviceId?: string;
+    service?: string;
+    date?: string;
+    time?: string;
+    coupon?: string;
+  }>;
 }) {
   const params = await searchParams;
 
@@ -27,6 +33,7 @@ export default async function BookPage({
           initialServiceSlug={params.service}
           initialDate={params.date}
           initialTime={params.time}
+          initialCouponCode={params.coupon}
         />
       </div>
     </div>
