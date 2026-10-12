@@ -79,6 +79,13 @@ type BuildMetadataInput = {
   ogLocale?: string;
 };
 
+export function stripBrandSuffix(title?: string): string | undefined {
+  if (!title) return title;
+  const brand = business.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const stripped = title.replace(new RegExp(`\\s*[|·\\-–—:]\\s*${brand}\\s*$`, "i"), "").trim();
+  return stripped || title;
+}
+
 export function buildMetadata({
   title,
   description = business.description,
@@ -93,6 +100,9 @@ export function buildMetadata({
   hreflangAlternates,
   ogLocale = "en_CA",
 }: BuildMetadataInput = {}): Metadata {
+  // The root layout template appends " · Mari Esthetics"; drop a brand suffix that
+  // content already carries so the name never appears twice.
+  title = stripBrandSuffix(title);
   const canonical = `${siteUrl}${path === "/" ? "" : path}`;
   const fullTitle = title ? `${title} · ${business.name}` : `${business.name} · Edmonton Esthetics Studio`;
   const ogImages = ogImage

@@ -8,7 +8,7 @@ export const SERVICE_LANDING_PAGES: LandingDefinition[] = [
     slugs: {
       en: "lash-extensions-edmonton",
       es: "extensiones-de-pestanas-edmonton-oeste",
-      tl: "lash-extensions-west-edmonton",
+      tl: "lash-extensions-west-edmonton-tl",
       pa: "lash-extensions-west-edmonton-pa",
       ar: "وصلات-رموش-ادمونتون-الغرب",
     },
@@ -98,3 +98,12 @@ export const SERVICE_LANDING_PAGES: LandingDefinition[] = [
     },
   },
 ];
+
+/**
+ * Old service URLs that now live elsewhere. "lash-extensions-west-edmonton" used to be
+ * the Tagalog page, but it reads as English and people search for it in English,
+ * so it now redirects (308) to the English lash page.
+ */
+export const LEGACY_SERVICE_LANDING_REDIRECTS: Record<string, string> = {
+  "lash-extensions-west-edmonton": "lash-extensions-edmonton",
+};
