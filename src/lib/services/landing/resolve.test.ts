@@ -25,3 +25,17 @@ describe("service landing resolve", () => {
     assert.match(path, /^\/services\/%/);
   });
 });
+
+describe("service landing slugs", () => {
+  it("never reuses a slug across languages or pages", async () => {
+    const { SERVICE_LANDING_PAGES, LEGACY_SERVICE_LANDING_REDIRECTS } = await import("./registry");
+    const seen = new Set<string>();
+    for (const def of SERVICE_LANDING_PAGES) {
+      for (const slug of Object.values(def.slugs)) {
+        assert.ok(!seen.has(slug), `duplicate slug ${slug}`);
+        assert.ok(!(slug in LEGACY_SERVICE_LANDING_REDIRECTS), `legacy slug still in use: ${slug}`);
+        seen.add(slug);
+      }
+    }
+  });
+});
