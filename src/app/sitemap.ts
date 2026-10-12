@@ -24,13 +24,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const def of SERVICE_LANDING_PAGES) {
     const languages = hreflangAlternatesForLanding(def);
-    routes.push({
-      url: `${siteUrl}${serviceLandingPath(def.slugs.en)}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.85,
-      alternates: Object.keys(languages).length > 0 ? { languages } : undefined,
-    });
+    // One entry per language (same URLs as llms.txt), each listing every translation.
+    for (const locale of ["en", "es", "tl", "pa", "ar"] as const) {
+      const segment = def.slugs[locale];
+      if (!segment) continue;
+      routes.push({
+        url: `${siteUrl}${serviceLandingPath(segment)}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: locale === "en" ? 0.85 : 0.8,
+        alternates: Object.keys(languages).length > 0 ? { languages } : undefined,
+      });
+    }
   }
 
   const publishedPosts = await getPublishedPostsForSitemap();

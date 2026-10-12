@@ -100,7 +100,9 @@ export function buildMetadata({
     : [{ url: `${siteUrl}/opengraph-image` }];
 
   return {
-    title: title ?? undefined,
+    // Omit the key entirely when no page title is given, so the root layout's
+    // default title still applies (an explicit undefined removes <title>).
+    ...(title ? { title } : {}),
     description,
     keywords: keywords ?? seoKeywords,
     alternates: {
