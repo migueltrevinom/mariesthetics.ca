@@ -140,6 +140,7 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
+html,
 body {
   background: var(--background);
   color: var(--foreground);
@@ -263,6 +264,7 @@ a {
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
   border-radius: 9999px;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 4px 15px rgba(200, 168, 107, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -542,4 +544,31 @@ input:-webkit-autofill:active {
   box-shadow: 0 0 0px 1000px #0b100d inset !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* Print Media Stylesheet */
+@media print {
+  @page {
+    size: portrait;
+    margin: 12mm 15mm;
+  }
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
+  }
+  /* Suppress all global site chrome, buttons, and action bars in print */
+  header, footer, nav, .site-header, .site-footer, .print-hidden, .print\:hidden, [data-print-hidden="true"], button {
+    display: none !important;
+  }
+  .print-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
 

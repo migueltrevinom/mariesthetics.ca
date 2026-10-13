@@ -17,6 +17,7 @@ const bodySchema = z.object({
   clientName: z.string().optional().default(""),
   clientEmail: z.string().email(),
   description: z.string().optional().default(""),
+  bookingId: z.string().optional(),
 });
 
 async function payUrlFor(chargeId: string, req: Request) {
@@ -88,13 +89,29 @@ export const POST = withManagerAuth(async (req: Request) => {
 
     const tipPercent = 10;
     const tipCents = tipCentsFor(baseAmountCents, tipPercent);
+    const normalizedEmail = body.clientEmail.toLowerCase().trim();
+
+    let targetBookingId = body.bookingId;
+    if (!targetBookingId) {
+      const { Booking } = await import("@/lib/db/models");
+      const matched = await Booking.findOne({
+        "guest.email": normalizedEmail,
+        status: { $in: ["confirmed", "completed"] },
+        "paymentSummary.balanceDueCents": { $gt: 0 },
+      }).sort({ start: -1 });
+      if (matched) {
+        targetBookingId = String(matched._id);
+      }
+    }
+
     const charge = await StudioCharge.create({
+      bookingId: targetBookingId || undefined,
       baseAmountCents,
       tipPercent,
       tipCents,
       totalCents: baseAmountCents + tipCents,
       clientName: body.clientName.trim(),
-      clientEmail: body.clientEmail.toLowerCase().trim(),
+      clientEmail: normalizedEmail,
       description: body.description.trim() || "Mari Esthetics",
       status: "open",
     });

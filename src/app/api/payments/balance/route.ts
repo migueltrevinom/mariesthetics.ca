@@ -1,20 +1,29 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
-import { Booking, Payment } from "@/lib/db/models";
-import { AuthError, requireManager } from "@/lib/auth/jwt";
-import { config, getAppUrl } from "@/lib/config";
-import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
+import { Booking, StudioCharge } from "@/lib/db/models";
+import { AuthError, getSession } from "@/lib/auth/jwt";
+import { getAppUrl } from "@/lib/config";
+import { isStripeConfigured } from "@/lib/payments/stripe";
+import { signStudioChargeToken } from "@/lib/payments/studioChargeToken";
+import {
+  tipCentsFor,
+} from "@/lib/payments/studioCharge";
 
 const bodySchema = z.object({
   bookingId: z.string().min(1),
   amountCents: z.number().int().positive().optional(),
+  tipCents: z.number().int().nonnegative().optional(),
+  compliment: z.string().max(250).optional(),
   forceNew: z.boolean().optional(),
 });
 
 export async function GET(req: Request) {
   try {
-    await requireManager();
+    const session = await getSession();
+    if (!session) {
+      throw new AuthError("Unauthorized", 401);
+    }
     const { searchParams } = new URL(req.url);
     const bookingId = searchParams.get("bookingId");
 
@@ -28,28 +37,34 @@ export async function GET(req: Request) {
       return NextResponse.json({ url: null });
     }
 
-    // Find latest pending balance payment for this booking
-    const existingPayment = await Payment.findOne({
-      bookingId,
-      kind: "balance",
-      method: "stripe",
-      status: "pending",
-    }).sort({ createdAt: -1 });
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    }
 
-    if (existingPayment?.stripeCheckoutSessionId) {
-      try {
-        const stripe = getStripe();
-        const session = await stripe.checkout.sessions.retrieve(existingPayment.stripeCheckoutSessionId);
-        if (session && session.status === "open" && session.url) {
-          return NextResponse.json({ url: session.url, paymentId: existingPayment._id });
-        }
-      } catch (e) {
-        console.warn("[Stripe Session Retrieve Warning]:", e);
+    if (session.role !== "manager") {
+      const isOwner =
+        session.role === "client" &&
+        (String(booking.clientId) === session.sub ||
+          booking.guest?.email?.toLowerCase() === session.email.toLowerCase());
+      if (!isOwner) {
+        throw new AuthError("Unauthorized", 403);
       }
     }
 
+    // Find latest open StudioCharge for this booking
+    const existingCharge = await StudioCharge.findOne({
+      bookingId: booking._id,
+      status: "open",
+    }).sort({ createdAt: -1 });
+
+    if (existingCharge) {
+      const payUrl = `${getAppUrl(req)}/pay?t=${encodeURIComponent(await signStudioChargeToken(String(existingCharge._id)))}`;
+      return NextResponse.json({ url: payUrl, chargeId: existingCharge._id });
+    }
+
     return NextResponse.json({ url: null });
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
@@ -59,7 +74,11 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    await requireManager();
+    const authSession = await getSession();
+    if (!authSession) {
+      throw new AuthError("Unauthorized", 401);
+    }
+
     if (!isStripeConfigured()) {
       return NextResponse.json(
         { error: "Stripe is not configured" },
@@ -75,75 +94,63 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
+    // Permission: either studio manager or the booking owner
+    if (authSession.role !== "manager") {
+      const isOwner =
+        authSession.role === "client" &&
+        (String(booking.clientId) === authSession.sub ||
+          booking.guest?.email?.toLowerCase() === authSession.email.toLowerCase());
+      if (!isOwner) {
+        throw new AuthError("You do not have permission to pay balance for this booking", 403);
+      }
+    }
+
     const amount =
       body.amountCents ?? booking.paymentSummary?.balanceDueCents ?? 0;
     if (amount <= 0) {
       return NextResponse.json({ error: "No balance due" }, { status: 400 });
     }
 
-    const stripe = getStripe();
-
-    // Check for an existing open pending session if forceNew is not set
+    // Check for existing open StudioCharge for this booking if forceNew is not set
+    let charge = null;
     if (!body.forceNew) {
-      const existingPayment = await Payment.findOne({
+      charge = await StudioCharge.findOne({
         bookingId: booking._id,
-        kind: "balance",
-        method: "stripe",
-        amountCents: amount,
-        status: "pending",
+        status: "open",
+        baseAmountCents: amount,
       }).sort({ createdAt: -1 });
-
-      if (existingPayment?.stripeCheckoutSessionId) {
-        try {
-          const session = await stripe.checkout.sessions.retrieve(existingPayment.stripeCheckoutSessionId);
-          if (session && session.status === "open" && session.url) {
-            return NextResponse.json({ url: session.url, paymentId: existingPayment._id });
-          }
-        } catch (e) {
-          // ignore and create new
-        }
-      }
     }
 
-    const payment = await Payment.create({
-      bookingId: booking._id,
-      kind: "balance",
-      method: "stripe",
-      amountCents: amount,
-      status: "pending",
-    });
+    const clientEmail = (booking.guest?.email || authSession.email || "").toLowerCase().trim();
+    const clientName = booking.guest?.name || "";
+    const description = booking.service?.name
+      ? `Remaining Balance — ${booking.service.name}`
+      : "Remaining Treatment Balance";
 
-    const baseUrl = getAppUrl(req);
+    if (!charge) {
+      // Cancel prior open charges for this booking
+      await StudioCharge.updateMany(
+        { bookingId: booking._id, status: "open" },
+        { $set: { status: "cancelled" } }
+      );
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      success_url: `${baseUrl}/book/success?bookingId=${booking._id}&paid=balance`,
-      cancel_url: `${baseUrl}/admin/bookings`,
-      customer_email: booking.guest?.email,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "cad",
-            unit_amount: amount,
-            product_data: {
-              name: "Mari Esthetics — remaining balance",
-            },
-          },
-        },
-      ],
-      metadata: {
-        bookingId: String(booking._id),
-        paymentId: String(payment._id),
-        kind: "balance",
-      },
-    });
+      charge = await StudioCharge.create({
+        bookingId: booking._id,
+        baseAmountCents: amount,
+        tipPercent: 10,
+        tipCents: tipCentsFor(amount, 10),
+        totalCents: amount + tipCentsFor(amount, 10),
+        clientName,
+        clientEmail,
+        description,
+        status: "open",
+      });
+    }
 
-    payment.stripeCheckoutSessionId = session.id;
-    await payment.save();
+    const payUrl = `${getAppUrl(req)}/pay?t=${encodeURIComponent(await signStudioChargeToken(String(charge._id)))}`;
 
-    return NextResponse.json({ url: session.url, paymentId: payment._id });
-  } catch (err) {
+    return NextResponse.json({ url: payUrl, chargeId: charge._id });
+  } catch (err: unknown) {
     if (err instanceof AuthError) {
       return NextResponse.json({ error: err.message }, { status: err.status });
     }

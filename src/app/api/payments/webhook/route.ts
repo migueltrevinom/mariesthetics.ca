@@ -32,23 +32,25 @@ async function applySucceededPayment(meta: {
     balanceDueCents: 0,
   };
 
-  if (meta.kind === "tip") {
-    summary.tipCents = (summary.tipCents ?? 0) + payment.amountCents;
-  } else {
-    // Recalculate total paid from all succeeded payments for this booking
-    const succeededPayments = await Payment.find({
-      bookingId: booking._id,
-      status: "succeeded",
-    });
-    const totalSucceeded = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
-    summary.paidCents = Math.max(summary.paidCents ?? 0, totalSucceeded);
-    summary.balanceDueCents = Math.max(
-      0,
-      (summary.totalCents ?? 0) -
-        (summary.discountCents ?? 0) -
-        summary.paidCents,
-    );
-  }
+  const succeededPayments = await Payment.find({
+    bookingId: booking._id,
+    status: "succeeded",
+  });
+  const nonTipSucceeded = succeededPayments
+    .filter((p) => p.kind !== "tip")
+    .reduce((sum, p) => sum + (p.amountCents || 0), 0);
+  const tipSucceeded = succeededPayments
+    .filter((p) => p.kind === "tip")
+    .reduce((sum, p) => sum + (p.amountCents || 0), 0);
+
+  const netServicePrice = Math.max(0, (summary.totalCents ?? 0) - (summary.discountCents ?? 0));
+  const totalAll = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
+  const impliedTip = Math.max(0, totalAll - netServicePrice);
+
+  summary.tipCents = Math.max(summary.tipCents ?? 0, tipSucceeded, impliedTip);
+  const rawPaid = Math.max(summary.paidCents ?? 0, nonTipSucceeded);
+  summary.paidCents = netServicePrice > 0 ? Math.min(netServicePrice, rawPaid) : rawPaid;
+  summary.balanceDueCents = Math.max(0, netServicePrice - summary.paidCents);
 
   booking.paymentSummary = summary;
 
@@ -112,6 +114,13 @@ export async function POST(req: Request) {
           paymentId: intent.metadata?.paymentId,
           kind: intent.metadata?.kind,
         });
+        if (intent.metadata?.tipPaymentId) {
+          await applySucceededPayment({
+            bookingId: intent.metadata?.bookingId,
+            paymentId: intent.metadata?.tipPaymentId,
+            kind: "tip",
+          });
+        }
         break;
       }
       case "checkout.session.completed": {
@@ -125,6 +134,13 @@ export async function POST(req: Request) {
           paymentId: session.metadata?.paymentId,
           kind: session.metadata?.kind,
         });
+        if (session.metadata?.tipPaymentId) {
+          await applySucceededPayment({
+            bookingId: session.metadata?.bookingId,
+            paymentId: session.metadata?.tipPaymentId,
+            kind: "tip",
+          });
+        }
         break;
       }
       default:

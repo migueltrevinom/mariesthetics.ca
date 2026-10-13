@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
 import { Client, Manager } from "@/lib/db/models";
-import { verifyOtp } from "@/lib/auth/otp";
+import { verifyClientOtp, verifyOtp } from "@/lib/auth/otp";
 import { setSessionCookie, signSession } from "@/lib/auth/jwt";
 
 const bodySchema = z.object({
@@ -15,19 +15,19 @@ export async function POST(req: Request) {
   try {
     const body = bodySchema.parse(await req.json());
     await connectDb();
-    const email = body.email.toLowerCase();
-
-    const verified = await verifyOtp({
-      target: email,
-      code: body.code,
-      purpose: body.purpose,
-    });
-
-    if (!verified.ok) {
-      return NextResponse.json({ error: verified.error }, { status: 400 });
-    }
+    const email = body.email.trim().toLowerCase();
 
     if (body.purpose === "manager_login") {
+      const verified = await verifyOtp({
+        target: email,
+        code: body.code,
+        purpose: "manager_login",
+      });
+
+      if (!verified.ok) {
+        return NextResponse.json({ error: verified.error }, { status: 400 });
+      }
+
       const manager = await Manager.findOne({ email, active: true });
       if (!manager) {
         return NextResponse.json({ error: "Manager not found" }, { status: 404 });
@@ -48,11 +48,13 @@ export async function POST(req: Request) {
       });
     }
 
-    const client = await Client.findOne({ email });
-    if (!client) {
-      return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    // Client login verification against Client document encrypted OTP
+    const verified = await verifyClientOtp(email, body.code);
+    if (!verified.ok) {
+      return NextResponse.json({ error: verified.error }, { status: verified.status || 400 });
     }
 
+    const client = verified.client;
     const token = await signSession({
       sub: String(client._id),
       role: "client",
