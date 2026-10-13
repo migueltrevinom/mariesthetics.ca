@@ -19,6 +19,11 @@ const ClientSchema = new Schema(
     banned: { type: Boolean, default: false },
     vipRescheduleBypass: { type: Boolean, default: false },
     photoUrl: { type: String, default: "" },
+    otp: {
+      codeHash: { type: String, default: null },
+      expiresAt: { type: Date, default: null },
+      attempts: { type: Number, default: 0 },
+    },
   },
   { timestamps: true },
 );
@@ -28,6 +33,15 @@ export type ClientDoc = InferSchemaType<typeof ClientSchema> & {
   active: boolean;
   banned: boolean;
   photoUrl: string;
+  otp?: {
+    codeHash: string | null;
+    expiresAt: Date | null;
+    attempts: number;
+  };
 };
+
+if (models.Client && !models.Client.schema.paths["otp.codeHash"]) {
+  delete (models as any).Client;
+}
 
 export const Client = models.Client || model("Client", ClientSchema);

@@ -30,7 +30,28 @@ export default async function PayPage({
       }
       const record = await StudioCharge.findById(chargeId).lean();
       if (record && record.status !== "cancelled") {
-        charge = publicStudioCharge(record);
+        let booking = null;
+        let payments = null;
+        const { Booking, Payment } = await import("@/lib/db/models");
+        await import("@/lib/db/models/Service");
+
+        if (record.bookingId) {
+          booking = await Booking.findById(record.bookingId).populate("serviceId").lean();
+          payments = await Payment.find({ bookingId: record.bookingId, status: "succeeded" }).lean();
+        } else if (record.clientEmail) {
+          booking = await Booking.findOne({
+            "guest.email": record.clientEmail.toLowerCase().trim(),
+            status: { $in: ["confirmed", "completed"] },
+          })
+            .sort({ start: -1 })
+            .populate("serviceId")
+            .lean();
+          if (booking) {
+            payments = await Payment.find({ bookingId: booking._id, status: "succeeded" }).lean();
+          }
+        }
+
+        charge = publicStudioCharge(record, booking, payments);
       }
     } catch (err) {
       console.error("[Pay page]", err);

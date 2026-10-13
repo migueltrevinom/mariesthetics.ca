@@ -114,6 +114,21 @@ export function MegaMenu({
     };
   }, [open, onClose]);
 
+  const [isClientAuth, setIsClientAuth] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user?.role === "client") {
+          setIsClientAuth(true);
+        } else {
+          setIsClientAuth(false);
+        }
+      })
+      .catch(() => {});
+  }, [open]);
+
   const exploreLinks = [
     {
       href: "/services",
@@ -151,11 +166,14 @@ export function MegaMenu({
           : "Contact",
     },
     {
-      href: "/login",
-      label:
-        t("megaMenu.clientLogin") !== "megaMenu.clientLogin"
-          ? t("megaMenu.clientLogin")
-          : "Client login",
+      href: isClientAuth ? "/portal" : "/login",
+      label: isClientAuth
+        ? t("megaMenu.clientPortal") !== "megaMenu.clientPortal"
+          ? t("megaMenu.clientPortal")
+          : "Client portal"
+        : t("megaMenu.clientLogin") !== "megaMenu.clientLogin"
+        ? t("megaMenu.clientLogin")
+        : "Client login",
     },
   ];
 

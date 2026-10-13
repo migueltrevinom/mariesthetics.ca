@@ -35,6 +35,19 @@ export function SiteFooter() {
     void loadSocials();
   }, []);
 
+  const [isClientAuth, setIsClientAuth] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user?.role === "client") {
+          setIsClientAuth(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const nav = [
     {
       href: "/services",
@@ -53,8 +66,14 @@ export function SiteFooter() {
       label: t("nav.contact") !== "nav.contact" ? t("nav.contact") : "Contact",
     },
     {
-      href: "/login",
-      label: t("megaMenu.clientLogin") !== "megaMenu.clientLogin" ? t("megaMenu.clientLogin") : "Client login",
+      href: isClientAuth ? "/portal" : "/login",
+      label: isClientAuth
+        ? t("megaMenu.clientPortal") !== "megaMenu.clientPortal"
+          ? t("megaMenu.clientPortal")
+          : "Client portal"
+        : t("megaMenu.clientLogin") !== "megaMenu.clientLogin"
+        ? t("megaMenu.clientLogin")
+        : "Client login",
     },
   ];
 

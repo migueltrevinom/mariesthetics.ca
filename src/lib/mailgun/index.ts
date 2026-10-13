@@ -28,12 +28,28 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       return { success: true, messageId: "dev-stub-id" };
     }
 
+    // 2. Dev environment email redirection if MAILGUN_DEV_EMAIL is configured
+    const isDev = process.env.ENV === "development" || process.env.NODE_ENV === "development" || config.env === "development";
+    const devEmail = isDev && config.mailgunDevEmail ? config.mailgunDevEmail.trim() : null;
+    const recipient = devEmail || to;
+    const finalSubject = devEmail ? `[DEV: originally to ${to}] ${subject}` : subject;
+
+    if (devEmail) {
+      console.info(`[Mailgun DEV Mode] Redirecting email originally destined for "${to}" to "${devEmail}"`);
+    }
+
     let html = rawHtml || "";
     if (!html && templateName) {
       const templatePath = path.join(process.cwd(), "src/lib/mailgun/templates", `${templateName}.ejs`);
       if (fs.existsSync(templatePath)) {
         const templateContent = fs.readFileSync(templatePath, "utf-8");
-        html = ejs.render(templateContent, data);
+        const defaultData: Record<string, any> = {
+          name: "Valued Client",
+          expiryMinutes: config.otpExpiryMinutes || 10,
+          purpose: "client_login",
+          ...data,
+        };
+        html = ejs.render(templateContent, defaultData);
       }
     }
 
@@ -43,8 +59,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
     // Use FormData for attachment support
     const formData = new FormData();
     formData.append("from", config.mailgunFromEmail);
-    formData.append("to", to);
-    formData.append("subject", subject);
+    formData.append("to", recipient);
+    formData.append("subject", finalSubject);
     formData.append("html", html);
 
     if (attachment) {
@@ -70,6 +86,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
     }
 
     const result = JSON.parse(resultText);
+    console.info(`[Mailgun] Successfully sent email to "${recipient}" with subject "${finalSubject}" (Message ID: ${result.id})`);
     return {
       success: true,
       messageId: result.id,

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getSession } from "@/lib/auth/jwt";
 
 export const metadata: Metadata = {
   title: "Booking Confirmed",
@@ -12,6 +13,8 @@ export default async function BookSuccessPage({
   searchParams: Promise<{ bookingId?: string; paid?: string }>;
 }) {
   const params = await searchParams;
+  const session = await getSession();
+  const isClient = Boolean(session && session.role === "client");
 
   return (
     <div className="aurora grain relative min-h-[80svh] overflow-hidden pt-40 pb-24 md:pt-48">
@@ -36,9 +39,15 @@ export default async function BookSuccessPage({
           <Link href="/" className="btn-ghost">
             Home
           </Link>
-          <Link href="/login" className="btn-primary">
-            Save with client login
-          </Link>
+          {isClient ? (
+            <Link href="/portal" className="btn-primary">
+              View in Client Portal →
+            </Link>
+          ) : (
+            <Link href="/login" className="btn-primary">
+              Save with client login
+            </Link>
+          )}
         </div>
       </div>
     </div>

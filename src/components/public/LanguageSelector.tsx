@@ -42,7 +42,7 @@ export function LanguageSelector() {
           color: "var(--ink)",
           borderColor: "var(--border-color)",
         }}
-        className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-full border hover:border-[#c8a86b] transition-all shadow-sm select-none"
+        className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-semibold rounded-full border hover:border-[#c8a86b] transition-all shadow-sm select-none shrink-0"
         aria-label="Select Language"
       >
         <span className="text-sm">{currentLang.flag}</span>

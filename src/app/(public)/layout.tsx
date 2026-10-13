@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { SiteFooter } from "@/components/public/SiteFooter";
 import { SiteHeader } from "@/components/public/SiteHeader";
+import { FloatingBookButton } from "@/components/public/FloatingBookButton";
 import type { NavService } from "@/components/public/MegaMenu";
 import { connectDb } from "@/lib/db/connect";
 import { Service } from "@/lib/db/models";
@@ -33,15 +33,15 @@ export default async function PublicLayout({
   const navServices = await getNavServices();
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-200">
-      <SiteHeader navServices={navServices} />
-      <main id="main">{children}</main>
-      <SiteFooter />
-      <div className="fixed bottom-5 right-5 z-30 md:hidden">
-        <Link href="/book" className="btn-primary shadow-[var(--shadow)]">
-          Book
-        </Link>
+    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-200 print:bg-white print:min-h-0">
+      <div className="print:hidden">
+        <SiteHeader navServices={navServices} />
       </div>
+      <main id="main">{children}</main>
+      <div className="print:hidden">
+        <SiteFooter />
+      </div>
+      <FloatingBookButton />
     </div>
   );
 }

@@ -109,4 +109,20 @@ export function withManagerAuth(
 	};
 }
 
+export function withClientAuth(
+	handler: (req: Request, session: SessionPayload, ...args: any[]) => Promise<NextResponse>
+) {
+	return async (req: Request, ...args: any[]): Promise<NextResponse> => {
+		try {
+			const session = await requireClient();
+			return handler(req, session, ...args);
+		} catch (err: any) {
+			if (err instanceof AuthError) {
+				return NextResponse.json({ error: err.message }, { status: err.status });
+			}
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		}
+	};
+}
+
 export { COOKIE_NAME };
