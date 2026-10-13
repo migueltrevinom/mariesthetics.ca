@@ -68,7 +68,7 @@ export default async function ServiceLandingPage({ params }: PageProps) {
   const hero =
     services.find((s) => s.slug === definition.heroServiceSlug) || services[0];
   const heroImage = primaryLandingImage(services, definition.heroServiceSlug) || "";
-  const relatedPosts = await loadRelatedBlogPosts(services.map((s) => s._id));
+  const relatedPosts = await loadRelatedBlogPosts(services.map((s) => s._id), locale);
   const pagePath = serviceLandingPath(resolved.pathSlug);
   const pageUrl = `${siteUrl}${pagePath}`;
   const inLanguage = localeToHreflang(locale);

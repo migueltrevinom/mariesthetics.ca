@@ -138,7 +138,7 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBl
   try {
     await connectDb();
 
-    const populate = { path: "serviceIds", select: "name slug priceCents" };
+    const populate = { path: "serviceIds", select: "name slug priceCents category" };
 
     const doc = await BlogPost.findOne({
       slug: normalized,

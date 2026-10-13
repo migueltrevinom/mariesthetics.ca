@@ -1,3 +1,4 @@
+import { getPageContentLocale, htmlAttrsForLocale } from "@/lib/i18n/htmlLang";
 import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
@@ -59,13 +60,14 @@ export const viewport = {
   themeColor: "#0b100d",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { lang, dir } = htmlAttrsForLocale(await getPageContentLocale());
   return (
-    <html lang="en-CA" suppressHydrationWarning>
+    <html lang={lang} dir={dir} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

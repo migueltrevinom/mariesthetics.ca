@@ -146,7 +146,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <BlogPostBody content={post.content} />
           </div>
 
-          <BlogRelatedServices services={post.serviceIds} />
+          <BlogRelatedServices services={post.serviceIds} language={post.language as Locale} />
 
           <BlogPromoCta promo={post.resolvedPromo} variant="closing" />
         </div>

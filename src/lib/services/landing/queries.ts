@@ -86,6 +86,7 @@ export async function loadServicesForLanding(
 
 export async function loadRelatedBlogPosts(
   serviceIds: string[],
+  language: string = "en",
   limit = 3
 ): Promise<RelatedBlogPost[]> {
   if (!serviceIds.length) return [];
@@ -97,6 +98,7 @@ export async function loadRelatedBlogPosts(
   const posts = await BlogPost.find({
     status: "published",
     serviceIds: { $in: serviceIds },
+    language,
   })
     .sort({ publishedAt: -1 })
     .limit(limit)
