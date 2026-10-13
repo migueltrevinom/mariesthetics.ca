@@ -8,7 +8,6 @@ export function AdminLoginForm() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [sent, setSent] = useState(false);
-  const [devCode, setDevCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +36,6 @@ export function AdminLoginForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       setSent(true);
-      if (data.devCode) setDevCode(data.devCode);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed");
     } finally {
@@ -90,12 +88,6 @@ export function AdminLoginForm() {
         {error && (
           <div className="mt-5 border border-[#e8a0a2]/20 bg-[#e8a0a2]/5 px-4 py-2.5 rounded-lg text-xs text-[#e8a0a2] text-left">
             {error}
-          </div>
-        )}
-
-        {devCode && (
-          <div className="mt-5 border border-[#9dceb8]/20 bg-[#9dceb8]/5 px-4 py-2.5 rounded-lg text-xs text-[#9dceb8] font-mono">
-            Dev code: {devCode}
           </div>
         )}
 

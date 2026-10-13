@@ -36,12 +36,12 @@ export function SiteHeader({ navServices = [] }: { navServices?: NavService[] })
             : "border-b border-transparent bg-gradient-to-b from-black/10 to-transparent"
         }`}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 md:px-10">
-          <Link href="/" aria-label="Mari Esthetics home">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-3 sm:px-6 py-2.5 sm:py-4 md:px-10">
+          <Link href="/" aria-label="Mari Esthetics home" className="shrink-0">
             <Logo size="md" />
           </Link>
 
-          <div className="flex items-center gap-3 md:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3 md:gap-4 shrink-0">
             <div className="hidden lg:inline-flex">
               <NextAvailablePill />
             </div>
@@ -62,13 +62,13 @@ export function SiteHeader({ navServices = [] }: { navServices?: NavService[] })
               aria-label="Open menu"
               aria-expanded={open}
               onClick={() => setOpen(true)}
-              className="group flex items-center gap-3 rounded-full border border-[var(--line-strong)] py-2 pl-4 pr-3 text-sm text-[var(--ink)] transition hover:border-gold hover:text-gold-bright"
+              className="group flex items-center gap-2 sm:gap-3 rounded-full border border-[var(--line-strong)] py-1.5 sm:py-2 pl-3 sm:pl-4 pr-2.5 sm:pr-3 text-xs sm:text-sm text-[var(--ink)] transition hover:border-gold hover:text-gold-bright shrink-0"
             >
               <span className="tracking-wide">Menu</span>
-              <span className="flex h-6 w-6 flex-col items-center justify-center gap-1">
-                <span className="h-px w-4 bg-current transition-all duration-300 group-hover:w-5" />
-                <span className="h-px w-5 bg-current" />
-                <span className="h-px w-3 bg-current transition-all duration-300 group-hover:w-5" />
+              <span className="flex h-5 w-5 sm:h-6 sm:w-6 flex-col items-center justify-center gap-0.5 sm:gap-1">
+                <span className="h-px w-3.5 sm:w-4 bg-current transition-all duration-300 group-hover:w-5" />
+                <span className="h-px w-4 sm:w-5 bg-current" />
+                <span className="h-px w-2.5 sm:w-3 bg-current transition-all duration-300 group-hover:w-5" />
               </span>
             </button>
           </div>

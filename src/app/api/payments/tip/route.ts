@@ -8,6 +8,8 @@ import { getStripe, isStripeConfigured } from "@/lib/payments/stripe";
 const bodySchema = z.object({
   bookingId: z.string().min(1),
   amountCents: z.number().int().positive(),
+  compliment: z.string().max(250).optional(),
+  returnUrl: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -28,6 +30,12 @@ export async function POST(req: Request) {
     }
 
     const stripe = getStripe();
+    // Supersede and cancel prior pending tip checkout attempts for this booking
+    await Payment.updateMany(
+      { bookingId: booking._id, kind: "tip", status: "pending" },
+      { $set: { status: "cancelled" } }
+    );
+
     const payment = await Payment.create({
       bookingId: booking._id,
       kind: "tip",
@@ -37,11 +45,19 @@ export async function POST(req: Request) {
     });
 
     const baseUrl = getAppUrl(req);
+    const successUrl = body.returnUrl
+      ? `${baseUrl}${body.returnUrl.startsWith("/") ? body.returnUrl : `/${body.returnUrl}`}?tip_paid=true&bookingId=${booking._id}`
+      : `${baseUrl}/portal?tip_paid=true&bookingId=${booking._id}`;
+    const cancelUrl = body.returnUrl
+      ? `${baseUrl}${body.returnUrl.startsWith("/") ? body.returnUrl : `/${body.returnUrl}`}`
+      : `${baseUrl}/portal`;
+
+    const serviceTitle = booking.service?.name ? ` — ${booking.service.name}` : "";
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      success_url: `${baseUrl}/book/success?bookingId=${booking._id}&paid=tip`,
-      cancel_url: `${baseUrl}/book/success?bookingId=${booking._id}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       customer_email: booking.guest?.email,
       line_items: [
         {
@@ -50,7 +66,8 @@ export async function POST(req: Request) {
             currency: "cad",
             unit_amount: body.amountCents,
             product_data: {
-              name: "Tip for Mari Esthetics",
+              name: `Mari Esthetics Gratuity${serviceTitle}`,
+              description: body.compliment ? `Client note: "${body.compliment}"` : "Heartfelt gratuity for Mari Esthetics",
             },
           },
         },
@@ -59,6 +76,7 @@ export async function POST(req: Request) {
         bookingId: String(booking._id),
         paymentId: String(payment._id),
         kind: "tip",
+        compliment: body.compliment || "",
       },
     });
 

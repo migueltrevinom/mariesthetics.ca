@@ -37,29 +37,26 @@ export async function POST(req: Request) {
     if (!existing || existing.status !== "open" || existing.paidAt) {
       return NextResponse.json({ error: "This charge is no longer open" }, { status: 409 });
     }
-    if (existing.tipPercent === body.tipPercent) {
-      return NextResponse.json({ charge: publicStudioCharge(existing) });
-    }
-
-    // Atomic rate limit: only open, unpaid charges with remaining tip changes are updated.
     const tipCents = tipCentsFor(existing.baseAmountCents, body.tipPercent);
     const updated = await StudioCharge.findOneAndUpdate(
-      { _id: chargeId, status: "open", paidAt: null, tipChanges: { $lt: MAX_TIP_CHANGES } },
+      { _id: chargeId, status: "open", paidAt: null },
       {
         $set: { tipPercent: body.tipPercent, tipCents, totalCents: existing.baseAmountCents + tipCents },
-        $inc: { tipChanges: 1 },
       },
       { new: true },
     );
     if (!updated) {
       return NextResponse.json(
-        { error: "Too many tip changes. Please ask Mari Esthetics for help." },
-        { status: 429 },
+        { error: "This charge is no longer open" },
+        { status: 409 },
       );
     }
 
     const ready = await openCheckoutForCharge(chargeId, req);
-    return NextResponse.json({ charge: publicStudioCharge(ready) });
+    return NextResponse.json({
+      checkoutUrl: ready.checkoutUrl,
+      charge: publicStudioCharge(ready),
+    });
   } catch (err: unknown) {
     console.error("[Studio charge tip]", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Failed to update tip" }, { status: 500 });

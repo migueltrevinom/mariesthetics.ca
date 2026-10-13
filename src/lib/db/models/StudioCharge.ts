@@ -4,6 +4,7 @@ const TIP_PERCENTS = [0, 10, 15, 20] as const;
 
 const StudioChargeSchema = new Schema(
   {
+    bookingId: { type: Schema.Types.ObjectId, ref: "Booking", default: null, index: true },
     baseAmountCents: { type: Number, required: true },
     tipPercent: { type: Number, required: true, enum: TIP_PERCENTS, default: 10 },
     tipCents: { type: Number, required: true, min: 0 },

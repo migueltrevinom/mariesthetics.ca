@@ -49,12 +49,30 @@ async function syncBookingOnPaidSession(bookingId: string, amountPaid: number, k
 		bookingId: currentBooking._id,
 		status: "succeeded",
 	});
-	const totalSucceededCents = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
-	const newPaidCents = Math.max(summary.paidCents, totalSucceededCents, amountPaid);
+	const nonTipSucceededCents = succeededPayments
+		.filter((p) => p.kind !== "tip")
+		.reduce((sum, p) => sum + (p.amountCents || 0), 0);
+	const tipSucceededCents = succeededPayments
+		.filter((p) => p.kind === "tip")
+		.reduce((sum, p) => sum + (p.amountCents || 0), 0);
 
-	if (summary.paidCents !== newPaidCents) {
+	const netServicePrice = Math.max(0, (summary.totalCents ?? 0) - (summary.discountCents ?? 0));
+	const totalAllCents = succeededPayments.reduce((sum, p) => sum + (p.amountCents || 0), 0);
+	const impliedTipCents = Math.max(0, totalAllCents - netServicePrice);
+
+	const newTipCents = Math.max(summary.tipCents ?? 0, tipSucceededCents, impliedTipCents);
+	const rawPaidCents = Math.max(summary.paidCents ?? 0, nonTipSucceededCents, kind === "tip" ? 0 : amountPaid);
+	const newPaidCents = netServicePrice > 0 ? Math.min(netServicePrice, rawPaidCents) : rawPaidCents;
+	const newBalanceDueCents = Math.max(0, netServicePrice - newPaidCents);
+
+	if (
+		summary.paidCents !== newPaidCents ||
+		summary.tipCents !== newTipCents ||
+		summary.balanceDueCents !== newBalanceDueCents
+	) {
 		summary.paidCents = newPaidCents;
-		summary.balanceDueCents = Math.max(0, (summary.totalCents ?? 0) - (summary.discountCents ?? 0) - summary.paidCents);
+		summary.tipCents = newTipCents;
+		summary.balanceDueCents = newBalanceDueCents;
 		currentBooking.paymentSummary = summary;
 		updated = true;
 	}

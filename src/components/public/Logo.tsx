@@ -92,17 +92,17 @@ export function Logo({
   className?: string;
 }) {
   const iconSizes = {
-    sm: "w-6 h-6",
-    md: "w-8 h-8",
-    lg: "w-10 h-10",
-    xl: "w-14 h-14",
+    sm: "w-5 h-5 sm:w-6 sm:h-6",
+    md: "w-7 h-7 sm:w-8 sm:h-8",
+    lg: "w-8 h-8 sm:w-10 sm:h-10",
+    xl: "w-10 h-10 sm:w-14 sm:h-14",
   };
 
   const textSizes = {
-    sm: "text-xs md:text-sm tracking-[0.28em]",
-    md: "text-sm md:text-base tracking-[0.32em]",
-    lg: "text-base md:text-lg tracking-[0.36em]",
-    xl: "text-lg md:text-xl tracking-[0.4em]",
+    sm: "text-[11px] sm:text-xs md:text-sm tracking-[0.2em] sm:tracking-[0.28em]",
+    md: "text-xs sm:text-sm md:text-base tracking-[0.22em] sm:tracking-[0.32em]",
+    lg: "text-sm sm:text-base md:text-lg tracking-[0.28em] sm:tracking-[0.36em]",
+    xl: "text-base sm:text-lg md:text-xl tracking-[0.32em] sm:tracking-[0.4em]",
   };
 
   // Pure icon mark only

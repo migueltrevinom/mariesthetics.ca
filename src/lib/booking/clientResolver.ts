@@ -45,15 +45,23 @@ export async function findOrCreateClientForGuest(guest: { name: string; email: s
 			active: true,
 			banned: false,
 		});
-		return client;
 	} catch (err: any) {
 		if (err.code === 11000) {
 			// Race condition fallback
 			client = await Client.findOne({ email: normalizedEmail });
-			return client;
+		} else {
+			throw err;
 		}
-		throw err;
 	}
+
+	if (client?._id) {
+		await Booking.updateMany(
+			{ "guest.email": normalizedEmail, $or: [{ clientId: null }, { clientId: { $exists: false } }] },
+			{ $set: { clientId: client._id } }
+		);
+	}
+
+	return client;
 }
 
 export async function backfillUnlinkedBookingClients(): Promise<number> {

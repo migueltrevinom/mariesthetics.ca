@@ -61,53 +61,7 @@ function calendarPaymentLines(kind: string, booking: BookingDetails, chargeCents
 	return `Deposit Paid: ${formatCad(booking.depositCents)}\nBalance Due at Studio: ${formatCad(booking.balanceDueCents)}`;
 }
 
-function ConfettiEffect() {
-	return (
-		<div className="absolute inset-0 overflow-hidden pointer-events-none z-10 print:hidden">
-			{[...Array(50)].map((_, i) => {
-				const left = Math.random() * 100;
-				const delay = Math.random() * 5;
-				const duration = 4 + Math.random() * 4;
-				const size = 6 + Math.random() * 12;
-				const rotation = Math.random() * 360;
-				const colors = ["#c8a86b", "#e2c78c", "#2f6b50", "#9dceb8", "#f3efe6"];
-				const color = colors[Math.floor(Math.random() * colors.length)];
-				return (
-					<span
-						key={i}
-						className="absolute top-0 rounded-sm opacity-75 animate-fall"
-						style={{
-							left: `${left}%`,
-							animationDelay: `${delay}s`,
-							animationDuration: `${duration}s`,
-							width: `${size}px`,
-							height: `${size}px`,
-							backgroundColor: color,
-							transform: `rotate(${rotation}deg)`,
-						}}
-					/>
-				);
-			})}
-			<style dangerouslySetInnerHTML={{
-				__html: `
-					@keyframes fall {
-						0% {
-							transform: translateY(-20px) rotate(0deg);
-							opacity: 1;
-						}
-						100% {
-							transform: translateY(100vh) rotate(720deg);
-							opacity: 0;
-						}
-					}
-					.animate-fall {
-						animation: fall linear infinite;
-					}
-				`
-			}} />
-		</div>
-	);
-}
+import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 
 function PaymentLinkContent() {
 	const searchParams = useSearchParams();

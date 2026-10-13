@@ -50,8 +50,6 @@ export async function requestManagerOtp(email: string) {
   return {
     success: true,
     expiresAt,
-    // Provide OTP in dev if Mailgun is not configured
-    ...(process.env.NODE_ENV !== "production" && !config.mailgunApiKey ? { devCode: code } : {}),
   };
 }
 

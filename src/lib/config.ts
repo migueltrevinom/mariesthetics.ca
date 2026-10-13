@@ -1,36 +1,36 @@
 import "@/lib/timezone";
 
 export function getAppUrl(req?: Request): string {
-  if (req) {
-    const forwardedHost = req.headers.get("x-forwarded-host");
-    const host = req.headers.get("host");
-    const targetHost = forwardedHost || host;
-    const proto =
-      req.headers.get("x-forwarded-proto") ||
-      (targetHost?.includes("localhost") || targetHost?.includes("127.0.0.1")
-        ? "http"
-        : "https");
+  const isDevelopment =
+    process.env.ENV === "development" ||
+    process.env.NODE_ENV === "development" ||
+    process.env.NODE_ENV !== "production";
 
-    if (targetHost && !targetHost.includes("localhost") && !targetHost.includes("127.0.0.1")) {
-      return `${proto}://${targetHost}`.replace(/\/$/, "");
+  if (isDevelopment) {
+    if (req) {
+      const forwardedHost = req.headers.get("x-forwarded-host");
+      const host = req.headers.get("host");
+      const targetHost = forwardedHost || host;
+      if (targetHost) {
+        const proto = req.headers.get("x-forwarded-proto") || "http";
+        return `${proto}://${targetHost}`.replace(/\/$/, "");
+      }
     }
+
+    const devUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (devUrl && (devUrl.includes("localhost") || devUrl.includes("127.0.0.1"))) {
+      return devUrl.replace(/\/$/, "");
+    }
+    return "http://localhost:3000";
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  // Production environment: route to production URL
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
   if (siteUrl && !siteUrl.includes("localhost")) {
     return siteUrl.replace(/\/$/, "");
   }
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (appUrl && !appUrl.includes("localhost")) {
-    return appUrl.replace(/\/$/, "");
-  }
-
-  if (process.env.NODE_ENV === "production") {
-    return "https://mariesthetics.ca";
-  }
-
-  return (appUrl || "http://localhost:3000").replace(/\/$/, "");
+  return "https://mariesthetics.ca";
 }
 
 export const config = {
@@ -61,6 +61,8 @@ export const config = {
   mailgunApiKey: process.env.MAILGUN_API_KEY ?? "",
   mailgunDomain: process.env.MAILGUN_DOMAIN ?? "mg.mariesthetics.ca",
   mailgunFromEmail: process.env.MAILGUN_FROM_EMAIL ?? "Mari Esthetics <bookings@mariesthetics.ca>",
+  mailgunDevEmail: process.env.MAILGUN_DEV_EMAIL ?? "",
+  env: process.env.ENV ?? process.env.NODE_ENV ?? "development",
   otpDefaultChannel: (process.env.OTP_DEFAULT_CHANNEL ?? "email") as
     | "email"
     | "sms",

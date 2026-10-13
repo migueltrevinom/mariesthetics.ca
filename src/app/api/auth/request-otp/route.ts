@@ -1,18 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
-import { Client, ClientSettings, Manager } from "@/lib/db/models";
-import { requestOtp } from "@/lib/auth/otp";
-import { customAlphabet } from "nanoid";
-
-const nanoid = customAlphabet("ABCDEFGHJKLMNPQRSTUVWXYZ23456789", 8);
+import { Manager } from "@/lib/db/models";
+import { requestClientOtp, requestOtp } from "@/lib/auth/otp";
 
 const bodySchema = z.object({
-  email: z.string().email(),
-  purpose: z.enum(["client_login", "manager_login", "link_account"]),
+  email: z.string().email("Please enter a valid email address"),
+  purpose: z.enum(["client_login", "manager_login", "link_account"]).optional().default("client_login"),
   channel: z.enum(["email", "sms"]).optional(),
-  name: z.string().min(1).optional(),
-  phone: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -21,52 +16,39 @@ export async function POST(req: Request) {
     const body = bodySchema.parse(json);
     await connectDb();
 
-    const email = body.email.toLowerCase();
+    const email = body.email.toLowerCase().trim();
 
     if (body.purpose === "manager_login") {
       const manager = await Manager.findOne({ email, active: true });
       if (!manager) {
         return NextResponse.json(
-          { error: "No active manager account for this email" },
+          { error: "No active manager account found for this email." },
           { status: 404 },
         );
       }
+      const result = await requestOtp({
+        target: email,
+        purpose: "manager_login",
+        channel: body.channel,
+      });
+      return NextResponse.json(result);
     }
 
-    if (body.purpose === "client_login" || body.purpose === "link_account") {
-      let client = await Client.findOne({ email });
-      if (!client) {
-        if (!body.name) {
-          return NextResponse.json(
-            {
-              error: "Create an account by providing your name, then verify the code.",
-              needsProfile: true,
-            },
-            { status: 400 },
-          );
-        }
-        client = await Client.create({
-          name: body.name,
-          email,
-          phone: body.phone ?? "",
-          referralCode: nanoid(),
-        });
-        await ClientSettings.create({ clientId: client._id });
-      }
+    // Client login: verify against Client table / guest bookings & store encrypted 10-min OTP
+    const result = await requestClientOtp(email);
+    if (!result.ok) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.status || 400 },
+      );
     }
-
-    const result = await requestOtp({
-      target: email,
-      purpose: body.purpose,
-      channel: body.channel,
-    });
 
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.issues[0]?.message }, { status: 400 });
     }
-    console.error(err);
-    return NextResponse.json({ error: "Failed to send OTP" }, { status: 500 });
+    console.error("[request-otp Error]:", err);
+    return NextResponse.json({ error: "Failed to send verification code. Please try again." }, { status: 500 });
   }
 }
