@@ -13,6 +13,7 @@ function mapServices(raw: unknown): BlogServiceRef[] {
         name: String(doc.name ?? "Service"),
         slug: doc.slug ? String(doc.slug) : undefined,
         priceCents: doc.priceCents != null ? Number(doc.priceCents) : undefined,
+        category: doc.category ? String(doc.category) : undefined,
       };
     })
     .filter(Boolean) as BlogServiceRef[];
