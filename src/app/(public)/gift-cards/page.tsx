@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 import { useLanguage } from "@/components/i18n/LanguageContext";
 
@@ -119,9 +120,18 @@ function GiftCardsContent() {
               Thank you for your purchase! A digital voucher with redemption instructions has been dispatched to the recipient's email.
             </p>
             {code && (
-              <p className="text-xs font-mono font-bold text-[#c8a86b] pt-1">
-                Voucher Code: {code}
-              </p>
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <p className="text-xs font-mono font-bold text-[#c8a86b]">
+                  Voucher Code: {code}
+                </p>
+                <Link
+                  href={`/gift-cards/reveal/${code}`}
+                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] text-[#0b100d] text-xs font-bold hover:brightness-105 transition-all shadow-sm flex items-center gap-1.5"
+                >
+                  <span>🎁</span>
+                  <span>View &amp; Unwrap Certificate →</span>
+                </Link>
+              </div>
             )}
           </div>
         )}
