@@ -885,7 +885,18 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
               </div>
 
               {/* Drawer Footer Actions */}
-              <div className="pt-6 border-t border-[var(--border-color)] flex gap-2">
+              <div className="pt-6 border-t border-[var(--border-color)] flex flex-wrap gap-2">
+                {drawerItem.type === "giftCard" && (
+                  <a
+                    href={`/gift-cards/reveal/${drawerItem.item.code}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] text-[#0b100d] text-xs font-bold hover:brightness-105 transition-all shadow-xs flex items-center gap-1.5"
+                  >
+                    <span>🎁</span>
+                    <span>Preview Unwrap Experience ↗</span>
+                  </a>
+                )}
                 <button
                   type="button"
                   onClick={() => copyToClipboard(drawerItem.item.code, "codeOnly")}
