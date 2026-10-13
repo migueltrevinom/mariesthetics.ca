@@ -27,6 +27,7 @@ export type BlogServiceRef = {
   name: string;
   slug?: string;
   priceCents?: number;
+  category?: string;
 };
 
 export type BlogTranslationRef = {
