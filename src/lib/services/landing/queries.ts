@@ -41,22 +41,43 @@ export async function loadServicesForLanding(
     return [];
   }
 
-  const all = await Service.find({ active: true }).sort({ sortOrder: 1 }).lean();
+  // ⚡ Bolt Optimization: Filter services at the database query level using definition.match
+  // rather than fetching all active services into memory and filtering in JavaScript.
+  const query: Record<string, unknown> = { active: true };
+  if (definition.match.type === "category") {
+    query.category = definition.match.category;
+  } else if (definition.match.type === "slugs") {
+    query.slug = { $in: definition.match.slugs };
+  }
+
+  const matchedServices = await Service.find(query).sort({ sortOrder: 1 }).lean();
+
+  if (!matchedServices.length && SERVICE_LANDING_DEV_PREVIEW) {
+    return previewServicesForLanding(definition);
+  }
+
+  const matchedIds = matchedServices.map((s) => s._id);
 
   const imageMap = new Map<string, string[]>();
-  try {
-    const images = await ServiceImage.find({ isPrivate: false }).lean();
-    for (const img of images as Array<{ serviceId: unknown; url?: string }>) {
-      const id = String(img.serviceId);
-      if (!imageMap.has(id)) imageMap.set(id, []);
-      if (img.url) imageMap.get(id)!.push(img.url);
+  if (matchedIds.length > 0) {
+    try {
+      // ⚡ Bolt Optimization: Only query images for the matched services instead of loading all public service images
+      const images = await ServiceImage.find({
+        isPrivate: false,
+        serviceId: { $in: matchedIds },
+      }).lean();
+      for (const img of images as Array<{ serviceId: unknown; url?: string }>) {
+        const id = String(img.serviceId);
+        if (!imageMap.has(id)) imageMap.set(id, []);
+        if (img.url) imageMap.get(id)!.push(img.url);
+      }
+    } catch {
+      // optional
     }
-  } catch {
-    // optional
   }
 
   const rows: LandingServiceRow[] = [];
-  for (const s of all) {
+  for (const s of matchedServices) {
     const slug = String(s.slug || "");
     const row: LandingServiceRow = {
       _id: String(s._id),
