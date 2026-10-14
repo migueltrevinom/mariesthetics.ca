@@ -116,7 +116,7 @@ function GiftCardsContent() {
         {/* Success Alert Banner */}
         {success && (
           <div className="p-6 rounded-3xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-500 space-y-2 animate-in fade-in zoom-in duration-300">
-            <span className="text-xl font-bold block">🎉 Gift Certificate Issued Successfully!</span>
+            <span className="text-lg font-bold block">Gift Certificate Issued Successfully</span>
             <p className="text-xs font-medium text-[var(--ink)]">
               Thank you for your purchase! A digital voucher with redemption instructions has been dispatched to the recipient's email.
             </p>
@@ -127,10 +127,10 @@ function GiftCardsContent() {
                 </p>
                 <Link
                   href={`/gift-cards/reveal/${code}`}
-                  className="px-5 py-2 rounded-full bg-[#8052ff] hover:bg-[#6c3ef0] text-white text-xs font-semibold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(128,82,255,0.4)] flex items-center gap-2"
+                  className="h-10 px-5 rounded-full bg-[#c8a86b] hover:bg-[#d8b87b] text-[#0b140f] text-xs font-semibold tracking-wider uppercase transition-all duration-150 inline-flex items-center gap-2"
                 >
-                  <span>✦</span>
-                  <span>View &amp; Awaken Certificate →</span>
+                  <span>View Certificate</span>
+                  <span>→</span>
                 </Link>
               </div>
             )}
@@ -146,7 +146,7 @@ function GiftCardsContent() {
 
             {error && (
               <div className="p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-500 text-xs font-semibold">
-                ⚠️ {error}
+                {error}
               </div>
             )}
 
@@ -154,7 +154,7 @@ function GiftCardsContent() {
             {services.length > 0 && (
               <div className="space-y-2">
                 <span className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block">
-                  ✨ Quick Treatment Value Shortcuts:
+                  Quick Treatment Value Shortcuts:
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {services.map((s) => {
@@ -309,7 +309,7 @@ function GiftCardsContent() {
               disabled={loading}
               className="btn-primary w-full py-3.5 text-xs font-bold shadow-xl cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              <span>{loading ? "Preparing Card Checkout..." : `💳 Pay $${effectiveAmount.toFixed(2)} CAD via Card →`}</span>
+              <span>{loading ? "Preparing Card Checkout..." : `Pay $${effectiveAmount.toFixed(2)} CAD via Card →`}</span>
             </button>
           </form>
 
@@ -429,7 +429,7 @@ function GiftCardsContent() {
                     Gift for <strong className="text-[#e2c78c]">{recipientName || "Recipient"}</strong> from <strong className="text-[#e2c78c]">{senderName || "You"}</strong>
                   </p>
                   <p className="text-[11px] text-[#e2c78c] font-bold uppercase tracking-wider">
-                    ✨ Tap box to preview unboxing ✨
+                    Tap box to preview certificate
                   </p>
                 </div>
               </div>

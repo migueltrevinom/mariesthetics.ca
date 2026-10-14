@@ -51,16 +51,17 @@ export default async function GiftCardRevealPage({
           <p className="mt-3 text-xs sm:text-sm text-[#9a9a9a] font-light leading-relaxed">
             We couldn't locate an active gift certificate matching code <strong className="text-white font-mono">{code}</strong>. It may have already been fully redeemed or reached expiration.
           </p>
-          <div className="mt-8 space-y-3">
+          <div className="mt-8 space-y-2.5">
             <Link
               href="/gift-cards"
-              className="w-full py-3.5 px-6 rounded-full bg-[#8052ff] hover:bg-[#6c3ef0] text-white text-xs font-semibold uppercase tracking-[0.18em] shadow-[0_0_30px_rgba(128,82,255,0.4)] text-center block transition-all"
+              className="w-full h-11 px-5 rounded-full bg-[#c8a86b] hover:bg-[#d8b87b] text-[#0b140f] text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
             >
-              Purchase a Gift Certificate →
+              <span>Purchase a Gift Certificate</span>
+              <span>→</span>
             </Link>
             <Link
               href="/"
-              className="py-2.5 px-4 text-xs uppercase tracking-widest text-[#9a9a9a] hover:text-white block text-center transition-colors"
+              className="py-2 px-4 text-xs tracking-wider uppercase text-white/60 hover:text-white block text-center transition-colors"
             >
               Return to Studio Home
             </Link>
