@@ -42,7 +42,7 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
   const [isOpening, setIsOpening] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 3D Tilt physics for Box and Card
+  // 3D Tilt physics for Cube and Card
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -256,7 +256,7 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    const maxTilt = 10;
+    const maxTilt = 12;
     setTilt({
       x: -(y / (rect.height / 2)) * maxTilt,
       y: (x / (rect.width / 2)) * maxTilt,
@@ -325,11 +325,11 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
       {/* Main Content Stage */}
       <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col items-center text-center">
 
-        {/* ── STAGE 1: THE LUXURY PRESENT BOX (BEFORE UNBOXING) ── */}
+        {/* ── STAGE 1: THE REAL 3D LUXURY PRESENT CUBE (BEFORE UNBOXING) ── */}
         {!isUnwrapped && (
           <div className="w-full flex flex-col items-center">
             {/* Header Eyebrow & Title */}
-            <div className="mb-8 space-y-3 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-700">
               <span className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-semibold tracking-[0.3em] uppercase text-[#ffb829] px-4 py-1.5 rounded-full border border-[#ffb829]/30 bg-[#ffb829]/10 shadow-[0_0_25px_rgba(255,184,41,0.18)]">
                 <span>✦</span>
                 <span>Exclusive Delivery</span>
@@ -346,100 +346,231 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
               </p>
             </div>
 
-            {/* ── 3D PHYSICAL PRESENT BOX CONTAINER ── */}
+            {/* ── TRUE CSS 3D ISOMETRIC PRESENT CUBE STAGE ── */}
             <div
               ref={containerRef}
               onClick={() => handleUnwrap()}
-              style={{
-                transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-                transition: "transform 0.15s ease-out",
-              }}
-              className="relative w-72 h-64 sm:w-84 sm:h-72 my-4 cursor-pointer group flex items-center justify-center [transform-style:preserve-3d]"
+              className="relative my-8 py-6 w-full flex items-center justify-center [perspective:1200px] cursor-pointer group"
             >
-              {/* Ambient Box Glow */}
-              <div className="absolute inset-0 rounded-3xl bg-radial from-[#c8a86b]/25 via-[#8052ff]/15 to-transparent blur-3xl group-hover:from-[#c8a86b]/40 transition-all duration-500 animate-pulse pointer-events-none" />
-
-              {/* ── THE 3D PRESENT BOX LID ── */}
+              {/* Floor Shadow Plane Under the Cube */}
               <div
-                className={`absolute -top-3.5 -left-3 -right-3 h-20 sm:h-22 rounded-2xl bg-gradient-to-b from-[#1c2e24] via-[#122018] to-[#0a140f] border-2 border-[#c8a86b]/60 shadow-[0_20px_45px_rgba(0,0,0,0.9),0_0_30px_rgba(200,168,107,0.25)] z-30 flex items-center justify-center transition-all duration-800 ease-[cubic-bezier(0.2,0.8,0.2,1)] ${
-                  isOpening
-                    ? "-translate-y-48 -rotate-12 scale-90 opacity-0 pointer-events-none"
-                    : "group-hover:-translate-y-2"
-                }`}
-              >
-                {/* Lid Silk Ribbon Cross */}
-                <div className="absolute inset-y-0 w-9 sm:w-10 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
-                <div className="absolute inset-x-0 h-9 sm:h-10 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
+                style={{
+                  transform: "rotateX(75deg) translateZ(-115px)",
+                }}
+                className="absolute w-72 h-56 rounded-full bg-black/90 blur-2xl pointer-events-none transition-transform duration-300 group-hover:scale-105"
+              />
 
-                {/* Bespoke Geometric Gold Rosette Seal (No cheap emojis) */}
-                <div className="relative z-40 w-14 h-14 rounded-full bg-gradient-to-br from-[#fae7b9] via-[#c8a86b] to-[#7f6024] p-0.5 shadow-xl flex items-center justify-center border border-[#fff2d6]/50 transition-transform duration-500 group-hover:rotate-12">
-                  <div className="w-full h-full rounded-full bg-[#08100c] flex items-center justify-center border border-[#c8a86b]/40">
-                    <svg viewBox="0 0 40 40" className="w-7 h-7 text-[#fae7b9]">
-                      <polygon
-                        points="20,3 24,14 36,15 27,23 30,35 20,28 10,35 13,23 4,15 16,14"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      />
-                      <text
-                        x="20"
-                        y="24"
-                        textAnchor="middle"
-                        fill="#fae7b9"
-                        fontSize="10"
-                        fontWeight="600"
-                        fontFamily="sans-serif"
-                      >
-                        M
-                      </text>
-                    </svg>
+              {/* Ambient Radiant Glow around the Cube */}
+              <div className="absolute w-72 h-72 rounded-full bg-radial from-[#c8a86b]/20 via-[#8052ff]/15 to-transparent blur-3xl pointer-events-none group-hover:from-[#c8a86b]/35 transition-all duration-500 animate-pulse" />
+
+              {/* ── THE 3D CUBE ASSEMBLY (ROTATED IN 3D SPACE) ── */}
+              <div
+                style={{
+                  transform: `rotateX(${16 + tilt.x}deg) rotateY(${-26 + tilt.y}deg)`,
+                  transformStyle: "preserve-3d",
+                  transition: "transform 0.15s ease-out",
+                }}
+                className="relative w-[210px] sm:w-[230px] h-[180px] sm:h-[190px]"
+              >
+                {/* ── 1. THE 3D DETACHABLE LID (LIFTS IN 3D SPACE) ── */}
+                <div
+                  style={{
+                    transformStyle: "preserve-3d",
+                    transform: isOpening
+                      ? "translateY(-240px) rotateX(-50deg) rotateZ(12deg) scale(0.92)"
+                      : "translateY(0px)",
+                    opacity: isOpening ? 0 : 1,
+                    transition: isOpening
+                      ? "transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.75s ease"
+                      : "transform 0.4s ease",
+                  }}
+                  className={`absolute -top-3.5 -left-2.5 w-[230px] sm:w-[250px] h-[44px] z-30 ${
+                    !isOpening ? "group-hover:-translate-y-2.5" : ""
+                  }`}
+                >
+                  {/* LID TOP FACE (The horizontal surface where ribbons cross & seal rests) */}
+                  <div
+                    style={{
+                      transform: "rotateX(90deg) translateZ(22px)",
+                      transformStyle: "preserve-3d",
+                    }}
+                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[230px] sm:h-[250px] rounded-xl bg-gradient-to-br from-[#1d3326] via-[#13231b] to-[#0c1611] border-2 border-[#c8a86b]/70 shadow-2xl flex items-center justify-center overflow-hidden"
+                  >
+                    {/* Top Face Vertical Ribbon */}
+                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
+                    {/* Top Face Horizontal Ribbon */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 sm:h-9 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
+
+                    {/* Golden Specular Sheen */}
+                    <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/15 to-transparent rotate-45 transform translate-x-4" />
+
+                    {/* Bespoke Luxury Rosette Seal at Intersection */}
+                    <div className="relative z-40 w-14 h-14 rounded-full bg-gradient-to-br from-[#fae7b9] via-[#c8a86b] to-[#7f6024] p-0.5 shadow-2xl flex items-center justify-center border border-[#fff2d6]/60 transition-transform duration-500 group-hover:rotate-12">
+                      <div className="w-full h-full rounded-full bg-[#08100c] flex items-center justify-center border border-[#c8a86b]/50 shadow-inner">
+                        <svg viewBox="0 0 40 40" className="w-7 h-7 text-[#fae7b9]">
+                          <polygon
+                            points="20,3 24,14 36,15 27,23 30,35 20,28 10,35 13,23 4,15 16,14"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                          />
+                          <text
+                            x="20"
+                            y="24"
+                            textAnchor="middle"
+                            fill="#fae7b9"
+                            fontSize="10"
+                            fontWeight="600"
+                            fontFamily="sans-serif"
+                          >
+                            M
+                          </text>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* LID FRONT SKIRT (Faces directly forward) */}
+                  <div
+                    style={{
+                      transform: "translateZ(115px) sm:translateZ(125px)",
+                    }}
+                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-gradient-to-b from-[#1c2e24] to-[#0c1611] border-x border-b-2 border-[#c8a86b]/60 shadow-md flex items-center justify-center overflow-hidden"
+                  >
+                    {/* Front Skirt Ribbon aligning with body ribbon */}
+                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                  </div>
+
+                  {/* LID RIGHT SKIRT (Faces to the right side) */}
+                  <div
+                    style={{
+                      transform: "rotateY(90deg) translateZ(115px) sm:translateZ(125px)",
+                    }}
+                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-gradient-to-b from-[#14231b] to-[#08100c] border-x border-b-2 border-[#c8a86b]/40 flex items-center justify-center overflow-hidden"
+                  >
+                    {/* Right Skirt Ribbon */}
+                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#7f6024] via-[#d6bc85] to-[#7f6024]" />
+                  </div>
+
+                  {/* LID LEFT SKIRT */}
+                  <div
+                    style={{
+                      transform: "rotateY(-90deg) translateZ(115px) sm:translateZ(125px)",
+                    }}
+                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-[#060b08] border-b-2 border-[#c8a86b]/30"
+                  />
+
+                  {/* LID BACK SKIRT */}
+                  <div
+                    style={{
+                      transform: "rotateY(180deg) translateZ(115px) sm:translateZ(125px)",
+                    }}
+                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-[#060b08] border-b-2 border-[#c8a86b]/30"
+                  />
+                </div>
+
+                {/* ── 2. THE 3D HOLLOW BOX BODY (CUBE BASE) ── */}
+                <div
+                  style={{
+                    transformStyle: "preserve-3d",
+                  }}
+                  className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px]"
+                >
+                  {/* FRONT FACE (Facing the viewer) */}
+                  <div
+                    style={{
+                      transform: "translateZ(105px) sm:translateZ(115px)",
+                    }}
+                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] rounded-b-xl bg-gradient-to-b from-[#14231b] via-[#0d1712] to-[#060a08] border-x border-b-2 border-[#c8a86b]/50 shadow-2xl overflow-hidden flex items-center justify-center"
+                  >
+                    {/* Vertical Ribbon */}
+                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
+                    {/* Horizontal Ribbon */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 sm:h-9 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
+
+                    {/* Corner Gold Brackets */}
+                    <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-[#c8a86b]/60 pointer-events-none" />
+                    <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-[#c8a86b]/60 pointer-events-none" />
+                    <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-[#c8a86b]/60 pointer-events-none" />
+                    <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-[#c8a86b]/60 pointer-events-none" />
+
+                    {/* Studio Center Monogram */}
+                    <div className="relative z-10 w-14 h-14 rounded-full bg-[#060c08]/95 border border-[#c8a86b]/50 flex flex-col items-center justify-center shadow-lg backdrop-blur-xs">
+                      <span className="text-xs font-semibold tracking-widest text-[#fae7b9] font-sans">
+                        MARI
+                      </span>
+                      <span className="text-[7px] uppercase tracking-widest text-[#9a9a9a]">
+                        STUDIO
+                      </span>
+                    </div>
+
+                    {/* Hanging Calligraphic Gift Tag */}
+                    <div className="absolute bottom-3 right-3 z-20 bg-[#faf7f0] text-[#142018] px-3 py-1.5 rounded-xl shadow-2xl border border-[#c8a86b] text-left rotate-[-4deg] transition-transform duration-300 group-hover:rotate-0">
+                      <span className="block text-[7px] uppercase tracking-widest text-[#8b6e2d] font-bold">
+                        Recipient
+                      </span>
+                      <span className="block font-semibold text-[11px] tracking-tight truncate max-w-[95px]">
+                        {giftCard.recipientName || "Valued Client"}
+                      </span>
+                      <span className="block text-[8px] font-mono text-[#8b6e2d] font-bold mt-0.5">
+                        ${giftCard.amountCad.toFixed(2)} CAD
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* RIGHT FACE (Gives the cube its authentic 3D depth!) */}
+                  <div
+                    style={{
+                      transform: "rotateY(90deg) translateZ(105px) sm:translateZ(115px)",
+                    }}
+                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] rounded-b-xl bg-gradient-to-b from-[#0f1b14] via-[#09100c] to-[#040705] border-x border-b-2 border-[#c8a86b]/35 shadow-2xl overflow-hidden flex items-center justify-center"
+                  >
+                    {/* Right Face Horizontal Ribbon wrap-around */}
+                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 sm:h-9 bg-gradient-to-b from-[#7f6024] via-[#d6bc85] to-[#7f6024] shadow-md" />
+                    {/* Side Shading Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20 pointer-events-none" />
+                  </div>
+
+                  {/* LEFT FACE */}
+                  <div
+                    style={{
+                      transform: "rotateY(-90deg) translateZ(105px) sm:translateZ(115px)",
+                    }}
+                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] bg-[#050906] border-b border-[#c8a86b]/20"
+                  />
+
+                  {/* BACK FACE */}
+                  <div
+                    style={{
+                      transform: "rotateY(180deg) translateZ(105px) sm:translateZ(115px)",
+                    }}
+                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] bg-[#040705] border-b border-[#c8a86b]/20"
+                  />
+
+                  {/* BOTTOM FACE */}
+                  <div
+                    style={{
+                      transform: "rotateX(-90deg) translateZ(90px) sm:translateZ(95px)",
+                    }}
+                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[210px] sm:h-[230px] bg-[#020403] shadow-[0_30px_60px_rgba(0,0,0,0.9)]"
+                  />
+
+                  {/* INSIDE CAVITY FLOOR (Glows with gold and stardust when the lid lifts!) */}
+                  <div
+                    style={{
+                      transform: "rotateX(90deg) translateZ(-85px) sm:translateZ(-90px)",
+                    }}
+                    className="absolute inset-0 w-[206px] sm:w-[226px] h-[206px] sm:h-[226px] bg-radial from-[#fae7b9]/50 via-[#8052ff]/25 to-[#040805] border border-[#c8a86b]/40 shadow-inner flex items-center justify-center overflow-hidden"
+                  >
+                    {isOpening && (
+                      <div className="w-full h-full bg-radial from-[#fae7b9] via-[#ffb829]/60 to-transparent animate-pulse" />
+                    )}
                   </div>
                 </div>
               </div>
-
-              {/* ── THE PRESENT BOX BODY / BASE ── */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#15241c] via-[#0c1611] to-[#050907] border-2 border-[#c8a86b]/40 shadow-2xl overflow-hidden flex items-center justify-center">
-                {/* Box Ribbon Cross */}
-                <div className="absolute inset-y-0 w-9 sm:w-10 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-inner" />
-                <div className="absolute inset-x-0 h-9 sm:h-10 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-inner" />
-
-                {/* Metallic Gold Corner Brackets */}
-                <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-[#c8a86b]/50 rounded-tl-sm pointer-events-none" />
-                <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-[#c8a86b]/50 rounded-tr-sm pointer-events-none" />
-                <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-[#c8a86b]/50 rounded-bl-sm pointer-events-none" />
-                <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#c8a86b]/50 rounded-br-sm pointer-events-none" />
-
-                {/* Studio Center Monogram Emblem */}
-                <div className="relative z-10 w-16 h-16 rounded-full bg-[#060c08]/90 border border-[#c8a86b]/40 flex flex-col items-center justify-center shadow-lg backdrop-blur-xs">
-                  <span className="text-sm font-semibold tracking-widest text-[#fae7b9] font-sans">
-                    MARI
-                  </span>
-                  <span className="text-[8px] uppercase tracking-widest text-[#9a9a9a]">
-                    STUDIO
-                  </span>
-                </div>
-
-                {/* Hanging Calligraphic Gift Tag */}
-                <div className="absolute bottom-4 right-4 z-20 bg-[#faf7f0] text-[#142018] px-3.5 py-2 rounded-xl shadow-2xl border border-[#c8a86b] text-left rotate-[-5deg] transition-transform duration-300 group-hover:rotate-0">
-                  <span className="block text-[8px] uppercase tracking-widest text-[#8b6e2d] font-bold">
-                    Recipient
-                  </span>
-                  <span className="block font-semibold text-xs tracking-tight truncate max-w-[120px]">
-                    {giftCard.recipientName || "Valued Client"}
-                  </span>
-                  <span className="block text-[9px] font-mono text-[#8b6e2d] font-bold mt-0.5">
-                    ${giftCard.amountCad.toFixed(2)} CAD
-                  </span>
-                </div>
-
-                {/* Internal Emergence Beam (Active when opening) */}
-                {isOpening && (
-                  <div className="absolute inset-0 bg-radial from-[#fae7b9]/60 via-[#ffb829]/20 to-transparent animate-in zoom-in-50 fade-in duration-500 z-30 pointer-events-none" />
-                )}
-              </div>
             </div>
 
-            {/* Dala Violet Pill Trigger Button */}
+            {/* Dala Violet Pill Action Button */}
             <div className="mt-8">
               <button
                 type="button"

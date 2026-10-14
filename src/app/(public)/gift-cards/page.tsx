@@ -346,44 +346,98 @@ function GiftCardsContent() {
               </div>
             </div>
 
-            {/* PREVIEW MODE 1: LUXURY PRESENT BOX */}
+            {/* PREVIEW MODE 1: LUXURY PRESENT 3D CUBE */}
             {previewMode === "box" && (
               <div
                 onClick={() => setPreviewMode("card")}
-                className="cursor-pointer group border border-white/10 bg-[#060606] p-7 sm:p-8 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(128,82,255,0.12)] space-y-6 text-center relative overflow-hidden text-white backdrop-blur-xl transition-all duration-300 hover:scale-[1.01]"
+                className="cursor-pointer group border border-white/10 bg-[#060606] p-7 sm:p-9 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(128,82,255,0.12)] space-y-6 text-center relative overflow-hidden text-white backdrop-blur-xl transition-all duration-300 hover:scale-[1.01]"
               >
-                {/* 3D Box Representation */}
-                <div className="relative w-56 h-52 sm:w-64 sm:h-56 mx-auto my-2">
-                  {/* Outer ambient glow */}
-                  <div className="absolute inset-0 rounded-3xl bg-radial from-[#c8a86b]/20 via-[#8052ff]/10 to-transparent blur-2xl group-hover:from-[#c8a86b]/35 transition-all duration-500" />
+                {/* 3D Isometric Cube Container */}
+                <div className="relative my-6 py-4 w-full flex items-center justify-center [perspective:1000px]">
+                  {/* Floor Shadow */}
+                  <div
+                    style={{ transform: "rotateX(75deg) translateZ(-85px)" }}
+                    className="absolute w-56 h-40 rounded-full bg-black/90 blur-xl pointer-events-none"
+                  />
 
-                  {/* 3D Lid */}
-                  <div className="absolute -top-2.5 -left-2.5 -right-2.5 h-16 rounded-2xl bg-gradient-to-b from-[#1c2e24] via-[#122018] to-[#0a140f] border-2 border-[#c8a86b]/60 shadow-xl z-20 flex items-center justify-center transition-transform duration-500 group-hover:-translate-y-1.5">
-                    <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
-                    <div className="absolute inset-x-0 h-8 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
-                    <div className="relative z-30 w-11 h-11 rounded-full bg-gradient-to-br from-[#fae7b9] via-[#c8a86b] to-[#7f6024] p-0.5 shadow-md flex items-center justify-center">
-                      <div className="w-full h-full rounded-full bg-[#08100c] flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-[#fae7b9]">M</span>
+                  {/* Ambient Glow */}
+                  <div className="absolute w-56 h-56 rounded-full bg-radial from-[#c8a86b]/20 via-[#8052ff]/10 to-transparent blur-2xl pointer-events-none group-hover:from-[#c8a86b]/35 transition-all duration-500" />
+
+                  {/* 3D Rotated Cube */}
+                  <div
+                    style={{
+                      transform: "rotateX(16deg) rotateY(-26deg)",
+                      transformStyle: "preserve-3d",
+                    }}
+                    className="relative w-[160px] h-[140px] transition-transform duration-300 group-hover:rotate-y-[-20deg]"
+                  >
+                    {/* 3D LID */}
+                    <div
+                      style={{ transformStyle: "preserve-3d" }}
+                      className="absolute -top-2.5 -left-2 w-[176px] h-[32px] z-30 transition-transform duration-300 group-hover:-translate-y-2"
+                    >
+                      {/* Lid Top Face */}
+                      <div
+                        style={{ transform: "rotateX(90deg) translateZ(16px)" }}
+                        className="absolute inset-0 w-[176px] h-[176px] rounded-lg bg-gradient-to-br from-[#1d3326] via-[#13231b] to-[#0c1611] border-2 border-[#c8a86b]/70 shadow-lg flex items-center justify-center overflow-hidden"
+                      >
+                        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-6 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-6 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                        <div className="relative z-30 w-9 h-9 rounded-full bg-gradient-to-br from-[#fae7b9] via-[#c8a86b] to-[#7f6024] p-0.5 shadow-md flex items-center justify-center">
+                          <div className="w-full h-full rounded-full bg-[#08100c] flex items-center justify-center">
+                            <span className="text-[9px] font-bold text-[#fae7b9]">M</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Lid Front Skirt */}
+                      <div
+                        style={{ transform: "translateZ(88px)" }}
+                        className="absolute inset-0 w-[176px] h-[32px] bg-gradient-to-b from-[#1c2e24] to-[#0c1611] border-x border-b-2 border-[#c8a86b]/60 flex items-center justify-center overflow-hidden"
+                      >
+                        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-6 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                      </div>
+
+                      {/* Lid Right Skirt */}
+                      <div
+                        style={{ transform: "rotateY(90deg) translateZ(88px)" }}
+                        className="absolute inset-0 w-[176px] h-[32px] bg-gradient-to-b from-[#14231b] to-[#08100c] border-x border-b-2 border-[#c8a86b]/40 flex items-center justify-center overflow-hidden"
+                      >
+                        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-6 bg-gradient-to-r from-[#7f6024] via-[#d6bc85] to-[#7f6024]" />
                       </div>
                     </div>
-                  </div>
 
-                  {/* Box Body */}
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#15241c] via-[#0c1611] to-[#050907] border border-[#c8a86b]/40 shadow-2xl overflow-hidden flex items-center justify-center">
-                    <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
-                    <div className="absolute inset-x-0 h-8 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                    {/* 3D CUBE BASE */}
+                    <div style={{ transformStyle: "preserve-3d" }} className="absolute inset-0 w-[160px] h-[140px]">
+                      {/* Front Face */}
+                      <div
+                        style={{ transform: "translateZ(80px)" }}
+                        className="absolute inset-0 w-[160px] h-[140px] rounded-b-lg bg-gradient-to-b from-[#14231b] via-[#0d1712] to-[#060a08] border-x border-b-2 border-[#c8a86b]/50 shadow-xl overflow-hidden flex items-center justify-center"
+                      >
+                        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-6 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-6 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
 
-                    {/* Attached Calligraphy Tag */}
-                    <div className="absolute bottom-3 right-3 z-20 bg-[#faf7f0] text-[#142018] px-3 py-1.5 rounded-xl shadow-xl border border-[#c8a86b] text-left rotate-[-4deg]">
-                      <span className="block text-[7px] uppercase tracking-widest text-[#8b6e2d] font-bold">
-                        Recipient
-                      </span>
-                      <span className="block font-semibold text-[11px] truncate max-w-[100px]">
-                        {recipientName || "Recipient Name"}
-                      </span>
-                      <span className="block text-[8px] font-mono text-[#8b6e2d] font-bold mt-0.5">
-                        ${effectiveAmount.toFixed(2)} CAD
-                      </span>
+                        {/* Gift Tag */}
+                        <div className="absolute bottom-2.5 right-2.5 z-20 bg-[#faf7f0] text-[#142018] px-2.5 py-1 rounded-lg shadow-xl border border-[#c8a86b] text-left rotate-[-4deg]">
+                          <span className="block text-[6px] uppercase tracking-widest text-[#8b6e2d] font-bold">
+                            Recipient
+                          </span>
+                          <span className="block font-semibold text-[9px] truncate max-w-[70px]">
+                            {recipientName || "Recipient"}
+                          </span>
+                          <span className="block text-[7px] font-mono text-[#8b6e2d] font-bold">
+                            ${effectiveAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right Face (Depth) */}
+                      <div
+                        style={{ transform: "rotateY(90deg) translateZ(80px)" }}
+                        className="absolute inset-0 w-[160px] h-[140px] rounded-b-lg bg-gradient-to-b from-[#0f1b14] via-[#09100c] to-[#040705] border-x border-b-2 border-[#c8a86b]/35 shadow-xl overflow-hidden"
+                      >
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-6 bg-gradient-to-b from-[#7f6024] via-[#d6bc85] to-[#7f6024]" />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -393,7 +447,7 @@ function GiftCardsContent() {
                     Gift for <strong className="text-white">{recipientName || "Recipient"}</strong> from <strong className="text-white">{senderName || "You"}</strong>
                   </p>
                   <p className="text-[10px] text-[#ffb829] font-semibold uppercase tracking-wider">
-                    ✦ Tap box to preview unboxing ✦
+                    ✦ Tap 3D cube to preview unboxing ✦
                   </p>
                 </div>
               </div>
