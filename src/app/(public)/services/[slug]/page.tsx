@@ -1,3 +1,4 @@
+import { getOpeningHoursSpec } from "@/lib/businessHours";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { LEGACY_SERVICE_LANDING_REDIRECTS } from "@/lib/services/landing/registry";
@@ -85,7 +86,7 @@ export default async function ServiceLandingPage({ params }: PageProps) {
       />
       <JsonLd
         data={[
-          localBusinessJsonLd(),
+          localBusinessJsonLd({ openingHours: await getOpeningHoursSpec() }),
           serviceLandingJsonLd({
             name: content.h1,
             description: content.metaDescription,

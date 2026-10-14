@@ -1,3 +1,4 @@
+import { getOpeningHoursSpec } from "@/lib/businessHours";
 import { getPageContentLocale, htmlAttrsForLocale } from "@/lib/i18n/htmlLang";
 import { getServerLocale } from "@/lib/i18n/locale";
 import type { Metadata } from "next";
@@ -137,7 +138,7 @@ export default async function RootLayout({
             Skip to content
           </a>
           {children}
-          <JsonLd data={localBusinessJsonLd()} />
+          <JsonLd data={localBusinessJsonLd({ openingHours: await getOpeningHoursSpec() })} />
         </LanguageProvider>
       </body>
     </html>

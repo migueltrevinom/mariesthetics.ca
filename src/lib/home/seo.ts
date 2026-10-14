@@ -53,8 +53,8 @@ const COPY: Record<Locale, {
   en: {
     lashes: { q: "How much are lash extensions in West Edmonton?", a: (p) => `Lash extension sets at Mari Esthetics start at ${p}. A small deposit holds your appointment and is credited toward the total.` },
     facials: { q: "How much is a facial in West Edmonton?", a: (p) => `Facials start at ${p}, from a basic facial to hydra and anti-aging treatments, each tailored to your skin.` },
-    powderBrows: { q: "How much do powder brows cost in Edmonton?", a: (p) => `Soft powder brows are ${p}, done one-on-one in a private West Edmonton studio.` },
-    lipBlush: { q: "How much is lip blush in Edmonton?", a: (p) => `Lip blush is ${p}. Your shade is chosen together with Mari during the consultation.` },
+    powderBrows: { q: "How much do powder brows cost in Edmonton?", a: (p) => `Soft powder brows start at ${p}, done one-on-one in a private West Edmonton studio.` },
+    lipBlush: { q: "How much is lip blush in Edmonton?", a: (p) => `Lip blush starts at ${p}. Your shade is chosen together with Mari during the consultation.` },
     location: { q: "Where is Mari Esthetics located?", a: "Mari Esthetics is a private home studio in West Edmonton (Glastonbury / The Hamptons, T5T), close to Lewis Estates, Granville and Callingwood. The exact address is shared once your appointment is confirmed." },
     deposit: { q: "How do deposits work?", a: "A deposit secures your appointment and is credited 100% toward your treatment. Pay by card for instant confirmation or by Interac e-Transfer. Deposits are non-refundable for no-shows." },
   },
