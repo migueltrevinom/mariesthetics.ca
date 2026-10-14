@@ -1,3 +1,4 @@
+import { getOpeningHoursSpec } from "@/lib/businessHours";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -153,7 +154,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <JsonLd
           data={[
-            localBusinessJsonLd(),
+            localBusinessJsonLd({ openingHours: await getOpeningHoursSpec() }),
             articleJsonLd({
               title: post.title,
               description,

@@ -1,3 +1,4 @@
+import { invalidateOpeningHoursCache } from "@/lib/businessHours";
 import { connectDb } from "@/lib/db/connect";
 import {
   CalendarSchedule,
@@ -35,6 +36,7 @@ export class ScheduleRepository {
       { $set: { weeklyHours } },
       { new: true, upsert: true, runValidators: true }
     );
+    invalidateOpeningHoursCache();
     return updated;
   }
 
