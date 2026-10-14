@@ -1,3 +1,4 @@
+import { getOpeningHoursSpec } from "@/lib/businessHours";
 import type { Metadata } from "next";
 import { connectDb } from "@/lib/db/connect";
 import { Review, Service, SubscriptionPlan } from "@/lib/db/models";
@@ -10,6 +11,7 @@ import {
   type ReviewSchemaItem,
 } from "@/lib/seo";
 import { buildHomeFaq, HOME_DESCRIPTION, HOME_FAQ_HEADING, HOME_TITLE, type HomePrices } from "@/lib/home/seo";
+import { computeHomePrices } from "@/lib/home/prices";
 import { HomeLinks } from "@/components/public/sections/HomeLinks";
 import { localeToHreflang } from "@/lib/blog/locales";
 import { Hero } from "@/components/public/sections/Hero";
@@ -38,20 +40,20 @@ export async function generateMetadata(): Promise<Metadata> {
 async function getHomePrices(): Promise<HomePrices> {
   try {
     await connectDb();
-    const rows = (await Service.find({ active: true }).select("slug category priceCents").lean()) as Array<{
+    const rows = (await Service.find({ active: true }).select("slug name category priceCents").lean()) as Array<{
       slug?: string;
+      name?: string;
       category?: string;
       priceCents?: number;
     }>;
-    const priced = rows.filter((r) => Number(r.priceCents) > 0);
-    const minOf = (list: typeof priced) =>
-      list.length ? Math.min(...list.map((r) => Number(r.priceCents))) : undefined;
-    return {
-      lashes: minOf(priced.filter((r) => r.category === "lashes")),
-      facials: minOf(priced.filter((r) => r.category === "facials")),
-      powderBrows: minOf(priced.filter((r) => r.slug === "soft-powder-brows")),
-      lipBlush: minOf(priced.filter((r) => r.slug === "lip-blush")),
-    };
+    return computeHomePrices(
+      rows.map((r) => ({
+        slug: String(r.slug || ""),
+        name: String(r.name || ""),
+        category: String(r.category || ""),
+        priceCents: Number(r.priceCents) || 0,
+      }))
+    );
   } catch {
     return {};
   }
@@ -197,6 +199,7 @@ export default async function HomePage() {
       <JsonLd
         data={[
           localBusinessJsonLd({
+            openingHours: await getOpeningHoursSpec(),
             ratingValue: reviewStats.ratingValue,
             reviewCount: reviewStats.reviewCount,
             reviews: reviewStats.reviews,

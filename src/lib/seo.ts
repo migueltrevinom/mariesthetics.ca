@@ -19,6 +19,8 @@ export const business = {
   description:
     "Mari Esthetics is a private home esthetics studio located in West Edmonton (Glastonbury / The Hamptons, T5T). Tailored facials, lash lifts, brow shaping and dermaplaning in a calm, one-on-one setting.",
   // Service-area business — city + region only, no street address published.
+  // Published in structured data only (approved by Miguel); the UI still shares it after booking.
+  streetAddress: "1211 Gillespie Crescent NW",
   locality: "Edmonton",
   region: "AB",
   regionName: "Alberta",
@@ -42,10 +44,6 @@ export const business = {
   phoneDisplay: "+1 (825) 785-3081",
   priceRange: "$$",
   currency: "CAD",
-  // Temporary hours — confirm and update.
-  hours: [
-    { days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"], open: "09:00", close: "20:00" },
-  ],
   sameAs: [
     "https://www.instagram.com/mariestheticsyeg",
   ],
@@ -198,15 +196,6 @@ export function articleJsonLd(post: {
   };
 }
 
-function openingHoursSpec() {
-  return business.hours.map((h) => ({
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: h.days,
-    opens: h.open,
-    closes: h.close,
-  }));
-}
-
 export type ReviewSchemaItem = {
   author: string;
   rating: number;
@@ -215,6 +204,8 @@ export type ReviewSchemaItem = {
 };
 
 export function localBusinessJsonLd(options?: {
+  /** From the admin weekly schedule (getOpeningHoursSpec); omitted when unknown. */
+  openingHours?: object[];
   ratingValue?: number;
   reviewCount?: number;
   reviews?: ReviewSchemaItem[];
@@ -231,10 +222,10 @@ export function localBusinessJsonLd(options?: {
     priceRange: business.priceRange,
     currenciesAccepted: business.currency,
     image: `${siteUrl}/opengraph-image`,
-    // Service-area business: address limited to city/region, no street.
     address: {
       "@type": "PostalAddress",
       addressLocality: business.locality,
+      streetAddress: business.streetAddress,
       addressRegion: business.region,
       postalCode: business.postalCode,
       addressCountry: business.country,
@@ -248,7 +239,7 @@ export function localBusinessJsonLd(options?: {
       latitude: business.geo.lat,
       longitude: business.geo.lng,
     },
-    openingHoursSpecification: openingHoursSpec(),
+    ...(options?.openingHours?.length ? { openingHoursSpecification: options.openingHours } : {}),
     sameAs: business.sameAs,
   };
 
