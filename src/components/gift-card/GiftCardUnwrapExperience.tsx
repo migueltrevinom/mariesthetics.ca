@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { ConfettiEffect } from "@/components/ui/ConfettiEffect";
 
 export interface GiftCardData {
   code: string;
@@ -21,271 +22,38 @@ interface GiftCardUnwrapExperienceProps {
   giftCard: GiftCardData;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  size: number;
-  color: string;
-  alpha: number;
-  baseAlpha: number;
-  angle: number;
-  angularVelocity: number;
-  isTriangle: boolean;
-  life?: number;
-  maxLife?: number;
-}
-
 export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceProps) {
   const [isUnwrapped, setIsUnwrapped] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // 3D Tilt physics for Cube and Card
+  // Gentle interactive hover tilt
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
-  const burstParticlesRef = useRef<Particle[]>([]);
-  const mousePosRef = useRef<{ x: number; y: number } | null>(null);
-  const animFrameIdRef = useRef<number | null>(null);
 
-  // Dala Constellation Chromatic Palette
-  const CHROMATIC_PALETTE = [
-    "#8052ff", // Electric Iris
-    "#ffb829", // Saffron Spark
-    "#15846e", // Deep Verdant
-    "#c8a86b", // Studio Metallic Gold
-    "#ffffff", // Bone White
-    "#a855f7", // Violet Accent
-  ];
-
-  // High-performance background constellation canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    // Populate ambient constellation particles
-    const particleCount = width < 768 ? 60 : 110;
-    const particles: Particle[] = [];
-    for (let i = 0; i < particleCount; i++) {
-      const color = CHROMATIC_PALETTE[Math.floor(Math.random() * CHROMATIC_PALETTE.length)];
-      const baseAlpha = 0.2 + Math.random() * 0.6;
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        size: 1.5 + Math.random() * 2.5,
-        color,
-        alpha: baseAlpha,
-        baseAlpha,
-        angle: Math.random() * Math.PI * 2,
-        angularVelocity: (Math.random() - 0.5) * 0.02,
-        isTriangle: Math.random() > 0.4,
-      });
-    }
-    particlesRef.current = particles;
-
-    let time = 0;
-
-    const render = () => {
-      time += 0.015;
-      ctx.clearRect(0, 0, width, height);
-
-      const mouse = mousePosRef.current;
-
-      // 1. Render ambient floating particles & constellation links
-      const pts = particlesRef.current;
-      for (let i = 0; i < pts.length; i++) {
-        const p = pts[i];
-
-        if (mouse) {
-          const dx = mouse.x - p.x;
-          const dy = mouse.y - p.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120) {
-            const force = (120 - dist) / 120;
-            p.x -= (dx / dist) * force * 1.5;
-            p.y -= (dy / dist) * force * 1.5;
-          }
-        }
-
-        p.x += p.vx;
-        p.y += p.vy;
-        p.angle += p.angularVelocity;
-        p.alpha = p.baseAlpha + Math.sin(time + i) * 0.15;
-
-        if (p.x < -10) p.x = width + 10;
-        if (p.x > width + 10) p.x = -10;
-        if (p.y < -10) p.y = height + 10;
-        if (p.y > height + 10) p.y = -10;
-
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.angle);
-        ctx.globalAlpha = Math.max(0.1, Math.min(1, p.alpha));
-        ctx.fillStyle = p.color;
-        ctx.strokeStyle = p.color;
-
-        if (p.isTriangle) {
-          const s = p.size * 1.8;
-          ctx.beginPath();
-          ctx.moveTo(0, -s);
-          ctx.lineTo(s * 0.866, s * 0.5);
-          ctx.lineTo(-s * 0.866, s * 0.5);
-          ctx.closePath();
-          if (i % 2 === 0) {
-            ctx.fill();
-          } else {
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
-          }
-        } else {
-          ctx.beginPath();
-          ctx.arc(0, 0, p.size, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-
-        for (let j = i + 1; j < pts.length; j++) {
-          const p2 = pts[j];
-          const distSq = (p.x - p2.x) ** 2 + (p.y - p2.y) ** 2;
-          if (distSq < 55 * 55) {
-            const dist = Math.sqrt(distSq);
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = p.color;
-            ctx.globalAlpha = (1 - dist / 55) * 0.08;
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-          }
-        }
-      }
-
-      // 2. Render Supernova sparks when unboxing
-      const burstPts = burstParticlesRef.current;
-      for (let i = burstPts.length - 1; i >= 0; i--) {
-        const bp = burstPts[i];
-        bp.x += bp.vx;
-        bp.y += bp.vy;
-        bp.vx *= 0.96;
-        bp.vy *= 0.96;
-        bp.angle += bp.angularVelocity;
-        if (bp.life !== undefined) {
-          bp.life -= 1;
-          bp.alpha = (bp.life / (bp.maxLife || 60)) * bp.baseAlpha;
-          if (bp.life <= 0) {
-            burstPts.splice(i, 1);
-            continue;
-          }
-        }
-
-        ctx.save();
-        ctx.translate(bp.x, bp.y);
-        ctx.rotate(bp.angle);
-        ctx.globalAlpha = Math.max(0, bp.alpha);
-        ctx.fillStyle = bp.color;
-        ctx.strokeStyle = bp.color;
-
-        const s = bp.size * 2;
-        ctx.beginPath();
-        ctx.moveTo(0, -s);
-        ctx.lineTo(s * 0.866, s * 0.5);
-        ctx.lineTo(-s * 0.866, s * 0.5);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      }
-
-      animFrameIdRef.current = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current);
-    };
-  }, []);
-
-  // Supernova fountain particles burst when lid opens
-  const triggerSupernovaBurst = useCallback((originX: number, originY: number) => {
-    const burstCount = 85;
-    const newBurst: Particle[] = [];
-    for (let i = 0; i < burstCount; i++) {
-      const angle = (Math.PI * 2 * i) / burstCount + (Math.random() - 0.5) * 0.4;
-      const speed = 4 + Math.random() * 9;
-      const color = CHROMATIC_PALETTE[Math.floor(Math.random() * CHROMATIC_PALETTE.length)];
-      newBurst.push({
-        x: originX,
-        y: originY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2.5, // upward fountain bias
-        size: 2 + Math.random() * 3,
-        color,
-        alpha: 1,
-        baseAlpha: 1,
-        angle: Math.random() * Math.PI * 2,
-        angularVelocity: (Math.random() - 0.5) * 0.15,
-        isTriangle: true,
-        life: 60 + Math.floor(Math.random() * 35),
-        maxLife: 95,
-      });
-    }
-    burstParticlesRef.current = newBurst;
-  }, []);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    mousePosRef.current = { x: e.clientX, y: e.clientY };
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
-    const maxTilt = 12;
     setTilt({
-      x: -(y / (rect.height / 2)) * maxTilt,
-      y: (x / (rect.width / 2)) * maxTilt,
+      x: -(y / (rect.height / 2)) * 6,
+      y: (x / (rect.width / 2)) * 6,
     });
-  }, []);
+  };
 
-  const handleMouseLeave = useCallback(() => {
-    mousePosRef.current = null;
+  const handleMouseLeave = () => {
     setTilt({ x: 0, y: 0 });
-  }, []);
+  };
 
-  const handleUnwrap = (e?: React.MouseEvent) => {
+  const handleUnwrap = () => {
     if (isOpening || isUnwrapped) return;
     setIsOpening(true);
-
-    let originX = window.innerWidth / 2;
-    let originY = window.innerHeight / 2;
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      originX = rect.left + rect.width / 2;
-      originY = rect.top + rect.height / 2;
-    }
-
-    triggerSupernovaBurst(originX, originY);
 
     setTimeout(() => {
       setIsUnwrapped(true);
       setIsOpening(false);
-    }, 850);
+    }, 800);
   };
 
   const handleWrapAgain = () => {
@@ -311,330 +79,425 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
     <div
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="relative min-h-screen w-full flex flex-col items-center justify-center px-4 py-14 sm:py-20 bg-[#000000] text-white overflow-hidden select-none"
+      className="relative min-h-screen w-full flex flex-col items-center justify-center px-4 py-12 sm:py-20 bg-gradient-to-b from-[#0b140f] via-[#070d0a] to-[#040605] text-[#f3efe6] overflow-hidden select-none"
     >
-      {/* ── HIGH PERFORMANCE CONSTELLATION CANVAS ── */}
-      <canvas
-        ref={canvasRef}
-        className="pointer-events-none fixed inset-0 z-0 opacity-80 print:hidden"
-      />
+      {/* ── WARM CELEBRATION AMBIENCE (NOT SPACE!) ── */}
+      {/* Warm Golden Glow Behind Box */}
+      <div className="pointer-events-none fixed inset-0 flex items-center justify-center z-0 print:hidden">
+        <div className="w-[600px] h-[600px] rounded-full bg-radial from-[#c8a86b]/15 via-[#856526]/5 to-transparent blur-3xl" />
+      </div>
 
-      {/* Atmospheric Void Gradient */}
-      <div className="pointer-events-none fixed inset-0 bg-radial from-transparent via-[#000000]/65 to-[#000000] z-0 print:hidden" />
+      {/* Celebratory Floating Confetti when opened */}
+      {isUnwrapped && (
+        <ConfettiEffect
+          count={70}
+          colors={["#c8a86b", "#e2c78c", "#ffffff", "#2f6b50", "#f5dfb8"]}
+        />
+      )}
 
-      {/* Main Content Stage */}
+      {/* Main Container */}
       <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col items-center text-center">
 
-        {/* ── STAGE 1: THE REAL 3D LUXURY PRESENT CUBE (BEFORE UNBOXING) ── */}
+        {/* ── STAGE 1: THE GORGEOUS PRESENT BOX (BEFORE UNWRAPPING) ── */}
         {!isUnwrapped && (
-          <div className="w-full flex flex-col items-center">
+          <div className="w-full flex flex-col items-center animate-in fade-in duration-500">
             {/* Header Eyebrow & Title */}
-            <div className="mb-6 space-y-3 animate-in fade-in slide-in-from-top-4 duration-700">
-              <span className="inline-flex items-center gap-2 text-[10px] sm:text-[11px] font-semibold tracking-[0.3em] uppercase text-[#ffb829] px-4 py-1.5 rounded-full border border-[#ffb829]/30 bg-[#ffb829]/10 shadow-[0_0_25px_rgba(255,184,41,0.18)]">
-                <span>✦</span>
-                <span>Exclusive Delivery</span>
-                <span>✦</span>
+            <div className="mb-6 space-y-2">
+              <span className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.25em] uppercase text-[#e2c78c] px-4 py-1.5 rounded-full border border-[#c8a86b]/40 bg-[#c8a86b]/15 shadow-sm">
+                <span>✨</span>
+                <span>Special Gift Delivery</span>
+                <span>✨</span>
               </span>
-              <h1 className="font-sans text-3xl sm:text-5xl text-white font-normal tracking-[-0.04em] leading-[1.1]">
-                You’ve Received a Gift
+              <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-5xl text-[#f3efe6] font-normal tracking-tight">
+                You’ve Received a Gift!
               </h1>
-              <p className="text-xs sm:text-sm text-[#9a9a9a] font-extralight tracking-wide max-w-md mx-auto">
-                Curated by <span className="text-white font-normal">{giftCard.senderName}</span>
+              <p className="text-xs sm:text-sm text-[#f3efe6]/70 max-w-md mx-auto">
+                With warmest wishes from <strong className="text-[#f3efe6] font-semibold">{giftCard.senderName}</strong>
                 {giftCard.recipientName ? (
-                  <> for <span className="text-white font-normal">{giftCard.recipientName}</span></>
+                  <> for <strong className="text-[#f3efe6] font-semibold">{giftCard.recipientName}</strong></>
                 ) : ""}
               </p>
             </div>
 
-            {/* ── TRUE CSS 3D ISOMETRIC PRESENT CUBE STAGE ── */}
+            {/* ── THE PRESENT BOX CONTAINER ── */}
             <div
               ref={containerRef}
-              onClick={() => handleUnwrap()}
-              className="relative my-8 py-6 w-full flex items-center justify-center [perspective:1200px] cursor-pointer group"
+              onClick={handleUnwrap}
+              style={{
+                transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
+                transition: "transform 0.15s ease-out",
+              }}
+              className="relative w-80 h-76 sm:w-92 sm:h-84 my-2 cursor-pointer group flex items-center justify-center"
             >
-              {/* Floor Shadow Plane Under the Cube */}
-              <div
-                style={{
-                  transform: "rotateX(75deg) translateZ(-115px)",
-                }}
-                className="absolute w-72 h-56 rounded-full bg-black/90 blur-2xl pointer-events-none transition-transform duration-300 group-hover:scale-105"
-              />
+              {/* Floor Shadow Under Box */}
+              <div className="absolute -bottom-6 w-64 h-12 rounded-full bg-black/80 blur-xl pointer-events-none group-hover:scale-105 transition-transform duration-300" />
 
-              {/* Ambient Radiant Glow around the Cube */}
-              <div className="absolute w-72 h-72 rounded-full bg-radial from-[#c8a86b]/20 via-[#8052ff]/15 to-transparent blur-3xl pointer-events-none group-hover:from-[#c8a86b]/35 transition-all duration-500 animate-pulse" />
-
-              {/* ── THE 3D CUBE ASSEMBLY (ROTATED IN 3D SPACE) ── */}
-              <div
-                style={{
-                  transform: `rotateX(${16 + tilt.x}deg) rotateY(${-26 + tilt.y}deg)`,
-                  transformStyle: "preserve-3d",
-                  transition: "transform 0.15s ease-out",
-                }}
-                className="relative w-[210px] sm:w-[230px] h-[180px] sm:h-[190px]"
+              {/* ── ISOMETRIC LUXURY PRESENT BOX SVG ── */}
+              <svg
+                viewBox="0 0 340 320"
+                className="w-full h-full drop-shadow-[0_25px_35px_rgba(0,0,0,0.8)] overflow-visible"
               >
-                {/* ── 1. THE 3D DETACHABLE LID (LIFTS IN 3D SPACE) ── */}
-                <div
+                <defs>
+                  {/* Left Face Shaded Emerald */}
+                  <linearGradient id="boxLeftGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#13281c" />
+                    <stop offset="50%" stopColor="#0c1912" />
+                    <stop offset="100%" stopColor="#060c09" />
+                  </linearGradient>
+
+                  {/* Right Face Lit Emerald */}
+                  <linearGradient id="boxRightGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#224732" />
+                    <stop offset="50%" stopColor="#163122" />
+                    <stop offset="100%" stopColor="#0d1c14" />
+                  </linearGradient>
+
+                  {/* Interior Velvet Glow */}
+                  <radialGradient id="interiorGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#fce8be" stopOpacity="0.8" />
+                    <stop offset="50%" stopColor="#c8a86b" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#0b1710" stopOpacity="1" />
+                  </radialGradient>
+
+                  {/* Metallic Gold Ribbon Left */}
+                  <linearGradient id="goldRibbonLeft" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#8a6b2b" />
+                    <stop offset="45%" stopColor="#fce7b8" />
+                    <stop offset="70%" stopColor="#dfbf7a" />
+                    <stop offset="100%" stopColor="#7a5d24" />
+                  </linearGradient>
+
+                  {/* Metallic Gold Ribbon Right (Bright) */}
+                  <linearGradient id="goldRibbonRight" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#a37f34" />
+                    <stop offset="40%" stopColor="#fff3d1" />
+                    <stop offset="75%" stopColor="#e5c580" />
+                    <stop offset="100%" stopColor="#8a6b2b" />
+                  </linearGradient>
+
+                  {/* Ribbon Bow Gradient */}
+                  <linearGradient id="bowGoldGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#fff6db" />
+                    <stop offset="35%" stopColor="#e5c580" />
+                    <stop offset="70%" stopColor="#c8a86b" />
+                    <stop offset="100%" stopColor="#7a5d24" />
+                  </linearGradient>
+
+                  {/* Lid Top Face */}
+                  <linearGradient id="lidTopGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#2b5a3f" />
+                    <stop offset="60%" stopColor="#1a3b2a" />
+                    <stop offset="100%" stopColor="#10251a" />
+                  </linearGradient>
+
+                  {/* Drop Shadow Filter */}
+                  <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000000" floodOpacity="0.6" />
+                  </filter>
+                </defs>
+
+                {/* ── 1. BOX BASE (HOLLOW INTERIOR + FACES) ── */}
+                <g id="box-base">
+                  {/* Glowing Interior Cavity (Seen when lid is off) */}
+                  <polygon
+                    points="170,145 70,95 170,45 270,95"
+                    fill="url(#interiorGlow)"
+                    stroke="#c8a86b"
+                    strokeWidth="1.5"
+                  />
+
+                  {/* Light Beams from inside box when opening */}
+                  {isOpening && (
+                    <polygon
+                      points="170,145 70,95 90,0 250,0 270,95"
+                      fill="url(#interiorGlow)"
+                      opacity="0.6"
+                      className="animate-pulse"
+                    />
+                  )}
+
+                  {/* Left Face */}
+                  <polygon
+                    points="170,270 70,220 70,95 170,145"
+                    fill="url(#boxLeftGrad)"
+                    stroke="#c8a86b"
+                    strokeWidth="1"
+                    strokeOpacity="0.4"
+                  />
+
+                  {/* Left Face Vertical Ribbon */}
+                  <polygon
+                    points="110,115 130,125 130,250 110,240"
+                    fill="url(#goldRibbonLeft)"
+                  />
+
+                  {/* Left Face Horizontal Ribbon */}
+                  <polygon
+                    points="70,150 170,200 170,220 70,170"
+                    fill="url(#goldRibbonLeft)"
+                  />
+
+                  {/* Right Face (Lit) */}
+                  <polygon
+                    points="170,270 270,220 270,95 170,145"
+                    fill="url(#boxRightGrad)"
+                    stroke="#c8a86b"
+                    strokeWidth="1"
+                    strokeOpacity="0.5"
+                  />
+
+                  {/* Right Face Vertical Ribbon */}
+                  <polygon
+                    points="210,125 230,115 230,240 210,250"
+                    fill="url(#goldRibbonRight)"
+                  />
+
+                  {/* Right Face Horizontal Ribbon */}
+                  <polygon
+                    points="170,200 270,150 270,170 170,220"
+                    fill="url(#goldRibbonRight)"
+                  />
+
+                  {/* Gold Corner Edges & Ridge Line */}
+                  <line x1="170" y1="270" x2="170" y2="145" stroke="#fff3d1" strokeWidth="1.5" opacity="0.6" />
+                  <line x1="70" y1="220" x2="170" y2="270" stroke="#c8a86b" strokeWidth="1" opacity="0.4" />
+                  <line x1="170" y1="270" x2="270" y2="220" stroke="#c8a86b" strokeWidth="1" opacity="0.6" />
+
+                  {/* Center Golden Medallion */}
+                  <circle cx="170" cy="210" r="14" fill="#08100c" stroke="#c8a86b" strokeWidth="1.5" />
+                  <text x="170" y="214" textAnchor="middle" fill="#fae7b9" fontSize="10" fontWeight="bold" fontFamily="serif">
+                    M
+                  </text>
+
+                  {/* Hanging Calligraphy Gift Tag */}
+                  <g transform="translate(205, 175) rotate(-6)">
+                    {/* Golden string */}
+                    <line x1="-10" y1="-25" x2="0" y2="0" stroke="#c8a86b" strokeWidth="1.5" />
+                    {/* Tag Card */}
+                    <rect
+                      x="-8"
+                      y="0"
+                      width="75"
+                      height="46"
+                      rx="6"
+                      fill="#faf7ee"
+                      stroke="#c8a86b"
+                      strokeWidth="1.5"
+                      filter="url(#softShadow)"
+                    />
+                    <text x="29" y="13" textAnchor="middle" fill="#8a6b2b" fontSize="7" fontWeight="bold" letterSpacing="1">
+                      FOR YOU
+                    </text>
+                    <text x="29" y="26" textAnchor="middle" fill="#12241c" fontSize="10" fontWeight="bold">
+                      {giftCard.recipientName.split(" ")[0] || "Valued Client"}
+                    </text>
+                    <text x="29" y="38" textAnchor="middle" fill="#8a6b2b" fontSize="8" fontWeight="bold" fontFamily="monospace">
+                      ${giftCard.amountCad.toFixed(2)} CAD
+                    </text>
+                  </g>
+                </g>
+
+                {/* ── 2. THE DETACHABLE 3D LID & SILK BOW (ANIMATES UPWARD) ── */}
+                <g
+                  id="box-lid-assembly"
                   style={{
-                    transformStyle: "preserve-3d",
                     transform: isOpening
-                      ? "translateY(-240px) rotateX(-50deg) rotateZ(12deg) scale(0.92)"
-                      : "translateY(0px)",
+                      ? "translateY(-130px) rotate(-14deg) scale(0.95)"
+                      : "translateY(0px) rotate(0deg)",
                     opacity: isOpening ? 0 : 1,
                     transition: isOpening
-                      ? "transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.75s ease"
+                      ? "transform 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.75s ease"
                       : "transform 0.4s ease",
+                    transformOrigin: "170px 100px",
                   }}
-                  className={`absolute -top-3.5 -left-2.5 w-[230px] sm:w-[250px] h-[44px] z-30 ${
-                    !isOpening ? "group-hover:-translate-y-2.5" : ""
-                  }`}
+                  className={!isOpening ? "group-hover:-translate-y-2 transition-transform duration-300" : ""}
                 >
-                  {/* LID TOP FACE (The horizontal surface where ribbons cross & seal rests) */}
-                  <div
-                    style={{
-                      transform: "rotateX(90deg) translateZ(22px)",
-                      transformStyle: "preserve-3d",
-                    }}
-                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[230px] sm:h-[250px] rounded-xl bg-gradient-to-br from-[#1d3326] via-[#13231b] to-[#0c1611] border-2 border-[#c8a86b]/70 shadow-2xl flex items-center justify-center overflow-hidden"
-                  >
-                    {/* Top Face Vertical Ribbon */}
-                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
-                    {/* Top Face Horizontal Ribbon */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 sm:h-9 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
-
-                    {/* Golden Specular Sheen */}
-                    <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/15 to-transparent rotate-45 transform translate-x-4" />
-
-                    {/* Bespoke Luxury Rosette Seal at Intersection */}
-                    <div className="relative z-40 w-14 h-14 rounded-full bg-gradient-to-br from-[#fae7b9] via-[#c8a86b] to-[#7f6024] p-0.5 shadow-2xl flex items-center justify-center border border-[#fff2d6]/60 transition-transform duration-500 group-hover:rotate-12">
-                      <div className="w-full h-full rounded-full bg-[#08100c] flex items-center justify-center border border-[#c8a86b]/50 shadow-inner">
-                        <svg viewBox="0 0 40 40" className="w-7 h-7 text-[#fae7b9]">
-                          <polygon
-                            points="20,3 24,14 36,15 27,23 30,35 20,28 10,35 13,23 4,15 16,14"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                          />
-                          <text
-                            x="20"
-                            y="24"
-                            textAnchor="middle"
-                            fill="#fae7b9"
-                            fontSize="10"
-                            fontWeight="600"
-                            fontFamily="sans-serif"
-                          >
-                            M
-                          </text>
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* LID FRONT SKIRT (Faces directly forward) */}
-                  <div
-                    style={{
-                      transform: "translateZ(115px) sm:translateZ(125px)",
-                    }}
-                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-gradient-to-b from-[#1c2e24] to-[#0c1611] border-x border-b-2 border-[#c8a86b]/60 shadow-md flex items-center justify-center overflow-hidden"
-                  >
-                    {/* Front Skirt Ribbon aligning with body ribbon */}
-                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
-                  </div>
-
-                  {/* LID RIGHT SKIRT (Faces to the right side) */}
-                  <div
-                    style={{
-                      transform: "rotateY(90deg) translateZ(115px) sm:translateZ(125px)",
-                    }}
-                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-gradient-to-b from-[#14231b] to-[#08100c] border-x border-b-2 border-[#c8a86b]/40 flex items-center justify-center overflow-hidden"
-                  >
-                    {/* Right Skirt Ribbon */}
-                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#7f6024] via-[#d6bc85] to-[#7f6024]" />
-                  </div>
-
-                  {/* LID LEFT SKIRT */}
-                  <div
-                    style={{
-                      transform: "rotateY(-90deg) translateZ(115px) sm:translateZ(125px)",
-                    }}
-                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-[#060b08] border-b-2 border-[#c8a86b]/30"
+                  {/* Lid Left Skirt */}
+                  <polygon
+                    points="170,165 60,110 60,85 170,140"
+                    fill="#0f2218"
+                    stroke="#c8a86b"
+                    strokeWidth="1"
+                    strokeOpacity="0.5"
+                  />
+                  {/* Lid Left Skirt Ribbon */}
+                  <polygon
+                    points="102,106 124,117 124,142 102,131"
+                    fill="url(#goldRibbonLeft)"
                   />
 
-                  {/* LID BACK SKIRT */}
-                  <div
-                    style={{
-                      transform: "rotateY(180deg) translateZ(115px) sm:translateZ(125px)",
-                    }}
-                    className="absolute inset-0 w-[230px] sm:w-[250px] h-[44px] bg-[#060b08] border-b-2 border-[#c8a86b]/30"
+                  {/* Lid Right Skirt */}
+                  <polygon
+                    points="170,165 280,110 280,85 170,140"
+                    fill="#183625"
+                    stroke="#c8a86b"
+                    strokeWidth="1"
+                    strokeOpacity="0.6"
                   />
-                </div>
-
-                {/* ── 2. THE 3D HOLLOW BOX BODY (CUBE BASE) ── */}
-                <div
-                  style={{
-                    transformStyle: "preserve-3d",
-                  }}
-                  className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px]"
-                >
-                  {/* FRONT FACE (Facing the viewer) */}
-                  <div
-                    style={{
-                      transform: "translateZ(105px) sm:translateZ(115px)",
-                    }}
-                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] rounded-b-xl bg-gradient-to-b from-[#14231b] via-[#0d1712] to-[#060a08] border-x border-b-2 border-[#c8a86b]/50 shadow-2xl overflow-hidden flex items-center justify-center"
-                  >
-                    {/* Vertical Ribbon */}
-                    <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 sm:w-9 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
-                    {/* Horizontal Ribbon */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 sm:h-9 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835] shadow-md" />
-
-                    {/* Corner Gold Brackets */}
-                    <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t-2 border-l-2 border-[#c8a86b]/60 pointer-events-none" />
-                    <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t-2 border-r-2 border-[#c8a86b]/60 pointer-events-none" />
-                    <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b-2 border-l-2 border-[#c8a86b]/60 pointer-events-none" />
-                    <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b-2 border-r-2 border-[#c8a86b]/60 pointer-events-none" />
-
-                    {/* Studio Center Monogram */}
-                    <div className="relative z-10 w-14 h-14 rounded-full bg-[#060c08]/95 border border-[#c8a86b]/50 flex flex-col items-center justify-center shadow-lg backdrop-blur-xs">
-                      <span className="text-xs font-semibold tracking-widest text-[#fae7b9] font-sans">
-                        MARI
-                      </span>
-                      <span className="text-[7px] uppercase tracking-widest text-[#9a9a9a]">
-                        STUDIO
-                      </span>
-                    </div>
-
-                    {/* Hanging Calligraphic Gift Tag */}
-                    <div className="absolute bottom-3 right-3 z-20 bg-[#faf7f0] text-[#142018] px-3 py-1.5 rounded-xl shadow-2xl border border-[#c8a86b] text-left rotate-[-4deg] transition-transform duration-300 group-hover:rotate-0">
-                      <span className="block text-[7px] uppercase tracking-widest text-[#8b6e2d] font-bold">
-                        Recipient
-                      </span>
-                      <span className="block font-semibold text-[11px] tracking-tight truncate max-w-[95px]">
-                        {giftCard.recipientName || "Valued Client"}
-                      </span>
-                      <span className="block text-[8px] font-mono text-[#8b6e2d] font-bold mt-0.5">
-                        ${giftCard.amountCad.toFixed(2)} CAD
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* RIGHT FACE (Gives the cube its authentic 3D depth!) */}
-                  <div
-                    style={{
-                      transform: "rotateY(90deg) translateZ(105px) sm:translateZ(115px)",
-                    }}
-                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] rounded-b-xl bg-gradient-to-b from-[#0f1b14] via-[#09100c] to-[#040705] border-x border-b-2 border-[#c8a86b]/35 shadow-2xl overflow-hidden flex items-center justify-center"
-                  >
-                    {/* Right Face Horizontal Ribbon wrap-around */}
-                    <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-8 sm:h-9 bg-gradient-to-b from-[#7f6024] via-[#d6bc85] to-[#7f6024] shadow-md" />
-                    {/* Side Shading Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/20 pointer-events-none" />
-                  </div>
-
-                  {/* LEFT FACE */}
-                  <div
-                    style={{
-                      transform: "rotateY(-90deg) translateZ(105px) sm:translateZ(115px)",
-                    }}
-                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] bg-[#050906] border-b border-[#c8a86b]/20"
+                  {/* Lid Right Skirt Ribbon */}
+                  <polygon
+                    points="216,117 238,106 238,131 216,142"
+                    fill="url(#goldRibbonRight)"
                   />
 
-                  {/* BACK FACE */}
-                  <div
-                    style={{
-                      transform: "rotateY(180deg) translateZ(105px) sm:translateZ(115px)",
-                    }}
-                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[180px] sm:h-[190px] bg-[#040705] border-b border-[#c8a86b]/20"
+                  {/* Lid Top Face Diamond */}
+                  <polygon
+                    points="170,140 60,85 170,30 280,85"
+                    fill="url(#lidTopGrad)"
+                    stroke="#c8a86b"
+                    strokeWidth="1.5"
+                    filter="url(#softShadow)"
                   />
 
-                  {/* BOTTOM FACE */}
-                  <div
-                    style={{
-                      transform: "rotateX(-90deg) translateZ(90px) sm:translateZ(95px)",
-                    }}
-                    className="absolute inset-0 w-[210px] sm:w-[230px] h-[210px] sm:h-[230px] bg-[#020403] shadow-[0_30px_60px_rgba(0,0,0,0.9)]"
+                  {/* Lid Top Face Ribbon (Diagonal Crossing) */}
+                  <polygon
+                    points="103,51 127,63 237,118 213,106"
+                    fill="url(#goldRibbonRight)"
+                    opacity="0.9"
+                  />
+                  <polygon
+                    points="213,51 237,63 127,118 103,106"
+                    fill="url(#goldRibbonRight)"
+                    opacity="0.9"
                   />
 
-                  {/* INSIDE CAVITY FLOOR (Glows with gold and stardust when the lid lifts!) */}
-                  <div
-                    style={{
-                      transform: "rotateX(90deg) translateZ(-85px) sm:translateZ(-90px)",
-                    }}
-                    className="absolute inset-0 w-[206px] sm:w-[226px] h-[206px] sm:h-[226px] bg-radial from-[#fae7b9]/50 via-[#8052ff]/25 to-[#040805] border border-[#c8a86b]/40 shadow-inner flex items-center justify-center overflow-hidden"
-                  >
-                    {isOpening && (
-                      <div className="w-full h-full bg-radial from-[#fae7b9] via-[#ffb829]/60 to-transparent animate-pulse" />
-                    )}
-                  </div>
-                </div>
-              </div>
+                  {/* ── THE GORGEOUS SILK RIBBON BOW ON TOP ── */}
+                  <g id="ribbon-bow" transform="translate(170, 75)">
+                    {/* Left Bow Loop */}
+                    <path
+                      d="M 0,0 C -35,-25 -65,-20 -55,0 C -45,15 -15,10 0,0 Z"
+                      fill="url(#bowGoldGrad)"
+                      stroke="#8a6b2b"
+                      strokeWidth="1"
+                      filter="url(#softShadow)"
+                    />
+                    <path
+                      d="M -5,-2 C -30,-20 -50,-15 -42,-2 C -35,8 -12,6 -5,-2 Z"
+                      fill="#8a6b2b"
+                      opacity="0.35"
+                    />
+
+                    {/* Right Bow Loop */}
+                    <path
+                      d="M 0,0 C 35,-25 65,-20 55,0 C 45,15 15,10 0,0 Z"
+                      fill="url(#bowGoldGrad)"
+                      stroke="#8a6b2b"
+                      strokeWidth="1"
+                      filter="url(#softShadow)"
+                    />
+                    <path
+                      d="M 5,-2 C 30,-20 50,-15 42,-2 C 35,8 12,6 5,-2 Z"
+                      fill="#8a6b2b"
+                      opacity="0.35"
+                    />
+
+                    {/* Left Flowing Ribbon Tail */}
+                    <path
+                      d="M -6,5 C -25,25 -35,50 -45,65 C -35,55 -25,35 0,10 Z"
+                      fill="url(#bowGoldGrad)"
+                      opacity="0.9"
+                    />
+
+                    {/* Right Flowing Ribbon Tail */}
+                    <path
+                      d="M 6,5 C 25,25 35,50 45,65 C 35,55 25,35 0,10 Z"
+                      fill="url(#bowGoldGrad)"
+                      opacity="0.9"
+                    />
+
+                    {/* Center Satin Bow Knot */}
+                    <ellipse
+                      cx="0"
+                      cy="0"
+                      rx="11"
+                      ry="8"
+                      fill="url(#bowGoldGrad)"
+                      stroke="#8a6b2b"
+                      strokeWidth="1"
+                      filter="url(#softShadow)"
+                    />
+                    <circle cx="0" cy="0" r="4" fill="#6d5420" opacity="0.3" />
+                  </g>
+                </g>
+              </svg>
             </div>
 
-            {/* Dala Violet Pill Action Button */}
-            <div className="mt-8">
+            {/* Tap to Open Prompt */}
+            <div className="mt-6 flex flex-col items-center gap-3">
               <button
                 type="button"
-                onClick={() => handleUnwrap()}
-                className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#8052ff] hover:bg-[#6c3ef0] text-white text-xs font-semibold uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(128,82,255,0.4)] hover:shadow-[0_0_55px_rgba(128,82,255,0.7)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                onClick={handleUnwrap}
+                className="group inline-flex items-center gap-3 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#c8a86b] via-[#e8cf99] to-[#c8a86b] text-[#0b140f] text-xs font-bold uppercase tracking-[0.2em] shadow-[0_10px_25px_rgba(200,168,107,0.35)] hover:shadow-[0_15px_35px_rgba(200,168,107,0.55)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
               >
-                <span>Unwrap Gift Box</span>
-                <span className="text-sm transition-transform duration-300 group-hover:translate-x-1">✦</span>
+                <span>Tap to Open Your Present</span>
+                <span className="text-sm transition-transform duration-300 group-hover:translate-x-1">🎁</span>
               </button>
+
+              <span className="text-[11px] text-[#f3efe6]/60 font-light tracking-wide">
+                Click anywhere on the gift box to unwrap
+              </span>
             </div>
           </div>
         )}
 
-        {/* ── STAGE 2: UNWRAPPED CERTIFICATE EMERGED FROM THE BOX ── */}
+        {/* ── STAGE 2: UNWRAPPED LUXURY GIFT CERTIFICATE (CARD REVEAL) ── */}
         {isUnwrapped && (
           <div className="w-full flex flex-col items-center animate-in zoom-in-95 fade-in duration-700">
-            {/* Top Eyebrow Status */}
+            {/* Top Status */}
             <div className="mb-6 flex items-center justify-center gap-2 print:hidden">
-              <span className="w-2 h-2 rounded-full bg-[#15846e] animate-ping" />
-              <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.28em] uppercase text-[#ffb829]">
-                Gift Unboxed · Ready to Redeem
+              <span className="text-sm">✨</span>
+              <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#e2c78c]">
+                Gift Certificate Unwrapped
               </span>
+              <span className="text-sm">✨</span>
             </div>
 
-            {/* 3D TILT MONOLITHIC CERTIFICATE CARD (Emerges From Box) */}
+            {/* ── LUXURY HEAVYWEIGHT GIFT CERTIFICATE CARD ── */}
             <div
               ref={containerRef}
               style={{
                 transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
                 transition: "transform 0.15s ease-out",
               }}
-              className="relative w-full max-w-lg rounded-3xl p-7 sm:p-10 bg-[#060606]/95 backdrop-blur-2xl border border-white/10 shadow-[0_35px_90px_rgba(0,0,0,0.9),0_0_50px_rgba(128,82,255,0.18)] text-left overflow-hidden [transform-style:preserve-3d] print:border-2 print:border-black print:shadow-none print:bg-white print:text-black print:p-8"
+              className="relative w-full max-w-lg rounded-3xl p-8 sm:p-11 bg-gradient-to-br from-[#122319] via-[#0b1610] to-[#060c09] border-2 border-[#c8a86b]/70 shadow-[0_30px_80px_rgba(0,0,0,0.85),0_0_50px_rgba(200,168,107,0.2)] text-left overflow-hidden [transform-style:preserve-3d] print:border-2 print:border-black print:shadow-none print:bg-white print:text-black print:p-8"
             >
-              {/* Internal Specular Sheen */}
-              <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent rotate-45 transform translate-x-12 translate-y-12 print:hidden" />
+              {/* Specular Diagonal Sheen */}
+              <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-[#c8a86b]/10 to-transparent rotate-45 transform translate-x-12 translate-y-12 print:hidden" />
 
-              {/* Studio Header & Status */}
-              <div className="flex items-start justify-between border-b border-white/10 pb-5 mb-6 print:border-black/20">
+              {/* Ornamental Gold Corner Accents */}
+              <div className="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-[#c8a86b] rounded-tl-sm print:hidden" />
+              <div className="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-[#c8a86b] rounded-tr-sm print:hidden" />
+              <div className="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-[#c8a86b] rounded-bl-sm print:hidden" />
+              <div className="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-[#c8a86b] rounded-br-sm print:hidden" />
+
+              {/* Header: Studio Branding & Status */}
+              <div className="flex items-start justify-between border-b border-[#c8a86b]/30 pb-5 mb-6 print:border-black/20">
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-normal text-white tracking-[0.2em] uppercase font-sans print:text-black">
+                  <h3 className="font-[family-name:var(--font-display)] text-xl sm:text-2xl text-[#f3efe6] tracking-widest uppercase font-bold print:text-black">
                     Mari Esthetics
                   </h3>
-                  <p className="text-[10px] tracking-[0.25em] text-[#9a9a9a] uppercase font-light mt-1 print:text-black/70">
+                  <p className="text-[10px] tracking-[0.25em] text-[#c8a86b] uppercase font-semibold mt-0.5 print:text-black/70">
                     Private Esthetics Studio · Edmonton
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-semibold tracking-wider uppercase bg-[#15846e]/20 text-emerald-400 border border-[#15846e]/40 print:border-black print:text-black print:bg-transparent">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 print:border-black print:text-black print:bg-transparent">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 print:hidden" />
                     {giftCard.isExpired ? "EXPIRED" : "ACTIVE VOUCHER"}
                   </span>
                 </div>
               </div>
 
-              {/* Scaled Value Display */}
-              <div className="my-5">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.25em] text-[#ffb829] block mb-1 print:text-black/70">
-                  Gift Certificate Value
+              {/* Main Certificate Value Display */}
+              <div className="my-6">
+                <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-[#c8a86b] block mb-1 print:text-black/70">
+                  Gift Certificate Amount
                 </span>
                 <div className="flex items-baseline gap-3">
-                  <p className="text-5xl sm:text-7xl font-normal text-white tracking-[-0.04em] leading-none print:text-black">
+                  <p className="font-[family-name:var(--font-display)] text-5xl sm:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#fff3d1] via-[#c8a86b] to-[#e8cf99] tracking-tight leading-none print:text-black print:bg-none">
                     ${giftCard.amountCad.toFixed(2)}
                   </p>
-                  <span className="text-lg sm:text-2xl font-light text-[#9a9a9a] tracking-widest font-sans print:text-black">
+                  <span className="text-xl sm:text-2xl font-light text-[#f3efe6]/70 tracking-widest font-sans print:text-black">
                     CAD
                   </span>
                 </div>
@@ -645,45 +508,45 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
                 )}
               </div>
 
-              {/* Personalized Dedicated Message */}
+              {/* Personalized Dedicated Message / Birthday Wish */}
               {giftCard.message && (
-                <div className="my-5 p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/10 text-left print:bg-stone-50 print:border-black/15">
-                  <span className="text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] block mb-1.5 print:text-black/70">
-                    Personal Note
+                <div className="my-6 p-5 rounded-2xl bg-black/40 border border-[#c8a86b]/30 text-left print:bg-stone-50 print:border-black/15">
+                  <span className="text-[9px] uppercase font-bold tracking-[0.25em] text-[#c8a86b] block mb-1.5 print:text-black/70">
+                    Personalized Note
                   </span>
-                  <p className="text-xs sm:text-sm text-white/90 font-extralight italic leading-relaxed print:text-black">
+                  <p className="text-xs sm:text-sm text-[#f3efe6] italic font-serif leading-relaxed print:text-black">
                     “{giftCard.message}”
                   </p>
                 </div>
               )}
 
               {/* Recipient & Sender Row */}
-              <div className="grid grid-cols-2 gap-4 py-4 border-t border-white/10 text-xs print:border-black/15">
+              <div className="grid grid-cols-2 gap-4 py-4 border-t border-[#c8a86b]/20 text-xs print:border-black/15">
                 <div>
-                  <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] print:text-black/70">
+                  <span className="block text-[9px] uppercase font-bold tracking-[0.25em] text-[#f3efe6]/60 print:text-black/70">
                     Recipient
                   </span>
-                  <p className="font-normal text-white text-sm sm:text-base mt-0.5 print:text-black truncate">
+                  <p className="font-semibold text-[#f3efe6] text-sm sm:text-base mt-0.5 print:text-black truncate">
                     {giftCard.recipientName || "Valued Client"}
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] print:text-black/70">
+                  <span className="block text-[9px] uppercase font-bold tracking-[0.25em] text-[#f3efe6]/60 print:text-black/70">
                     From
                   </span>
-                  <p className="font-normal text-white text-sm sm:text-base mt-0.5 print:text-black truncate">
+                  <p className="font-semibold text-[#f3efe6] text-sm sm:text-base mt-0.5 print:text-black truncate">
                     {giftCard.senderName || "Mari Esthetics"}
                   </p>
                 </div>
               </div>
 
               {/* Voucher Code Box */}
-              <div className="mt-4 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/[0.03] p-4 rounded-2xl border border-white/10 print:border-black/20 print:bg-stone-100">
+              <div className="mt-4 pt-4 border-t border-[#c8a86b]/30 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#c8a86b]/10 p-4 rounded-2xl border border-[#c8a86b]/30 print:border-black/20 print:bg-stone-100">
                 <div className="text-center sm:text-left">
-                  <span className="block text-[8px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] print:text-black">
+                  <span className="block text-[8px] uppercase font-bold tracking-[0.25em] text-[#c8a86b] print:text-black">
                     Redemption / Coupon Code
                   </span>
-                  <span className="font-mono text-lg sm:text-xl font-medium tracking-[0.2em] text-white print:text-black select-all">
+                  <span className="font-mono text-lg sm:text-xl font-extrabold tracking-[0.2em] text-[#f3efe6] print:text-black select-all">
                     {giftCard.code}
                   </span>
                 </div>
@@ -691,46 +554,46 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className="px-5 py-2.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-xs font-semibold text-white tracking-wider uppercase cursor-pointer transition-all duration-200 active:scale-95 print:hidden"
+                  className="px-4 py-2 rounded-xl border border-[#c8a86b]/60 bg-[#c8a86b]/20 hover:bg-[#c8a86b]/35 text-xs font-bold text-[#f3efe6] tracking-wider uppercase cursor-pointer transition-all duration-200 active:scale-95 print:hidden"
                 >
-                  <span>{copied ? "✓ Copied" : "Copy Code"}</span>
+                  <span>{copied ? "✓ Copied!" : "📋 Copy Code"}</span>
                 </button>
               </div>
             </div>
 
             {/* ── ACTION BUTTONS (BELOW CARD) ── */}
             <div className="mt-8 w-full max-w-lg space-y-3.5 print:hidden">
-              {/* Primary Redeem CTA: Signature Dala Electric Iris Violet Pill */}
+              {/* Primary Redeem CTA: Luxury Gold/Champagne Button */}
               <Link
                 href={`/book?coupon=${giftCard.code}`}
-                className="w-full py-4 px-8 rounded-full bg-[#8052ff] hover:bg-[#6c3ef0] text-white text-center text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] shadow-[0_0_35px_rgba(128,82,255,0.45)] hover:shadow-[0_0_55px_rgba(128,82,255,0.7)] transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3 cursor-pointer"
+                className="w-full py-4 px-8 rounded-full bg-gradient-to-r from-[#c8a86b] via-[#e8cf99] to-[#c8a86b] hover:brightness-110 text-[#0b140f] text-center text-xs sm:text-sm font-bold uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(200,168,107,0.35)] hover:shadow-[0_15px_40px_rgba(200,168,107,0.55)] transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3 cursor-pointer"
               >
-                <span>Book Appointment with this Gift Card</span>
+                <span>Book Appointment with this Gift Certificate</span>
                 <span className="text-base">→</span>
               </Link>
 
-              {/* Secondary Ghost Actions: Print + Wrap Box Again */}
+              {/* Secondary Actions: Print + Wrap Box Again */}
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="flex-1 py-3 px-5 rounded-full border border-white/20 bg-transparent hover:bg-white/5 text-xs font-semibold uppercase tracking-[0.15em] text-[#9a9a9a] hover:text-white cursor-pointer transition-all duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-5 rounded-full border border-[#c8a86b]/40 bg-white/5 hover:bg-[#c8a86b]/15 text-xs font-semibold uppercase tracking-[0.15em] text-[#f3efe6] cursor-pointer transition-all duration-200 flex items-center justify-center gap-2"
                 >
-                  <span>Print Certificate</span>
+                  <span>🖨️ Print Certificate</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleWrapAgain}
-                  className="py-3 px-5 rounded-full border border-white/20 bg-transparent hover:bg-white/5 text-xs font-semibold uppercase tracking-[0.15em] text-[#9a9a9a] hover:text-white cursor-pointer transition-all duration-200"
+                  className="py-3 px-5 rounded-full border border-[#c8a86b]/40 bg-white/5 hover:bg-[#c8a86b]/15 text-xs font-semibold uppercase tracking-[0.15em] text-[#c8a86b] hover:text-[#f3efe6] cursor-pointer transition-all duration-200"
                   title="Close Box & Wrap Again"
                 >
                   ↺ Close Box &amp; Wrap Again
                 </button>
               </div>
 
-              <p className="text-[11px] text-[#9a9a9a] font-extralight text-center pt-2">
-                Credit automatically applies during online booking checkout or can be presented in-studio.
+              <p className="text-[11px] text-[#f3efe6]/60 font-light text-center pt-2">
+                This certificate credit is automatically applied at online checkout or can be presented in-studio.
               </p>
             </div>
           </div>
