@@ -4,11 +4,11 @@ import type { LandingContent, LandingKey } from "./types";
 const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
   "lash-extensions": {
     en: {
-      metaTitle: "Lash Extensions in West Edmonton | Mari Esthetics",
+      metaTitle: "Lash Extensions in West Edmonton",
       metaDescription:
         "Lash extensions in West Edmonton at a private T5T home studio. One-on-one appointments for clients near Callingwood, Lewis Estates, The Hamptons, and west-end Edmonton.",
       eyebrow: "Lashes · West Edmonton",
-      h1: "Lash extensions built for Edmonton winters",
+      h1: "Lash Extensions in West Edmonton",
       intro: [
         "Furnace heat, bitter -30 mornings, and glare off fresh snow can leave natural lashes brittle and mascara clumpy before lunch. If you live in Callingwood, Lewis Estates, The Hamptons, or Glastonbury, you already know how fast a west-end winter dries everything out—including your lash line.",
         "Lash extensions give you a polished look for school runs, clinic shifts, dinners on Whyte Ave, shopping at West Edmonton Mall, or Oilers nights without reapplying strip lashes in a parking lot. The goal is soft, wearable fullness that still looks like you on a video call from Spruce Grove or St. Albert.",
@@ -53,11 +53,11 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       allServicesLabel: "Browse all services",
     },
     es: {
-      metaTitle: "Extensiones de pestañas en el oeste de Edmonton | Mari Esthetics",
+      metaTitle: "Extensiones de Pestañas en el Oeste de Edmonton",
       metaDescription:
         "Extensiones de pestañas en un estudio en casa T5T, al oeste de Edmonton. Citas individuales para vecinas de Callingwood, Lewis Estates, The Hamptons y zona oeste.",
       eyebrow: "Pestañas · Oeste de Edmonton",
-      h1: "Pestañas que aguantan el invierno edmontoniano",
+      h1: "Extensiones de Pestañas en el Oeste de Edmonton",
       intro: [
         "El aire del calefactor, las mañanas de -30 y el brillo de la nieve resecan pestañas y dejan el rímel hecho grumos a media mañana. Si vives en Callingwood, Lewis Estates, The Hamptons o Glastonbury, conoces bien cómo el invierno del oeste castiga la piel y el contorno de ojos.",
         "Las extensiones te dan look listo para la guardería, el turno en el hospital, una cena en Whyte Ave, unas vueltas por West Edmonton Mall o una noche de Oilers—sin pegarte tiras en el auto. Buscamos volumen suave y creíble, también en videollamada desde St. Albert o Spruce Grove.",
@@ -102,11 +102,11 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       allServicesLabel: "Ver todos los servicios",
     },
     tl: {
-      metaTitle: "Lash extensions sa West Edmonton | Mari Esthetics",
+      metaTitle: "Lash Extensions sa West Edmonton",
       metaDescription:
         "Lash extensions sa private home studio sa T5T, West Edmonton. One-on-one para sa Callingwood, Lewis Estates, The Hamptons, at west-end.",
       eyebrow: "Lashes · West Edmonton",
-      h1: "Lash extensions para sa malamig na Edmonton",
+      h1: "Lash Extensions sa West Edmonton",
       intro: [
         "Sa -30 ng umaga, tuyong init ng furnace, at glare ng snow, madaling matuyo ang natural lashes at magulo ang mascara bago tanghali. Kung taga-Callingwood, Lewis Estates, The Hamptons, o Glastonbury ka, alam mo kung gaano kabilis ma-stress ang lash line sa winter.",
         "Extensions ang sagot kung may school run, shift sa ospital, lakad sa Whyte Ave, West Edmonton Mall, o Oilers night—hindi mo na kailangang mag-strip lashes sa parking lot. Gusto natin soft at natural na fullness, kahit sa video call mula St. Albert o Spruce Grove.",
@@ -151,11 +151,11 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       allServicesLabel: "Lahat ng serbisyo",
     },
     pa: {
-      metaTitle: "ਲੈਸ਼ ਐਕਸਟੈਨਸ਼ਨ ਵੈਸਟ ਐਡਮੰਟਨ | Mari Esthetics",
+      metaTitle: "ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਲੈਸ਼ ਐਕਸਟੈਂਸ਼ਨ",
       metaDescription:
         "ਵੈਸਟ ਐਡਮੰਟਨ ਵਿੱਚ T5T ਹੋਮ ਸਟੂਡਿਯੋ ਵਿੱਚ ਲੈਸ਼ ਐਕਸਟੈਨਸ਼ਨ। Callingwood, Lewis Estates, The Hamptons ਅਤੇ ਵੈਸਟ ਐਂਡ ਲਈ ਇਕੱਲੀ ਅਪਾਇੰਟਮੈਂਟ।",
       eyebrow: "ਲੈਸ਼ਿਜ਼ · ਵੈਸਟ ਐਡਮੰਟਨ",
-      h1: "ਐਡਮੰਟਨ ਦੀ ਸਰਦੀ ਲਈ ਲੈਸ਼ ਐਕਸਟੈਨਸ਼ਨ",
+      h1: "ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਲੈਸ਼ ਐਕਸਟੈਂਸ਼ਨ",
       intro: [
         "ਫਰਨੇਸ ਦੀ ਸੁੱਕੀ ਗਰਮੀ, -30 ਵਾਲੀਆਂ ਸਵੇਰਾਂ ਅਤੇ ਬਰਫ ਦੀ ਚਮਕ ਨਾਲ ਕੁਦਰਤੀ ਲੈਸ਼ਿਜ਼ ਸੁੱਕ ਜਾਂਦੀਆਂ ਹਨ ਅਤੇ ਮਸਕਾਰਾ ਦੁਪਹਿਰ ਤੋਂ ਪਹਿਲਾਂ ਖਰਾਬ ਹੋ ਜਾਂਦਾ ਹੈ। ਜੇ ਤੁਸੀਂ Callingwood, Lewis Estates, The Hamptons ਜਾਂ Glastonbury ਵਿੱਚ ਰਹਿੰਦੇ ਹੋ, ਤਾਂ ਜਾਣਦੇ ਹੋ ਕਿ ਸਰਦੀ ਕਿੰਨੀ ਤੇਜ਼ ਲੈਸ਼ ਲਾਈਨ ਨੂੰ ਵੀ ਪ੍ਰਭਾਵਿਤ ਕਰਦੀ ਹੈ।",
         "ਸਕੂਲ ਡਰੌਪ, ਹਸਪਤਾਲ ਦੀ ਡਿਊਟੀ, Whyte Ave ਦੀ ਰਾਤ, West Edmonton Mall, ਜਾਂ Oilers ਮੈਚ—ਐਕਸਟੈਨਸ਼ਨ ਨਾਲ ਤਿਆਰ ਲੁੱਕ ਬਿਨਾਂ ਪਾਰਕਿੰਗ ਵਿੱਚ ਸਟ੍ਰਿਪ ਲੈਸ਼ ਲਗਾਏ। ਨਰਮ, ਕੁਦਰਤੀ ਭਰਪੂਰਤਾ, St. Albert ਜਾਂ Spruce Grove ਤੋਂ ਵੀਡੀਓ ਕਾਲ ਲਈ ਵੀ।",
@@ -200,11 +200,11 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       allServicesLabel: "ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ",
     },
     ar: {
-      metaTitle: "تركيب رموش في غرب إدمونتون | Mari Esthetics",
+      metaTitle: "وصلات الرموش في غرب إدمونتون",
       metaDescription:
         "تركيب رموش في استوديو منزلي خاص T5T غرب إدمونتون. مواعيد فردية لسكّان Callingwood وLewis Estates وThe Hamptons والغرب.",
       eyebrow: "رموش · غرب إدمونتون",
-      h1: "رموش تلائم شتاء إدمونتون",
+      h1: "وصلات الرموش في غرب إدمونتون",
       intro: [
         "حرارة المدفأة، صباحات الـ30 تحت الصفر، ووهج الثلج تجفّ الرموش الطبيعية وتُفسد الماسكارا قبل الظهر. إن كنتِ في Callingwood أو Lewis Estates أو The Hamptons أو Glastonbury، فأنتِ تعرفين كيف يجفف الشتاء خط الرموش أيضاً.",
         "الإكستنشن يمنحكِ مظهراً جاهزاً لتوصيل الأطفال، دوام المستشفى، عشاء في Whyte Ave، تسوق West Edmonton Mall، أو ليلة Oilers—بدون لصق رموش في موقف السيارات. نهدف إلى كثافة ناعمة وطبيعية، حتى في مكالمة من St. Albert أو Spruce Grove.",

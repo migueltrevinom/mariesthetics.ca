@@ -19,6 +19,7 @@ import {
   slugsByLocaleForLanding,
 } from "@/lib/services/landing/resolve";
 import { localeToHreflang } from "@/lib/blog/locales";
+import { buildLashFaq, buildLashSummary } from "@/lib/services/landing/lashSummary";
 import {
   breadcrumbJsonLd,
   buildMetadata,
@@ -73,6 +74,8 @@ export default async function ServiceLandingPage({ params }: PageProps) {
   const pagePath = serviceLandingPath(resolved.pathSlug);
   const pageUrl = `${siteUrl}${pagePath}`;
   const inLanguage = localeToHreflang(locale);
+  const lashSummary = definition.key === "lash-extensions" ? buildLashSummary(services) : null;
+  const lashFaqs = lashSummary ? buildLashFaq(lashSummary, locale) : [];
 
   return (
     <ServiceLandingTranslationProvider slugsByLocale={slugsByLocaleForLanding(definition)}>
@@ -83,6 +86,8 @@ export default async function ServiceLandingPage({ params }: PageProps) {
         heroImage={heroImage}
         primaryServiceId={hero._id}
         relatedPosts={relatedPosts}
+        lashSummary={lashSummary}
+        extraFaqs={lashFaqs}
       />
       <JsonLd
         data={[
@@ -92,9 +97,9 @@ export default async function ServiceLandingPage({ params }: PageProps) {
             description: content.metaDescription,
             url: pageUrl,
             image: heroImage,
-            offers: services.map((s) => ({ name: s.name, priceCents: s.priceCents })),
+            offers: services.map((s) => ({ name: s.name, priceCents: s.priceCents, id: s._id })),
           }),
-          faqJsonLd(content.faqs.map((f) => ({ q: f.q, a: f.a }))),
+          { ...faqJsonLd([...lashFaqs, ...content.faqs].map((f) => ({ q: f.q, a: f.a }))), inLanguage },
           breadcrumbJsonLd(
             [
               { name: "Home", path: "/" },
