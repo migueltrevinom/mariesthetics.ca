@@ -103,10 +103,9 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
           <div className="w-full flex flex-col items-center animate-in fade-in duration-500">
             {/* Header Eyebrow & Title */}
             <div className="mb-6 space-y-2">
-              <span className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.25em] uppercase text-[#e2c78c] px-4 py-1.5 rounded-full border border-[#c8a86b]/40 bg-[#c8a86b]/15 shadow-sm">
-                <span>✨</span>
+              <span className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.2em] uppercase text-[#c8a86b] px-3.5 py-1 rounded-full border border-[#c8a86b]/30 bg-[#c8a86b]/10">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#c8a86b]" />
                 <span>Special Gift Delivery</span>
-                <span>✨</span>
               </span>
               <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-5xl text-[#f3efe6] font-normal tracking-tight">
                 You’ve Received a Gift!
@@ -423,17 +422,20 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
             </div>
 
             {/* Tap to Open Prompt */}
-            <div className="mt-6 flex flex-col items-center gap-3">
+            <div className="mt-6 flex flex-col items-center gap-2.5">
               <button
                 type="button"
                 onClick={handleUnwrap}
-                className="group inline-flex items-center gap-3 px-8 py-3.5 rounded-full bg-gradient-to-r from-[#c8a86b] via-[#e8cf99] to-[#c8a86b] text-[#0b140f] text-xs font-bold uppercase tracking-[0.2em] shadow-[0_10px_25px_rgba(200,168,107,0.35)] hover:shadow-[0_15px_35px_rgba(200,168,107,0.55)] transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+                className="group h-11 px-6 rounded-full bg-[#c8a86b] hover:bg-[#d8b87b] text-[#0b140f] text-xs font-semibold tracking-wider uppercase transition-all duration-150 active:scale-[0.98] inline-flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow"
               >
-                <span>Tap to Open Your Present</span>
-                <span className="text-sm transition-transform duration-300 group-hover:translate-x-1">🎁</span>
+                <span>Open Gift Box</span>
+                <svg className="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
               </button>
 
-              <span className="text-[11px] text-[#f3efe6]/60 font-light tracking-wide">
+              <span className="text-[11px] text-[#f3efe6]/50 font-light tracking-wide">
                 Click anywhere on the gift box to unwrap
               </span>
             </div>
@@ -444,12 +446,12 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
         {isUnwrapped && (
           <div className="w-full flex flex-col items-center animate-in zoom-in-95 fade-in duration-700">
             {/* Top Status */}
-            <div className="mb-6 flex items-center justify-center gap-2 print:hidden">
-              <span className="text-sm">✨</span>
-              <span className="text-[11px] font-bold tracking-[0.25em] uppercase text-[#e2c78c]">
+            <div className="mb-5 flex items-center justify-center gap-2 print:hidden">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c8a86b]" />
+              <span className="text-[10px] font-semibold tracking-[0.2em] uppercase text-[#c8a86b]">
                 Gift Certificate Unwrapped
               </span>
-              <span className="text-sm">✨</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c8a86b]" />
             </div>
 
             {/* ── LUXURY HEAVYWEIGHT GIFT CERTIFICATE CARD ── */}
@@ -541,12 +543,12 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
               </div>
 
               {/* Voucher Code Box */}
-              <div className="mt-4 pt-4 border-t border-[#c8a86b]/30 flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#c8a86b]/10 p-4 rounded-2xl border border-[#c8a86b]/30 print:border-black/20 print:bg-stone-100">
-                <div className="text-center sm:text-left">
+              <div className="mt-5 pt-4 border-t border-[#c8a86b]/25 flex flex-col sm:flex-row items-center justify-between gap-3 bg-black/30 p-3.5 sm:p-4 rounded-xl border border-[#c8a86b]/20 print:border-black/20 print:bg-stone-100">
+                <div className="text-center sm:text-left min-w-0">
                   <span className="block text-[8px] uppercase font-bold tracking-[0.25em] text-[#c8a86b] print:text-black">
                     Redemption / Coupon Code
                   </span>
-                  <span className="font-mono text-lg sm:text-xl font-extrabold tracking-[0.2em] text-[#f3efe6] print:text-black select-all">
+                  <span className="font-mono text-base sm:text-lg font-bold tracking-wider text-[#f3efe6] print:text-black select-all whitespace-nowrap block mt-0.5">
                     {giftCard.code}
                   </span>
                 </div>
@@ -554,45 +556,72 @@ export function GiftCardUnwrapExperience({ giftCard }: GiftCardUnwrapExperienceP
                 <button
                   type="button"
                   onClick={handleCopyCode}
-                  className="px-4 py-2 rounded-xl border border-[#c8a86b]/60 bg-[#c8a86b]/20 hover:bg-[#c8a86b]/35 text-xs font-bold text-[#f3efe6] tracking-wider uppercase cursor-pointer transition-all duration-200 active:scale-95 print:hidden"
+                  className="h-8 px-3 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-[11px] font-semibold text-white/90 hover:text-white tracking-wider uppercase transition-all duration-150 active:scale-95 flex items-center gap-1.5 shrink-0 cursor-pointer print:hidden"
+                  title="Copy redemption code"
                 >
-                  <span>{copied ? "✓ Copied!" : "📋 Copy Code"}</span>
+                  {copied ? (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span className="text-emerald-400">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-3.5 h-3.5 text-white/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      <span>Copy Code</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
 
             {/* ── ACTION BUTTONS (BELOW CARD) ── */}
-            <div className="mt-8 w-full max-w-lg space-y-3.5 print:hidden">
-              {/* Primary Redeem CTA: Luxury Gold/Champagne Button */}
+            <div className="mt-6 w-full max-w-lg space-y-2.5 print:hidden">
+              {/* Primary Redeem CTA: Clean, refined Privy-style gold action button */}
               <Link
                 href={`/book?coupon=${giftCard.code}`}
-                className="w-full py-4 px-8 rounded-full bg-gradient-to-r from-[#c8a86b] via-[#e8cf99] to-[#c8a86b] hover:brightness-110 text-[#0b140f] text-center text-xs sm:text-sm font-bold uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(200,168,107,0.35)] hover:shadow-[0_15px_40px_rgba(200,168,107,0.55)] transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3 cursor-pointer"
+                className="w-full h-11 px-5 rounded-full bg-[#c8a86b] hover:bg-[#d8b87b] text-[#0b140f] text-xs font-semibold uppercase tracking-wider transition-all duration-150 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow whitespace-nowrap"
               >
-                <span>Book Appointment with this Gift Certificate</span>
-                <span className="text-base">→</span>
+                <span>Book Appointment</span>
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
               </Link>
 
               {/* Secondary Actions: Print + Wrap Box Again */}
-              <div className="flex gap-3">
+              <div className="flex gap-2.5">
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="flex-1 py-3 px-5 rounded-full border border-[#c8a86b]/40 bg-white/5 hover:bg-[#c8a86b]/15 text-xs font-semibold uppercase tracking-[0.15em] text-[#f3efe6] cursor-pointer transition-all duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 h-9 px-4 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs font-medium tracking-wide transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
                 >
-                  <span>🖨️ Print Certificate</span>
+                  <svg className="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 6 2 18 2 18 9" />
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                    <rect x="6" y="14" width="12" height="8" />
+                  </svg>
+                  <span>Print Certificate</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleWrapAgain}
-                  className="py-3 px-5 rounded-full border border-[#c8a86b]/40 bg-white/5 hover:bg-[#c8a86b]/15 text-xs font-semibold uppercase tracking-[0.15em] text-[#c8a86b] hover:text-[#f3efe6] cursor-pointer transition-all duration-200"
-                  title="Close Box & Wrap Again"
+                  className="flex-1 h-9 px-4 rounded-full border border-white/15 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-xs font-medium tracking-wide transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.99]"
                 >
-                  ↺ Close Box &amp; Wrap Again
+                  <svg className="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                  <span>Wrap Again</span>
                 </button>
               </div>
 
-              <p className="text-[11px] text-[#f3efe6]/60 font-light text-center pt-2">
+              <p className="text-[11px] text-[#f3efe6]/50 font-light text-center pt-1.5">
                 This certificate credit is automatically applied at online checkout or can be presented in-studio.
               </p>
             </div>
