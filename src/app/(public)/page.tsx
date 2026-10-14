@@ -9,7 +9,9 @@ import {
   localBusinessJsonLd,
   type ReviewSchemaItem,
 } from "@/lib/seo";
-import { faqItems } from "@/lib/faq";
+import { buildHomeFaq, HOME_DESCRIPTION, HOME_FAQ_HEADING, HOME_TITLE, type HomePrices } from "@/lib/home/seo";
+import { HomeLinks } from "@/components/public/sections/HomeLinks";
+import { localeToHreflang } from "@/lib/blog/locales";
 import { Hero } from "@/components/public/sections/Hero";
 import { ServicesPreview } from "@/components/public/sections/ServicesPreview";
 import { HowItWorks } from "@/components/public/sections/HowItWorks";
@@ -24,11 +26,36 @@ import { getServerLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = buildMetadata({
-  description:
-    "Mari Esthetics is a private esthetics studio serving Edmonton, AB — personalized facials, lash lifts, brow shaping and dermaplaning. Book online with an easy deposit.",
-  path: "/",
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getServerLocale();
+  return buildMetadata({
+    title: HOME_TITLE[locale] || HOME_TITLE.en,
+    description: HOME_DESCRIPTION[locale] || HOME_DESCRIPTION.en,
+    path: "/",
+  });
+}
+
+async function getHomePrices(): Promise<HomePrices> {
+  try {
+    await connectDb();
+    const rows = (await Service.find({ active: true }).select("slug category priceCents").lean()) as Array<{
+      slug?: string;
+      category?: string;
+      priceCents?: number;
+    }>;
+    const priced = rows.filter((r) => Number(r.priceCents) > 0);
+    const minOf = (list: typeof priced) =>
+      list.length ? Math.min(...list.map((r) => Number(r.priceCents))) : undefined;
+    return {
+      lashes: minOf(priced.filter((r) => r.category === "lashes")),
+      facials: minOf(priced.filter((r) => r.category === "facials")),
+      powderBrows: minOf(priced.filter((r) => r.slug === "soft-powder-brows")),
+      lipBlush: minOf(priced.filter((r) => r.slug === "lip-blush")),
+    };
+  } catch {
+    return {};
+  }
+}
 
 type PreviewService = {
   _id: string;
@@ -148,7 +175,12 @@ async function getData(): Promise<{
 export default async function HomePage() {
   const { services, plans, reviewStats } = await getData();
   const locale = await getServerLocale();
-  const latestPosts = await getLatestPublishedPosts(locale, 3);
+  const [latestPosts, prices] = await Promise.all([
+    getLatestPublishedPosts(locale, 3),
+    getHomePrices(),
+  ]);
+  const homeFaq = buildHomeFaq(locale, prices);
+  const faqHeading = HOME_FAQ_HEADING[locale] || HOME_FAQ_HEADING.en;
 
   return (
     <>
@@ -159,7 +191,8 @@ export default async function HomePage() {
       <BlogPreview posts={latestPosts} />
       <Testimonials />
       <SocialReels />
-      <Faq />
+      <HomeLinks locale={locale} posts={latestPosts} />
+      <Faq items={homeFaq} eyebrow={faqHeading.eyebrow} title={faqHeading.title} />
       <CtaBand />
       <JsonLd
         data={[
@@ -168,7 +201,7 @@ export default async function HomePage() {
             reviewCount: reviewStats.reviewCount,
             reviews: reviewStats.reviews,
           }),
-          faqJsonLd(faqItems.map((f) => ({ q: f.q, a: f.a }))),
+          { ...faqJsonLd(homeFaq), inLanguage: localeToHreflang(locale) },
           breadcrumbJsonLd([{ name: "Home", path: "/" }]),
         ]}
       />
