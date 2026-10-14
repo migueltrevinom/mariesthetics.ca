@@ -78,6 +78,16 @@
                     <%= totalFormatted %>
                   </td>
                 </tr>
+                <% if (typeof discountFormatted !== 'undefined' && discountFormatted) { %>
+                <tr>
+                  <td style="padding-bottom: 8px; font-size: 13px; color: #2e7d32; font-weight: 600;">
+                    Discount / Gift Voucher:
+                  </td>
+                  <td align="right" style="padding-bottom: 8px; font-size: 13px; font-weight: 600; color: #2e7d32;">
+                    -<%= discountFormatted %>
+                  </td>
+                </tr>
+                <% } %>
                 <% if (typeof paymentKind !== 'undefined' && paymentKind === 'balance') { %>
                 <tr>
                   <td style="padding-bottom: 8px; font-size: 13px; color: rgba(243, 239, 230, 0.7);">

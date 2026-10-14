@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const code = searchParams.get("code")?.toUpperCase().trim();
+    const code = (searchParams.get("code") || searchParams.get("couponCode"))?.toUpperCase().trim();
     const serviceId = searchParams.get("serviceId")?.trim() || "";
     const email = searchParams.get("email")?.toLowerCase().trim() || "";
 
@@ -64,6 +64,8 @@ export async function GET(req: Request) {
         type: "fixed",
         value: balanceCad,
         remainingBalanceCents: giftCard.remainingBalanceCents,
+        recipientName: giftCard.recipientName || "",
+        recipientEmail: giftCard.recipientEmail || "",
         message: `Gift Voucher Balance: $${balanceCad.toFixed(2)} CAD`,
       });
     }

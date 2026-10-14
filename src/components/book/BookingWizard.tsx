@@ -97,6 +97,17 @@ export function BookingWizard({
   const [phone, setPhone] = useState("");
   const [couponCode, setCouponCode] = useState(initialCouponCode?.toUpperCase().trim() ?? "");
   const [couponMessage, setCouponMessage] = useState("");
+  const [validatedCoupon, setValidatedCoupon] = useState<{
+    kind: "coupon" | "gift_card";
+    code: string;
+    type: "fixed" | "percent";
+    value: number;
+    remainingBalanceCents?: number;
+    recipientName?: string;
+    recipientEmail?: string;
+    message: string;
+  } | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [depositMethod, setDepositMethod] = useState<"stripe" | "etransfer">("stripe");
   const [bookingId, setBookingId] = useState("");
   const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
@@ -136,6 +147,83 @@ export function BookingWizard({
     [firstName, lastName]
   );
 
+  async function validatePromoCode(rawCode: string, targetServiceId?: string, autoFillClient = true) {
+    const code = rawCode.toUpperCase().trim();
+    if (!code) {
+      setValidatedCoupon(null);
+      setCouponMessage("");
+      return;
+    }
+
+    setIsValidatingCoupon(true);
+    try {
+      const qs = new URLSearchParams({ code });
+      const sId = targetServiceId || serviceId;
+      if (sId) qs.set("serviceId", sId);
+      if (email) qs.set("email", email);
+
+      const res = await fetch(`/api/public/coupons/validate?${qs.toString()}`);
+      const data = await res.json();
+
+      if (data.success) {
+        setValidatedCoupon({
+          kind: data.kind,
+          code: data.code,
+          type: data.type,
+          value: data.value,
+          remainingBalanceCents: data.remainingBalanceCents,
+          recipientName: data.recipientName,
+          recipientEmail: data.recipientEmail,
+          message: data.message,
+        });
+        setCouponMessage(data.message);
+
+        // Pre-fill recipient name and email if provided by the gift certificate
+        if (autoFillClient) {
+          if (data.recipientName) {
+            const parts = String(data.recipientName).trim().split(/\s+/);
+            const fName = parts[0] || "";
+            const lName = parts.slice(1).join(" ") || "";
+            if (fName) setFirstName(fName);
+            if (lName) setLastName(lName);
+          }
+          if (data.recipientEmail) {
+            setEmail(data.recipientEmail);
+          }
+        }
+      } else {
+        setValidatedCoupon(null);
+        setCouponMessage(data.error || "Invalid coupon or gift voucher code");
+      }
+    } catch {
+      setValidatedCoupon(null);
+      setCouponMessage("Could not validate coupon code");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  }
+
+  // Auto-validate coupon code as user types or pastes with debounce
+  useEffect(() => {
+    const trimmed = couponCode.trim().toUpperCase();
+    if (!trimmed) {
+      if (validatedCoupon) {
+        setValidatedCoupon(null);
+        setCouponMessage("");
+      }
+      return;
+    }
+
+    if (validatedCoupon?.code === trimmed) return;
+    if (trimmed.length < 5) return;
+
+    const timer = setTimeout(() => {
+      void validatePromoCode(trimmed, serviceId, true);
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [couponCode, serviceId, validatedCoupon?.code]);
+
   useEffect(() => {
     fetch("/api/services")
       .then((r) => r.json())
@@ -159,23 +247,20 @@ export function BookingWizard({
       .catch(() => setError("Could not load services. Is MongoDB connected?"));
   }, [initialServiceId, initialServiceSlug, initialDate]);
 
+  // Validate initial coupon from URL param on mount
   useEffect(() => {
     const code = initialCouponCode?.toUpperCase().trim();
     if (!code) return;
     setCouponCode(code);
-    const qs = new URLSearchParams({ code });
-    if (serviceId) qs.set("serviceId", serviceId);
-    fetch(`/api/public/coupons/validate?${qs.toString()}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.message) {
-          setCouponMessage(data.message);
-        } else if (data.error) {
-          setCouponMessage(data.error);
-        }
-      })
-      .catch(() => {});
-  }, [initialCouponCode, serviceId]);
+    void validatePromoCode(code, serviceId, true);
+  }, [initialCouponCode]);
+
+  // Re-calculate coupon discount if serviceId changes
+  useEffect(() => {
+    if (couponCode && serviceId) {
+      void validatePromoCode(couponCode, serviceId, false);
+    }
+  }, [serviceId]);
 
   useEffect(() => {
     if (!serviceId || step !== "slot") return;
@@ -190,6 +275,67 @@ export function BookingWizard({
       .finally(() => setLoading(false));
   }, [serviceId, date, step]);
 
+  // Dynamic Financial Calculations including Coupon / Gift Card
+  const {
+    totalTreatmentCents,
+    couponDiscountCents,
+    netPriceCents,
+    depositDueCents,
+    remainingBalanceCents,
+    isFullyCovered,
+    remainingGiftCardBalanceCents,
+  } = useMemo(() => {
+    if (!selectedService) {
+      return {
+        totalTreatmentCents: 0,
+        couponDiscountCents: 0,
+        netPriceCents: 0,
+        depositDueCents: 0,
+        remainingBalanceCents: 0,
+        isFullyCovered: false,
+        remainingGiftCardBalanceCents: 0,
+      };
+    }
+
+    const total = selectedService.priceCents;
+    const normalDeposit = selectedService.depositCents;
+
+    let discount = 0;
+    let remainingGcBalance = 0;
+
+    if (validatedCoupon) {
+      if (validatedCoupon.kind === "gift_card") {
+        const availableCents =
+          validatedCoupon.remainingBalanceCents ?? Math.round(validatedCoupon.value * 100);
+        discount = Math.min(availableCents, total);
+        remainingGcBalance = Math.max(0, availableCents - discount);
+      } else if (validatedCoupon.kind === "coupon") {
+        if (validatedCoupon.type === "percent") {
+          discount = Math.round((total * validatedCoupon.value) / 100);
+        } else {
+          discount = Math.min(Math.round(validatedCoupon.value * 100), total);
+        }
+      }
+    }
+
+    const net = Math.max(0, total - discount);
+    const isFullyCovered = net === 0;
+
+    // Deposit is $0 if fully covered, otherwise capped at remaining net total
+    const deposit = isFullyCovered ? 0 : Math.min(normalDeposit, net);
+    const remaining = Math.max(0, net - deposit);
+
+    return {
+      totalTreatmentCents: total,
+      couponDiscountCents: discount,
+      netPriceCents: net,
+      depositDueCents: deposit,
+      remainingBalanceCents: remaining,
+      isFullyCovered,
+      remainingGiftCardBalanceCents: remainingGcBalance,
+    };
+  }, [selectedService, validatedCoupon]);
+
   async function createBooking() {
     setError("");
     setLoading(true);
@@ -200,7 +346,7 @@ export function BookingWizard({
         body: JSON.stringify({
           serviceId,
           start: selectedStart,
-          depositMethod,
+          depositMethod: isFullyCovered ? "other" : depositMethod,
           guest: { name, email, countryCode, phone },
           couponCode: couponCode || undefined,
         }),
@@ -210,6 +356,16 @@ export function BookingWizard({
 
       setBookingId(data.booking._id);
       setHoldExpiresAt(data.booking.holdExpiresAt ?? null);
+
+      // If fully covered by gift card or deposit is 0, instant confirmation!
+      if (isFullyCovered || depositDueCents === 0 || data.next?.action === "none") {
+        setMessage(
+          data.next?.message || "Your appointment is confirmed! 100% covered by your gift voucher."
+        );
+        setStep("done");
+        setEncourageAccount(true);
+        return;
+      }
 
       if (depositMethod === "stripe") {
         const payRes = await fetch("/api/payments/deposit", {
@@ -381,6 +537,42 @@ export function BookingWizard({
       {/* ── STEP 1: SERVICE SELECTION SHOWCASE ── */}
       {step === "service" && (
         <div className="space-y-6">
+          {/* Active Voucher Banner on Step 1 */}
+          {validatedCoupon && (
+            <div className="relative overflow-hidden rounded-2xl p-4 sm:p-5 border border-[#c8a86b]/40 bg-gradient-to-r from-[#c8a86b]/15 via-white/[0.04] to-transparent backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-[#c8a86b]/20 text-[#b5914c] dark:text-[#e2c78c] border border-[#c8a86b]/30 flex items-center justify-center font-bold text-base shrink-0">
+                  ✓
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] uppercase font-bold tracking-widest text-[#b5914c] dark:text-[#e2c78c]">
+                      {validatedCoupon.kind === "gift_card" ? "Gift Certificate Active" : "Promo Code Active"}
+                    </span>
+                    <span className="font-mono text-xs font-bold text-[var(--ink)] bg-black/10 dark:bg-white/10 px-2.5 py-0.5 rounded-md">
+                      {validatedCoupon.code}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--ink-soft)] mt-0.5">
+                    {validatedCoupon.kind === "gift_card" ? (
+                      <>
+                        Available Balance: <strong className="text-[var(--ink)] font-semibold">{formatCad(validatedCoupon.remainingBalanceCents ?? validatedCoupon.value * 100)} CAD</strong>
+                        {validatedCoupon.recipientName ? ` · Dedicated to ${validatedCoupon.recipientName}` : ""}
+                      </>
+                    ) : (
+                      <>
+                        Discount: <strong className="text-[var(--ink)] font-semibold">{validatedCoupon.message}</strong>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <span className="text-[11px] text-[#b5914c] dark:text-[#e2c78c] font-semibold bg-[#c8a86b]/10 px-3.5 py-1.5 rounded-full border border-[#c8a86b]/20 w-fit shrink-0">
+                Choose your treatment below
+              </span>
+            </div>
+          )}
+
           {/* Category Filter Pills */}
           {categories.length > 1 && (
             <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-[var(--border-color)]">
@@ -413,6 +605,11 @@ export function BookingWizard({
                   ? service.images[0].url
                   : CATEGORY_FALLBACK_IMAGES[cat] || CATEGORY_FALLBACK_IMAGES.general;
               const photoUrl = getFastIpfsUrl(rawPhotoUrl);
+
+              const isServiceCoveredByVoucher =
+                validatedCoupon &&
+                validatedCoupon.kind === "gift_card" &&
+                (validatedCoupon.remainingBalanceCents ?? validatedCoupon.value * 100) >= service.priceCents;
 
               return (
                 <div
@@ -457,9 +654,16 @@ export function BookingWizard({
 
                     <div className="pt-4 border-t border-[var(--border-color)] flex items-center justify-between gap-3">
                       <div>
-                        <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--ink-faint)] block">
-                          {t("servicesPage.depositRequired") !== "servicesPage.depositRequired" ? t("servicesPage.depositRequired") : "Deposit Required:"} {formatCad(service.depositCents)}
-                        </span>
+                        {isServiceCoveredByVoucher ? (
+                          <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-500 block flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            100% Covered ($0.00 Deposit)
+                          </span>
+                        ) : (
+                          <span className="text-[10px] uppercase tracking-wider font-bold text-[var(--ink-faint)] block">
+                            {t("servicesPage.depositRequired") !== "servicesPage.depositRequired" ? t("servicesPage.depositRequired") : "Deposit Required:"} {formatCad(service.depositCents)}
+                          </span>
+                        )}
                         <span className="gold-text text-2xl font-bold tracking-tight">
                           {formatCad(service.priceCents)}
                         </span>
@@ -718,22 +922,85 @@ export function BookingWizard({
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
-                Promo Code / Coupon (optional)
-              </label>
-              <input
-                type="text"
-                placeholder="PROMO2026"
-                className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
-                value={couponCode}
-                onChange={(e) => {
-                  setCouponCode(e.target.value);
-                  setCouponMessage("");
-                }}
-              />
-              {couponMessage ? (
-                <p className="mt-1.5 text-xs text-[var(--ink-soft)]">{couponMessage}</p>
-              ) : null}
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-medium text-[var(--ink-soft)]">
+                  Promo Code / Coupon (optional)
+                </label>
+                {validatedCoupon && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCouponCode("");
+                      setValidatedCoupon(null);
+                      setCouponMessage("");
+                    }}
+                    className="text-[11px] text-rose-500 hover:underline cursor-pointer font-medium"
+                  >
+                    Remove Code
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="MARI-GIFT-XXXXXX"
+                  className="flex-1 uppercase font-mono border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  value={couponCode}
+                  onChange={(e) => {
+                    const val = e.target.value.toUpperCase();
+                    setCouponCode(val);
+                    if (!val) {
+                      setValidatedCoupon(null);
+                      setCouponMessage("");
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      void validatePromoCode(couponCode, serviceId, true);
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={!couponCode.trim() || isValidatingCoupon}
+                  onClick={() => validatePromoCode(couponCode, serviceId, true)}
+                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-[#c8a86b] via-[#d4af37] to-[#b89552] text-[#0b100d] font-bold text-xs shadow-md hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer disabled:opacity-40"
+                >
+                  {isValidatingCoupon ? "Checking..." : validatedCoupon ? "Applied ✓" : "Apply"}
+                </button>
+              </div>
+
+              {/* Status and Balance Feedback (Matching Screenshot 1) */}
+              {isValidatingCoupon && (
+                <p className="mt-2 text-xs text-[#c8a86b] animate-pulse">
+                  Checking promo code &amp; voucher balance...
+                </p>
+              )}
+
+              {validatedCoupon && (
+                <div className="mt-2.5 p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+                    <span className="w-4 h-4 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-[10px]">✓</span>
+                    <span>
+                      {validatedCoupon.kind === "gift_card"
+                        ? `Gift Voucher Balance: ${formatCad(validatedCoupon.remainingBalanceCents ?? validatedCoupon.value * 100)} CAD`
+                        : `Promo Discount Active: ${validatedCoupon.message}`}
+                    </span>
+                  </div>
+                  {validatedCoupon.recipientName && (
+                    <span className="text-[11px] text-[var(--ink-soft)] font-medium">
+                      Client: <strong className="text-[var(--ink)]">{validatedCoupon.recipientName}</strong>
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {!validatedCoupon && couponMessage && (
+                <p className="mt-2 text-xs text-rose-500 font-medium flex items-center gap-1.5">
+                  <span>✕</span> <span>{couponMessage}</span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -744,7 +1011,7 @@ export function BookingWizard({
               onClick={() => setStep("pay")}
               className="btn-primary text-xs !py-3 !px-8 disabled:opacity-40 cursor-pointer"
             >
-              Continue to Deposit →
+              {isFullyCovered ? "Continue to Confirmation (Fully Covered) →" : "Continue to Deposit →"}
             </button>
           </div>
         </div>
@@ -806,50 +1073,102 @@ export function BookingWizard({
             )}
           </div>
 
-          {/* Pricing Breakdown: 3-Pillar Crystal Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Pricing Breakdown: 4-Pillar (with Coupon/Voucher) or 3-Pillar Crystal Cards */}
+          <div
+            className={`grid grid-cols-1 ${
+              couponDiscountCents > 0 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
+            } gap-3`}
+          >
             {/* 1. Total Price */}
             <div className="p-4.5 rounded-2xl border border-white/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] backdrop-blur-xl flex flex-col justify-between shadow-xs">
               <span className="text-[11px] font-bold text-[var(--ink-soft)] uppercase tracking-wider">
                 1. Total Treatment Price
               </span>
               <span className="text-2xl font-black text-[var(--ink)] mt-2 tracking-tight">
-                {formatCad(selectedService.priceCents)}
+                {formatCad(totalTreatmentCents)}
               </span>
               <span className="text-[10.5px] text-[var(--ink-soft)] font-medium mt-1">
                 Full procedure cost
               </span>
             </div>
 
-            {/* 2. Deposit Due Today (Spotlight Tier) */}
-            <div className="relative overflow-hidden p-4.5 rounded-2xl border-2 border-[#c8a86b] bg-gradient-to-br from-[#c8a86b]/20 via-[#c8a86b]/10 to-amber-100/30 dark:from-[#c8a86b]/20 dark:via-white/[0.03] dark:to-transparent backdrop-blur-xl flex flex-col justify-between shadow-[0_12px_32px_-8px_rgba(200,168,107,0.25),inset_0_1px_1px_rgba(255,255,255,0.9)] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.4)] ring-1 ring-[#c8a86b]/30">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-[#9e7a38] dark:text-[#e2c78c] uppercase tracking-wider">
-                  2. Deposit Due Today
+            {/* 2. Coupon / Gift Certificate Discount (shown when discount is present) */}
+            {couponDiscountCents > 0 && (
+              <div className="p-4.5 rounded-2xl border border-emerald-500/30 dark:border-emerald-500/20 bg-emerald-500/10 dark:bg-emerald-500/[0.05] backdrop-blur-xl flex flex-col justify-between shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    {validatedCoupon?.kind === "gift_card" ? "2. Voucher Applied" : "2. Discount Applied"}
+                  </span>
+                  <span className="text-[9px] uppercase font-bold tracking-wider bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    {validatedCoupon?.code}
+                  </span>
+                </div>
+                <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2 tracking-tight">
+                  -{formatCad(couponDiscountCents)}
                 </span>
-                <span className="text-[9px] uppercase font-bold tracking-wider bg-gradient-to-r from-[#c8a86b] to-amber-500 text-black px-2.5 py-0.5 rounded-full shadow-xs">
-                  Locks Slot
+                <span className="text-[10.5px] text-emerald-700 dark:text-emerald-400 font-medium mt-1">
+                  {isFullyCovered ? "100% covers procedure" : "Deducted from treatment"}
                 </span>
               </div>
-              <span className="text-2xl font-black text-[#9e7a38] dark:text-[#e2c78c] mt-2 tracking-tight">
-                {formatCad(selectedService.depositCents)}
+            )}
+
+            {/* 3. Deposit Due Today (Spotlight Tier) */}
+            <div
+              className={`relative overflow-hidden p-4.5 rounded-2xl border-2 ${
+                isFullyCovered
+                  ? "border-emerald-500/50 bg-gradient-to-br from-emerald-500/15 via-[#c8a86b]/10 to-transparent shadow-[0_12px_32px_-8px_rgba(46,125,50,0.25)] ring-1 ring-emerald-500/30"
+                  : "border-[#c8a86b] bg-gradient-to-br from-[#c8a86b]/20 via-[#c8a86b]/10 to-amber-100/30 dark:from-[#c8a86b]/20 dark:via-white/[0.03] dark:to-transparent shadow-[0_12px_32px_-8px_rgba(200,168,107,0.25),inset_0_1px_1px_rgba(255,255,255,0.9)] dark:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.4)] ring-1 ring-[#c8a86b]/30"
+              } backdrop-blur-xl flex flex-col justify-between`}
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className={`text-[11px] font-bold ${
+                    isFullyCovered
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-[#9e7a38] dark:text-[#e2c78c]"
+                  } uppercase tracking-wider`}
+                >
+                  {couponDiscountCents > 0 ? "3. Deposit Due Today" : "2. Deposit Due Today"}
+                </span>
+                <span
+                  className={`text-[9px] uppercase font-bold tracking-wider ${
+                    isFullyCovered
+                      ? "bg-emerald-500 text-black px-2.5 py-0.5 rounded-full shadow-xs"
+                      : "bg-gradient-to-r from-[#c8a86b] to-amber-500 text-black px-2.5 py-0.5 rounded-full shadow-xs"
+                  }`}
+                >
+                  {isFullyCovered ? "100% Covered" : "Locks Slot"}
+                </span>
+              </div>
+              <span
+                className={`text-2xl font-black ${
+                  isFullyCovered
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-[#9e7a38] dark:text-[#e2c78c]"
+                } mt-2 tracking-tight`}
+              >
+                {formatCad(depositDueCents)}
               </span>
               <span className="text-[10.5px] text-[var(--ink)] font-semibold mt-1 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#c8a86b]" />
-                Deducted from your total
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isFullyCovered ? "bg-emerald-500" : "bg-[#c8a86b]"
+                  }`}
+                />
+                {isFullyCovered ? "No deposit required" : "Deducted from your total"}
               </span>
             </div>
 
-            {/* 3. Remaining Balance */}
+            {/* 4. Remaining Balance */}
             <div className="p-4.5 rounded-2xl border border-white/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] backdrop-blur-xl flex flex-col justify-between shadow-xs">
               <span className="text-[11px] font-bold text-[var(--ink-soft)] uppercase tracking-wider">
-                3. Remaining Balance
+                {couponDiscountCents > 0 ? "4. Remaining Balance" : "3. Remaining Balance"}
               </span>
               <span className="text-2xl font-black text-[var(--ink)] mt-2 tracking-tight">
-                {formatCad(selectedService.priceCents - selectedService.depositCents)}
+                {formatCad(remainingBalanceCents)}
               </span>
               <span className="text-[10.5px] text-[var(--ink-soft)] font-medium mt-1">
-                Pay at Edmonton studio after visit
+                {isFullyCovered ? "Fully settled with voucher" : "Pay at Edmonton studio after visit"}
               </span>
             </div>
           </div>
@@ -867,21 +1186,21 @@ export function BookingWizard({
                 <div className="space-y-1">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-widest bg-gradient-to-r from-[#c8a86b]/20 via-[#c8a86b]/10 to-amber-500/10 border border-[#c8a86b]/30 text-[#9e7a38] dark:text-[#e2c78c] shadow-xs">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#c8a86b]" />
-                    Studio Policy & Transparency
+                    Studio Policy &amp; Transparency
                   </div>
                   <h4 className="font-serif text-base sm:text-lg font-semibold text-[var(--ink)] tracking-tight">
-                    How your reservation deposit works
+                    {isFullyCovered ? "How your reservation works" : "How your reservation deposit works"}
                   </h4>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-medium text-[var(--ink-soft)] px-3 py-1 rounded-full bg-white/40 dark:bg-white/[0.04] border border-white/60 dark:border-white/10 backdrop-blur-md">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  100% Credited to Treatment
+                  {isFullyCovered ? "100% Covered by Gift Voucher" : "100% Credited to Treatment"}
                 </div>
               </div>
 
               {/* Crystal Clear Dual Bento Tiles */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                {/* Tile 1: 100% Credited */}
+                {/* Tile 1: Coverage / Credited */}
                 <div className="relative rounded-2xl p-4 bg-white/65 dark:bg-white/[0.04] border border-white/80 dark:border-white/10 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.02),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] flex flex-col justify-between group hover:border-[#c8a86b]/40 transition-all">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2.5">
@@ -891,13 +1210,28 @@ export function BookingWizard({
                         </svg>
                       </div>
                       <span className="text-xs font-bold text-[var(--ink)] tracking-tight">
-                        Credited to your final total
+                        {isFullyCovered ? "Covered by Gift Voucher" : "Credited to your final total"}
                       </span>
                     </div>
 
                     <p className="text-[11.5px] leading-relaxed text-[var(--ink-soft)]">
-                      Your <strong className="text-[#b5914c] dark:text-[#e2c78c] font-bold">{formatCad(selectedService.depositCents)}</strong> deposit secures this exclusive time slot and is deducted from the treatment price. You only pay the remaining{" "}
-                      <strong className="text-[var(--ink)] font-semibold">{formatCad(selectedService.priceCents - selectedService.depositCents)}</strong> upon completion of your visit.
+                      {isFullyCovered ? (
+                        <>
+                          Your treatment is <strong className="text-emerald-600 dark:text-emerald-400 font-bold">100% covered</strong> by gift voucher{" "}
+                          <strong className="font-mono text-[#b5914c] dark:text-[#e2c78c]">{validatedCoupon?.code}</strong>.
+                          No deposit or payment is required today.
+                          {remainingGiftCardBalanceCents > 0 && (
+                            <span>
+                              {" "}A remaining balance of <strong className="text-[var(--ink)] font-bold">{formatCad(remainingGiftCardBalanceCents)}</strong> remains saved on your certificate for future visits.
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          Your <strong className="text-[#b5914c] dark:text-[#e2c78c] font-bold">{formatCad(depositDueCents)}</strong> deposit secures this exclusive time slot and is deducted from the treatment price. You only pay the remaining{" "}
+                          <strong className="text-[var(--ink)] font-semibold">{formatCad(remainingBalanceCents)}</strong> upon completion of your visit.
+                        </>
+                      )}
                     </p>
                   </div>
 
@@ -925,8 +1259,12 @@ export function BookingWizard({
                     </div>
 
                     <p className="text-[11.5px] leading-relaxed text-[var(--ink-soft)]">
-                      Because this private studio session is reserved exclusively for you and prevents other clients from booking, the reservation deposit is{" "}
-                      <strong className="text-rose-600 dark:text-rose-400 font-bold">100% non-refundable</strong> if you do not show up for your appointment.
+                      Because this private studio session is reserved exclusively for you and prevents other clients from booking,{" "}
+                      {isFullyCovered ? (
+                        <>please notify us at least <strong className="text-[var(--ink)] font-bold">24 hours in advance</strong> if you need to reschedule your visit.</>
+                      ) : (
+                        <>the reservation deposit is <strong className="text-rose-600 dark:text-rose-400 font-bold">100% non-refundable</strong> if you do not show up for your appointment.</>
+                      )}
                     </p>
                   </div>
 
@@ -955,83 +1293,131 @@ export function BookingWizard({
             </div>
           </div>
 
-          {/* Deposit Method Selector (Apple Pay & Interac Glass Tiles) */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="block text-[11px] uppercase tracking-wider font-bold text-[var(--ink-soft)]">
-                Choose Payment Method for Deposit ({formatCad(selectedService.depositCents)})
-              </label>
-              <span className="text-[10px] text-[var(--ink-soft)] font-medium">
-                Instant confirmation
-              </span>
-            </div>
+          {/* Payment Method Section: Covered Card or Payment Selector */}
+          {isFullyCovered ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] uppercase tracking-wider font-bold text-[var(--ink-soft)]">
+                  Payment Method
+                </label>
+                <span className="text-[10px] text-emerald-500 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  100% Covered
+                </span>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Option 1: Card / Apple Pay */}
-              <button
-                type="button"
-                onClick={() => setDepositMethod("stripe")}
-                className={`relative overflow-hidden p-4 rounded-2xl border text-left transition-all cursor-pointer backdrop-blur-xl ${
-                  depositMethod === "stripe"
-                    ? "border-[#c8a86b] bg-gradient-to-br from-[#c8a86b]/18 via-[#c8a86b]/8 to-transparent shadow-[0_8px_24px_rgba(200,168,107,0.18)] ring-1 ring-[#c8a86b]"
-                    : "border-white/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] hover:border-[#c8a86b]/50 shadow-xs"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#c8a86b]/20 to-amber-500/10 border border-[#c8a86b]/30 flex items-center justify-center text-[#9e7a38] dark:text-[#e2c78c]">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-6 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
-                      </svg>
+              <div className="relative overflow-hidden p-4.5 rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/15 via-[#c8a86b]/10 to-transparent backdrop-blur-xl shadow-[0_8px_24px_rgba(46,125,50,0.15)] ring-1 ring-emerald-500/30">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-sm shadow-xs">
+                      ✓
                     </div>
-                    <p className="font-bold text-xs text-[var(--ink)]">
-                      Debit or Credit Card
-                    </p>
-                  </div>
-                  {depositMethod === "stripe" && (
-                    <span className="text-[10px] font-bold tracking-wide bg-[#c8a86b] text-black px-2 py-0.5 rounded-full shadow-2xs">
-                      ✓ Selected
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-[var(--ink-soft)] mt-2 leading-relaxed">
-                  Instant reservation confirmation with Visa, Mastercard, Debit, or Apple Pay.
-                </p>
-              </button>
-
-              {/* Option 2: Interac e-Transfer */}
-              <button
-                type="button"
-                onClick={() => setDepositMethod("etransfer")}
-                className={`relative overflow-hidden p-4 rounded-2xl border text-left transition-all cursor-pointer backdrop-blur-xl ${
-                  depositMethod === "etransfer"
-                    ? "border-[#c8a86b] bg-gradient-to-br from-[#c8a86b]/18 via-[#c8a86b]/8 to-transparent shadow-[0_8px_24px_rgba(200,168,107,0.18)] ring-1 ring-[#c8a86b]"
-                    : "border-white/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] hover:border-[#c8a86b]/50 shadow-xs"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-400/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-                      </svg>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-xs sm:text-sm text-[var(--ink)]">
+                          Digital Gift Certificate Applied
+                        </p>
+                        <span className="font-mono text-xs font-bold text-[#c8a86b] bg-black/20 dark:bg-white/10 px-2 py-0.5 rounded-md">
+                          {validatedCoupon?.code}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[var(--ink-soft)] mt-1">
+                        {formatCad(couponDiscountCents)} applied to procedure · $0.00 deposit required today.
+                      </p>
                     </div>
-                    <p className="font-bold text-xs text-[var(--ink)]">
-                      Interac e-Transfer
-                    </p>
                   </div>
-                  {depositMethod === "etransfer" && (
-                    <span className="text-[10px] font-bold tracking-wide bg-[#c8a86b] text-black px-2 py-0.5 rounded-full shadow-2xs">
-                      ✓ Selected
-                    </span>
-                  )}
+                  <span className="text-[10px] font-bold tracking-wide bg-emerald-500 text-black px-3 py-1 rounded-full shadow-2xs w-fit">
+                    Verified &amp; Covered
+                  </span>
                 </div>
-                <p className="text-[11px] text-[var(--ink-soft)] mt-2 leading-relaxed">
-                  Slot held for 2 hours while your deposit transfer to Edmonton studio is verified.
-                </p>
-              </button>
+                {remainingGiftCardBalanceCents > 0 && (
+                  <div className="mt-3 pt-3 border-t border-emerald-500/20 flex items-center justify-between text-[11px] text-[var(--ink-soft)]">
+                    <span>Voucher balance remaining after visit:</span>
+                    <strong className="text-[#c8a86b] font-mono font-bold">
+                      {formatCad(remainingGiftCardBalanceCents)}
+                    </strong>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-[11px] uppercase tracking-wider font-bold text-[var(--ink-soft)]">
+                  Choose Payment Method for Deposit ({formatCad(depositDueCents)})
+                </label>
+                <span className="text-[10px] text-[var(--ink-soft)] font-medium">
+                  Instant confirmation
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Option 1: Card / Apple Pay */}
+                <button
+                  type="button"
+                  onClick={() => setDepositMethod("stripe")}
+                  className={`relative overflow-hidden p-4 rounded-2xl border text-left transition-all cursor-pointer backdrop-blur-xl ${
+                    depositMethod === "stripe"
+                      ? "border-[#c8a86b] bg-gradient-to-br from-[#c8a86b]/18 via-[#c8a86b]/8 to-transparent shadow-[0_8px_24px_rgba(200,168,107,0.18)] ring-1 ring-[#c8a86b]"
+                      : "border-white/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] hover:border-[#c8a86b]/50 shadow-xs"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#c8a86b]/20 to-amber-500/10 border border-[#c8a86b]/30 flex items-center justify-center text-[#9e7a38] dark:text-[#e2c78c]">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-6 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z" />
+                        </svg>
+                      </div>
+                      <p className="font-bold text-xs text-[var(--ink)]">
+                        Debit or Credit Card
+                      </p>
+                    </div>
+                    {depositMethod === "stripe" && (
+                      <span className="text-[10px] font-bold tracking-wide bg-[#c8a86b] text-black px-2 py-0.5 rounded-full shadow-2xs">
+                        ✓ Selected
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[var(--ink-soft)] mt-2 leading-relaxed">
+                    Instant reservation confirmation with Visa, Mastercard, Debit, or Apple Pay.
+                  </p>
+                </button>
+
+                {/* Option 2: Interac e-Transfer */}
+                <button
+                  type="button"
+                  onClick={() => setDepositMethod("etransfer")}
+                  className={`relative overflow-hidden p-4 rounded-2xl border text-left transition-all cursor-pointer backdrop-blur-xl ${
+                    depositMethod === "etransfer"
+                      ? "border-[#c8a86b] bg-gradient-to-br from-[#c8a86b]/18 via-[#c8a86b]/8 to-transparent shadow-[0_8px_24px_rgba(200,168,107,0.18)] ring-1 ring-[#c8a86b]"
+                      : "border-white/80 dark:border-white/10 bg-white/60 dark:bg-white/[0.03] hover:border-[#c8a86b]/50 shadow-xs"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-400/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                        </svg>
+                      </div>
+                      <p className="font-bold text-xs text-[var(--ink)]">
+                        Interac e-Transfer
+                      </p>
+                    </div>
+                    {depositMethod === "etransfer" && (
+                      <span className="text-[10px] font-bold tracking-wide bg-[#c8a86b] text-black px-2 py-0.5 rounded-full shadow-2xs">
+                        ✓ Selected
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-[var(--ink-soft)] mt-2 leading-relaxed">
+                    Slot held for 2 hours while your deposit transfer to Edmonton studio is verified.
+                  </p>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Bottom Checkout Action Strip */}
           <div className="pt-4 border-t border-[var(--border-color)]/70 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1040,7 +1426,11 @@ export function BookingWizard({
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
               <span>
-                Safe & encrypted checkout · Only <strong className="text-[var(--ink)] font-bold">{formatCad(selectedService.depositCents)}</strong> is charged today.
+                {isFullyCovered ? (
+                  <>Safe &amp; confirmed reservation · <strong className="text-emerald-500 font-bold">$0.00</strong> charged today.</>
+                ) : (
+                  <>Safe &amp; encrypted checkout · Only <strong className="text-[var(--ink)] font-bold">{formatCad(depositDueCents)}</strong> is charged today.</>
+                )}
               </span>
             </div>
 
@@ -1050,7 +1440,11 @@ export function BookingWizard({
               onClick={createBooking}
               className="btn-primary text-xs !py-3.5 !px-8 disabled:opacity-40 cursor-pointer shadow-lg w-full sm:w-auto hover:brightness-105 active:scale-[0.98] transition-all"
             >
-              {loading ? "Securing Slot..." : `Pay Deposit & Confirm (${formatCad(selectedService.depositCents)}) →`}
+              {loading
+                ? "Securing Slot..."
+                : isFullyCovered
+                ? "Confirm Appointment (Fully Covered) →"
+                : `Pay Deposit & Confirm (${formatCad(depositDueCents)}) →`}
             </button>
           </div>
         </div>

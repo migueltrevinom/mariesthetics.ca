@@ -1,25 +1,18 @@
 export interface GiftCardEmailParams {
-  code: string;
-  amountCad: number;
-  recipientName: string;
-  senderName: string;
-  message?: string;
-  appUrl: string;
+	code: string;
+	amountCad: number;
+	recipientName: string;
+	senderName: string;
+	message?: string;
+	appUrl: string;
 }
 
-export function generateGiftCardEmailHtml({
-  code,
-  amountCad,
-  recipientName,
-  senderName,
-  message,
-  appUrl,
-}: GiftCardEmailParams): string {
-  const revealUrl = `${appUrl}/gift-cards/reveal/${code}`;
-  const bookUrl = `${appUrl}/book?coupon=${code}`;
-  const formattedAmount = `$${amountCad.toFixed(2)} CAD`;
+export function generateGiftCardEmailHtml({ code, amountCad, recipientName, senderName, message, appUrl }: GiftCardEmailParams): string {
+	const revealUrl = `${appUrl}/gift-cards/reveal/${code}`;
+	const bookUrl = `${appUrl}/book?coupon=${code}`;
+	const formattedAmount = `$${amountCad.toFixed(2)} CAD`;
 
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -96,8 +89,8 @@ export function generateGiftCardEmailHtml({
 
                 <!-- Personalized Message (if provided) -->
                 ${
-                  message
-                    ? `
+					message
+						? `
                 <tr>
                   <td style="padding: 0 28px 20px 28px;">
                     <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: rgba(255,255,255,0.03); border-left: 3px solid #8052ff; border-radius: 6px; padding: 14px 18px;">
@@ -115,8 +108,8 @@ export function generateGiftCardEmailHtml({
                   </td>
                 </tr>
                 `
-                    : ""
-                }
+						: ""
+				}
 
                 <!-- Primary CTA Button: Unwrap Interactive Gift Card -->
                 <tr>
@@ -162,7 +155,7 @@ export function generateGiftCardEmailHtml({
           <tr>
             <td align="center" style="padding: 24px 32px 36px 32px; border-top: 1px solid rgba(200, 168, 107, 0.2); background-color: #0a110d;">
               <p style="margin: 0; font-size: 11px; color: rgba(243, 239, 230, 0.6); line-height: 1.5;">
-                Mari Esthetics Studio · 1211 Gillespie Cres NW, Edmonton, AB T6L 6X5<br>
+                Mari Esthetics Studio · 1211 Gillespie Cres NW, Edmonton, AB T5T 6M5<br>
                 WhatsApp / Tel: +1 (825) 785-3081 · <a href="mailto:info@mariesthetics.ca" style="color: #c8a86b; text-decoration: underline;">info@mariesthetics.ca</a>
               </p>
             </td>

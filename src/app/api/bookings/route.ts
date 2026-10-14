@@ -192,14 +192,6 @@ export async function POST(req: Request) {
 			}
 		}
 
-		if (!isManager && !body.depositMethod) {
-			return NextResponse.json({ error: "Deposit method is required" }, { status: 400 });
-		}
-
-		const status = body.status ?? "held";
-		const depositMethod = body.depositMethod ?? (isManager ? "cash" : "etransfer");
-		const isStripe = depositMethod === "stripe";
-
 		let priceCents = service.priceCents;
 		let discountCents = 0;
 		let couponId = null;
@@ -223,9 +215,7 @@ export async function POST(req: Request) {
 				if (eligibilityError) {
 					return NextResponse.json({ error: eligibilityError }, { status: 400 });
 				}
-			}
 
-			if (coupon) {
 				const discounted = applyDiscount(priceCents, coupon.type, coupon.value);
 				discountCents = priceCents - discounted;
 				priceCents = discounted;
@@ -259,9 +249,21 @@ export async function POST(req: Request) {
 		}
 
 		const depositCents = Math.min(service.depositCents, priceCents);
+		const isFullyCovered = priceCents === 0;
 
-		// If the booking is manually confirmed by a manager, count deposit as paid immediately
-		const isConfirmed = status === "confirmed" || status === "completed";
+		if (!isManager && !isFullyCovered && !body.depositMethod) {
+			return NextResponse.json({ error: "Deposit method is required" }, { status: 400 });
+		}
+
+		const depositMethod = isFullyCovered
+			? (body.depositMethod ?? "other")
+			: (body.depositMethod ?? (isManager ? "cash" : "etransfer"));
+		const isStripe = depositMethod === "stripe";
+
+		// If fully covered by gift voucher/coupon OR manually confirmed by a manager, status is confirmed!
+		const isConfirmed = isFullyCovered || body.status === "confirmed" || body.status === "completed";
+		const status = isConfirmed ? "confirmed" : (body.status ?? "held");
+
 		const paidCents = isConfirmed ? depositCents : 0;
 		const balanceDueCents = priceCents - paidCents;
 
@@ -321,7 +323,7 @@ export async function POST(req: Request) {
 		return NextResponse.json({
 			booking,
 			next: isConfirmed
-				? { action: "none", message: "Booking confirmed successfully" }
+				? { action: "none", message: isFullyCovered ? "Booking fully covered by gift certificate and confirmed!" : "Booking confirmed successfully" }
 				: isStripe
 					? { action: "pay_stripe_deposit" }
 					: {
