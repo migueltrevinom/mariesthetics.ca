@@ -57,7 +57,8 @@ export const config = {
   twilioAuthToken: process.env.TWILIO_AUTH_TOKEN ?? "",
   twilioMessagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID ?? "",
   twilioFromNumber: process.env.TWILIO_TESTING_NUMBER ?? process.env.TWILIO_FROM_NUMBER ?? "",
-  cronSecret: process.env.CRON_SECRET ?? "mari_cron_secret_2026",
+  // No fallback: cron endpoints fail closed when CRON_SECRET is missing.
+  cronSecret: process.env.CRON_SECRET ?? "",
   mailgunApiKey: process.env.MAILGUN_API_KEY ?? "",
   mailgunDomain: process.env.MAILGUN_DOMAIN ?? "mg.mariesthetics.ca",
   mailgunFromEmail: process.env.MAILGUN_FROM_EMAIL ?? "Mari Esthetics <bookings@mariesthetics.ca>",
