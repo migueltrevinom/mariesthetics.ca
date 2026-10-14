@@ -126,10 +126,10 @@ function GiftCardsContent() {
                 </p>
                 <Link
                   href={`/gift-cards/reveal/${code}`}
-                  className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#c8a86b] to-[#e2c78c] text-[#0b100d] text-xs font-bold hover:brightness-105 transition-all shadow-sm flex items-center gap-1.5"
+                  className="px-5 py-2 rounded-full bg-[#8052ff] hover:bg-[#6c3ef0] text-white text-xs font-semibold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(128,82,255,0.4)] flex items-center gap-2"
                 >
-                  <span>🎁</span>
-                  <span>View &amp; Unwrap Certificate →</span>
+                  <span>✦</span>
+                  <span>View &amp; Awaken Certificate →</span>
                 </Link>
               </div>
             )}
@@ -314,52 +314,88 @@ function GiftCardsContent() {
 
           {/* Live Voucher Digital Card Preview */}
           <div className="lg:col-span-5 space-y-4">
-            <h3 className="text-xs uppercase font-extrabold tracking-wider text-[#c8a86b]">
-              ✨ Live Voucher Preview
-            </h3>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-semibold tracking-[0.28em] text-[#ffb829] flex items-center gap-1.5">
+                <span>✦</span>
+                <span>Live Certificate Preview</span>
+              </span>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#9a9a9a]">
+                Sample Layout
+              </span>
+            </div>
 
-            <div className="border-2 border-dashed border-[#c8a86b]/50 bg-gradient-to-br from-[var(--card-bg)] to-black/30 p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6 text-center relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10 font-[family-name:var(--font-display)] text-6xl text-[#c8a86b] font-bold">
-                MARI
+            <div className="border border-white/10 bg-[#060606] p-7 sm:p-8 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(128,82,255,0.12)] space-y-6 text-left relative overflow-hidden text-white backdrop-blur-xl">
+              {/* Internal Specular Diagonal Sheen */}
+              <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent rotate-45 transform translate-x-12 translate-y-12" />
+
+              {/* Studio Header & Status */}
+              <div className="flex items-start justify-between border-b border-white/10 pb-4">
+                <div>
+                  <h4 className="text-base sm:text-lg font-normal tracking-[0.2em] text-white uppercase font-sans">
+                    Mari Esthetics
+                  </h4>
+                  <p className="text-[9px] uppercase tracking-[0.25em] text-[#9a9a9a] font-light mt-0.5">
+                    Edmonton, Alberta
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-[#15846e]/20 text-emerald-400 border border-[#15846e]/40">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  Active
+                </span>
               </div>
 
+              {/* Live Scaled Value Display */}
               <div>
-                <span className="text-2xl block mb-1">🎁</span>
-                <h4 className="text-lg font-extrabold text-[#c8a86b] font-[family-name:var(--font-display)]">
-                  Mari Esthetics Studio
-                </h4>
-                <p className="text-[10px] uppercase tracking-widest text-[var(--ink-soft)] font-mono">
-                  Edmonton, Alberta
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-xs text-[var(--ink-soft)]">
-                  For: <strong className="text-[var(--ink)]">{recipientName || "Recipient Name"}</strong>
-                </p>
-                <p className="text-xs text-[var(--ink-soft)]">
-                  From: <strong className="text-[var(--ink)]">{senderName || "Sender Name"}</strong>
-                </p>
-              </div>
-
-              {message && (
-                <p className="text-xs italic text-[var(--ink-soft)] bg-black/5 dark:bg-white/5 p-3 rounded-xl border border-[var(--border-color)]">
-                  "{message}"
-                </p>
-              )}
-
-              <div className="bg-[#c8a86b]/15 border border-[#c8a86b]/40 p-4 rounded-2xl space-y-1">
-                <span className="text-[10px] uppercase tracking-wider text-[#c8a86b] font-bold block">
+                <span className="text-[10px] uppercase font-semibold tracking-[0.25em] text-[#ffb829] block mb-1">
                   Gift Certificate Value
                 </span>
-                <span className="text-3xl font-extrabold text-[var(--ink)] font-mono">
-                  ${effectiveAmount.toFixed(2)} <span className="text-xs text-[var(--ink-soft)]">CAD</span>
-                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl sm:text-5xl font-normal text-white tracking-[-0.04em] leading-none">
+                    ${effectiveAmount.toFixed(2)}
+                  </span>
+                  <span className="text-sm font-light text-[#9a9a9a] tracking-widest font-sans">
+                    CAD
+                  </span>
+                </div>
               </div>
 
-              <p className="text-[10px] text-[var(--ink-soft)] font-mono">
-                Unique redemption code will be generated upon checkout.
-              </p>
+              {/* Live Recipient & Sender */}
+              <div className="grid grid-cols-2 gap-4 py-3 border-t border-white/10 text-xs">
+                <div>
+                  <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
+                    Recipient
+                  </span>
+                  <p className="font-normal text-white text-sm mt-0.5 truncate">
+                    {recipientName || "Recipient Name"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
+                    From
+                  </span>
+                  <p className="font-normal text-white text-sm mt-0.5 truncate">
+                    {senderName || "Sender Name"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Live Message Dedication */}
+              {message && (
+                <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                  <span className="text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] block mb-1">
+                    Dedication Note
+                  </span>
+                  <p className="text-xs text-white/90 font-extralight italic leading-relaxed line-clamp-3">
+                    “{message}”
+                  </p>
+                </div>
+              )}
+
+              {/* Voucher Code Preview Bar */}
+              <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-[#9a9a9a]">
+                <span className="font-mono tracking-widest text-white/80">MARI-GIFT-••••••</span>
+                <span className="text-[9px] uppercase tracking-wider font-light">Issued at Checkout</span>
+              </div>
             </div>
           </div>
         </div>

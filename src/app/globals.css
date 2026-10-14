@@ -42,6 +42,15 @@
   --aurora-gradient: linear-gradient(170deg, #0b100d 0%, #0f1712 48%, #0b100d 100%);
   --aurora-soft-gradient: linear-gradient(180deg, #0b100d 0%, #10191300 100%);
   --paper-gradient: linear-gradient(180deg, #14211a 0%, #0f1712 100%);
+
+  /* Dala Anti-Slop Constellation Design Tokens */
+  --color-void: #000000;
+  --color-bone-white: #ffffff;
+  --color-ash-gray: #9a9a9a;
+  --color-silver-mist: #bdbdbd;
+  --color-electric-iris: #8052ff;
+  --color-saffron-spark: #ffb829;
+  --color-deep-verdant: #15846e;
 }
 
 /* Light Mode Overrides */

@@ -36,24 +36,33 @@ export default async function GiftCardRevealPage({
 
   if (!rawGiftCard) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-6 py-20 relative overflow-hidden">
-        <div className="aurora pointer-events-none fixed inset-0" />
-        <div className="w-full max-w-md border border-[var(--border-color)] bg-[var(--card-bg)] p-8 rounded-3xl shadow-2xl text-center relative z-10 backdrop-blur-md">
-          <div className="w-16 h-16 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
-            🎁
+      <div className="min-h-screen flex items-center justify-center bg-[#000000] text-white px-6 py-20 relative overflow-hidden select-none">
+        <div className="w-full max-w-md border border-white/10 bg-[#060606] p-8 sm:p-10 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] text-center relative z-10 backdrop-blur-xl">
+          <div className="w-16 h-16 rounded-full border border-white/15 bg-white/[0.03] flex items-center justify-center mx-auto mb-5">
+            <svg className="w-7 h-7 text-[#ffb829]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="12" cy="12" r="10" stroke="#8052ff" />
+              <line x1="12" y1="8" x2="12" y2="12" stroke="#ffb829" />
+              <line x1="12" y1="16" x2="12.01" y2="16" stroke="#ffb829" />
+            </svg>
           </div>
-          <h1 className="font-[family-name:var(--font-display)] text-3xl text-[var(--ink)]">
-            Gift Certificate Not Found
+          <h1 className="font-sans text-2xl sm:text-3xl text-white font-normal tracking-[-0.03em]">
+            Gift Certificate Not Located
           </h1>
-          <p className="mt-3 text-xs sm:text-sm text-[var(--ink-soft)] leading-relaxed">
-            We couldn't locate an active gift certificate matching code <strong className="text-[var(--ink)] font-mono">{code}</strong>. It may have already been fully redeemed or expired.
+          <p className="mt-3 text-xs sm:text-sm text-[#9a9a9a] font-light leading-relaxed">
+            We couldn't locate an active gift certificate matching code <strong className="text-white font-mono">{code}</strong>. It may have already been fully redeemed or reached expiration.
           </p>
-          <div className="mt-8 space-y-2">
-            <Link href="/gift-cards" className="btn-primary w-full text-center block !py-3 text-xs font-bold">
-              Purchase a Gift Certificate
+          <div className="mt-8 space-y-3">
+            <Link
+              href="/gift-cards"
+              className="w-full py-3.5 px-6 rounded-full bg-[#8052ff] hover:bg-[#6c3ef0] text-white text-xs font-semibold uppercase tracking-[0.18em] shadow-[0_0_30px_rgba(128,82,255,0.4)] text-center block transition-all"
+            >
+              Purchase a Gift Certificate →
             </Link>
-            <Link href="/" className="px-4 py-2 text-xs text-[var(--ink-soft)] hover:text-[var(--ink)] block text-center">
-              Return to Homepage
+            <Link
+              href="/"
+              className="py-2.5 px-4 text-xs uppercase tracking-widest text-[#9a9a9a] hover:text-white block text-center transition-colors"
+            >
+              Return to Studio Home
             </Link>
           </div>
         </div>
