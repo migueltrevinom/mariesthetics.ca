@@ -11,6 +11,7 @@ import {
   type ReviewSchemaItem,
 } from "@/lib/seo";
 import { buildHomeFaq, HOME_DESCRIPTION, HOME_FAQ_HEADING, HOME_TITLE, type HomePrices } from "@/lib/home/seo";
+import { getGoogleReviews } from "@/lib/googleReviews";
 import { computeHomePrices } from "@/lib/home/prices";
 import { HomeLinks } from "@/components/public/sections/HomeLinks";
 import { localeToHreflang } from "@/lib/blog/locales";
@@ -161,7 +162,7 @@ async function getData(): Promise<{
       }),
       reviewStats: {
         ratingValue,
-        reviewCount: reviewCount > 0 ? reviewCount : 5, // Default fallback count if fresh DB
+        reviewCount,
         reviews: reviewItems,
       },
     };
@@ -169,7 +170,7 @@ async function getData(): Promise<{
     return {
       services: [],
       plans: [],
-      reviewStats: { ratingValue: 5, reviewCount: 5, reviews: [] },
+      reviewStats: { ratingValue: 0, reviewCount: 0, reviews: [] },
     };
   }
 }
@@ -177,10 +178,17 @@ async function getData(): Promise<{
 export default async function HomePage() {
   const { services, plans, reviewStats } = await getData();
   const locale = await getServerLocale();
-  const [latestPosts, prices] = await Promise.all([
+  const [latestPosts, prices, google] = await Promise.all([
     getLatestPublishedPosts(locale, 3),
     getHomePrices(),
+    getGoogleReviews(),
   ]);
+  // Prefer the real Google Business Profile aggregate; else real site reviews; else omit.
+  const aggregate = google
+    ? { ratingValue: google.rating, reviewCount: google.userRatingCount }
+    : reviewStats.reviewCount > 0
+      ? { ratingValue: reviewStats.ratingValue, reviewCount: reviewStats.reviewCount }
+      : {};
   const homeFaq = buildHomeFaq(locale, prices);
   const faqHeading = HOME_FAQ_HEADING[locale] || HOME_FAQ_HEADING.en;
 
@@ -191,7 +199,7 @@ export default async function HomePage() {
       <HowItWorks />
       <MembershipBand plans={plans} />
       <BlogPreview posts={latestPosts} />
-      <Testimonials />
+      <Testimonials google={google} />
       <SocialReels />
       <HomeLinks locale={locale} posts={latestPosts} />
       <Faq items={homeFaq} eyebrow={faqHeading.eyebrow} title={faqHeading.title} />
@@ -200,8 +208,7 @@ export default async function HomePage() {
         data={[
           localBusinessJsonLd({
             openingHours: await getOpeningHoursSpec(),
-            ratingValue: reviewStats.ratingValue,
-            reviewCount: reviewStats.reviewCount,
+            ...aggregate,
             reviews: reviewStats.reviews,
           }),
           { ...faqJsonLd(homeFaq), inLanguage: localeToHreflang(locale) },

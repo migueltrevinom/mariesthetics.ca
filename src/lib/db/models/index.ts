@@ -31,3 +31,4 @@ export { BlogPost, type BlogPostDoc } from "./BlogPost";
 export { NewsletterSubscriber, type NewsletterSubscriberDoc } from "./NewsletterSubscriber";
 export { NewsletterDispatch, type NewsletterDispatchDoc } from "./NewsletterDispatch";
 
+export { GoogleReviews } from "./GoogleReviews";
