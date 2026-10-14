@@ -335,7 +335,7 @@ export function serviceLandingJsonLd(input: {
   description: string;
   url: string;
   image?: string;
-  offers: Array<{ name: string; priceCents: number }>;
+  offers: Array<{ name: string; priceCents: number; id?: string }>;
 }) {
   const image = input.image
     ? input.image.startsWith("http")
@@ -361,7 +361,7 @@ export function serviceLandingJsonLd(input: {
       priceCurrency: business.currency,
       price: (o.priceCents / 100).toFixed(2),
       availability: "https://schema.org/InStock",
-      url: `${siteUrl}/book`,
+      url: o.id ? `${siteUrl}/book?serviceId=${o.id}` : `${siteUrl}/book`,
     })),
   };
 }
