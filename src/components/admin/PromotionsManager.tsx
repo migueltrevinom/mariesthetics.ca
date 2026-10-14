@@ -1092,7 +1092,7 @@ export function PromotionsManager({ initialCoupons, initialGiftCards }: Promotio
                 type="number"
                 required
                 min="1"
-                step="5"
+                step="any"
                 value={giftAmount}
                 onChange={(e) => setGiftAmount(parseFloat(e.target.value) || 0)}
                 className={`${inputCls} font-mono font-bold`}
