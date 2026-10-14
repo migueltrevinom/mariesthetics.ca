@@ -32,6 +32,7 @@ function GiftCardsContent() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [previewMode, setPreviewMode] = useState<"box" | "card">("box");
 
   useEffect(() => {
     fetch("/api/services")
@@ -317,86 +318,169 @@ function GiftCardsContent() {
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-semibold tracking-[0.28em] text-[#ffb829] flex items-center gap-1.5">
                 <span>✦</span>
-                <span>Live Certificate Preview</span>
+                <span>Live Gift Preview</span>
               </span>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#9a9a9a]">
-                Sample Layout
-              </span>
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode("box")}
+                  className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                    previewMode === "box"
+                      ? "bg-[#8052ff] text-white shadow-xs"
+                      : "text-[#9a9a9a] hover:text-white"
+                  }`}
+                >
+                  Present Box
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode("card")}
+                  className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                    previewMode === "card"
+                      ? "bg-[#8052ff] text-white shadow-xs"
+                      : "text-[#9a9a9a] hover:text-white"
+                  }`}
+                >
+                  Certificate
+                </button>
+              </div>
             </div>
 
-            <div className="border border-white/10 bg-[#060606] p-7 sm:p-8 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(128,82,255,0.12)] space-y-6 text-left relative overflow-hidden text-white backdrop-blur-xl">
-              {/* Internal Specular Diagonal Sheen */}
-              <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent rotate-45 transform translate-x-12 translate-y-12" />
+            {/* PREVIEW MODE 1: LUXURY PRESENT BOX */}
+            {previewMode === "box" && (
+              <div
+                onClick={() => setPreviewMode("card")}
+                className="cursor-pointer group border border-white/10 bg-[#060606] p-7 sm:p-8 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(128,82,255,0.12)] space-y-6 text-center relative overflow-hidden text-white backdrop-blur-xl transition-all duration-300 hover:scale-[1.01]"
+              >
+                {/* 3D Box Representation */}
+                <div className="relative w-56 h-52 sm:w-64 sm:h-56 mx-auto my-2">
+                  {/* Outer ambient glow */}
+                  <div className="absolute inset-0 rounded-3xl bg-radial from-[#c8a86b]/20 via-[#8052ff]/10 to-transparent blur-2xl group-hover:from-[#c8a86b]/35 transition-all duration-500" />
 
-              {/* Studio Header & Status */}
-              <div className="flex items-start justify-between border-b border-white/10 pb-4">
+                  {/* 3D Lid */}
+                  <div className="absolute -top-2.5 -left-2.5 -right-2.5 h-16 rounded-2xl bg-gradient-to-b from-[#1c2e24] via-[#122018] to-[#0a140f] border-2 border-[#c8a86b]/60 shadow-xl z-20 flex items-center justify-center transition-transform duration-500 group-hover:-translate-y-1.5">
+                    <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                    <div className="absolute inset-x-0 h-8 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                    <div className="relative z-30 w-11 h-11 rounded-full bg-gradient-to-br from-[#fae7b9] via-[#c8a86b] to-[#7f6024] p-0.5 shadow-md flex items-center justify-center">
+                      <div className="w-full h-full rounded-full bg-[#08100c] flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-[#fae7b9]">M</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Box Body */}
+                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#15241c] via-[#0c1611] to-[#050907] border border-[#c8a86b]/40 shadow-2xl overflow-hidden flex items-center justify-center">
+                    <div className="absolute inset-y-0 w-8 bg-gradient-to-r from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+                    <div className="absolute inset-x-0 h-8 bg-gradient-to-b from-[#9b7835] via-[#fae7b9] to-[#9b7835]" />
+
+                    {/* Attached Calligraphy Tag */}
+                    <div className="absolute bottom-3 right-3 z-20 bg-[#faf7f0] text-[#142018] px-3 py-1.5 rounded-xl shadow-xl border border-[#c8a86b] text-left rotate-[-4deg]">
+                      <span className="block text-[7px] uppercase tracking-widest text-[#8b6e2d] font-bold">
+                        Recipient
+                      </span>
+                      <span className="block font-semibold text-[11px] truncate max-w-[100px]">
+                        {recipientName || "Recipient Name"}
+                      </span>
+                      <span className="block text-[8px] font-mono text-[#8b6e2d] font-bold mt-0.5">
+                        ${effectiveAmount.toFixed(2)} CAD
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-white/90 font-medium">
+                    Gift for <strong className="text-white">{recipientName || "Recipient"}</strong> from <strong className="text-white">{senderName || "You"}</strong>
+                  </p>
+                  <p className="text-[10px] text-[#ffb829] font-semibold uppercase tracking-wider">
+                    ✦ Tap box to preview unboxing ✦
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* PREVIEW MODE 2: EMERGED CERTIFICATE */}
+            {previewMode === "card" && (
+              <div className="border border-white/10 bg-[#060606] p-7 sm:p-8 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(128,82,255,0.12)] space-y-6 text-left relative overflow-hidden text-white backdrop-blur-xl animate-in zoom-in-95 fade-in duration-300">
+                {/* Internal Specular Diagonal Sheen */}
+                <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent rotate-45 transform translate-x-12 translate-y-12" />
+
+                {/* Studio Header & Status */}
+                <div className="flex items-start justify-between border-b border-white/10 pb-4">
+                  <div>
+                    <h4 className="text-base sm:text-lg font-normal tracking-[0.2em] text-white uppercase font-sans">
+                      Mari Esthetics
+                    </h4>
+                    <p className="text-[9px] uppercase tracking-[0.25em] text-[#9a9a9a] font-light mt-0.5">
+                      Edmonton, Alberta
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-[#15846e]/20 text-emerald-400 border border-[#15846e]/40">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Active
+                  </span>
+                </div>
+
+                {/* Live Scaled Value Display */}
                 <div>
-                  <h4 className="text-base sm:text-lg font-normal tracking-[0.2em] text-white uppercase font-sans">
-                    Mari Esthetics
-                  </h4>
-                  <p className="text-[9px] uppercase tracking-[0.25em] text-[#9a9a9a] font-light mt-0.5">
-                    Edmonton, Alberta
-                  </p>
+                  <span className="text-[10px] uppercase font-semibold tracking-[0.25em] text-[#ffb829] block mb-1">
+                    Gift Certificate Value
+                  </span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl sm:text-5xl font-normal text-white tracking-[-0.04em] leading-none">
+                      ${effectiveAmount.toFixed(2)}
+                    </span>
+                    <span className="text-sm font-light text-[#9a9a9a] tracking-widest font-sans">
+                      CAD
+                    </span>
+                  </div>
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-[#15846e]/20 text-emerald-400 border border-[#15846e]/40">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  Active
-                </span>
-              </div>
 
-              {/* Live Scaled Value Display */}
-              <div>
-                <span className="text-[10px] uppercase font-semibold tracking-[0.25em] text-[#ffb829] block mb-1">
-                  Gift Certificate Value
-                </span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl sm:text-5xl font-normal text-white tracking-[-0.04em] leading-none">
-                    ${effectiveAmount.toFixed(2)}
-                  </span>
-                  <span className="text-sm font-light text-[#9a9a9a] tracking-widest font-sans">
-                    CAD
-                  </span>
+                {/* Live Recipient & Sender */}
+                <div className="grid grid-cols-2 gap-4 py-3 border-t border-white/10 text-xs">
+                  <div>
+                    <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
+                      Recipient
+                    </span>
+                    <p className="font-normal text-white text-sm mt-0.5 truncate">
+                      {recipientName || "Recipient Name"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
+                      From
+                    </span>
+                    <p className="font-normal text-white text-sm mt-0.5 truncate">
+                      {senderName || "Sender Name"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Live Message Dedication */}
+                {message && (
+                  <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <span className="text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] block mb-1">
+                      Dedication Note
+                    </span>
+                    <p className="text-xs text-white/90 font-extralight italic leading-relaxed line-clamp-3">
+                      “{message}”
+                    </p>
+                  </div>
+                )}
+
+                {/* Voucher Code Preview Bar */}
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-[#9a9a9a]">
+                  <span className="font-mono tracking-widest text-white/80">MARI-GIFT-••••••</span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode("box")}
+                    className="text-[9px] uppercase tracking-wider text-[#ffb829] hover:underline cursor-pointer font-semibold"
+                  >
+                    ← Close &amp; View Box
+                  </button>
                 </div>
               </div>
-
-              {/* Live Recipient & Sender */}
-              <div className="grid grid-cols-2 gap-4 py-3 border-t border-white/10 text-xs">
-                <div>
-                  <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
-                    Recipient
-                  </span>
-                  <p className="font-normal text-white text-sm mt-0.5 truncate">
-                    {recipientName || "Recipient Name"}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
-                    From
-                  </span>
-                  <p className="font-normal text-white text-sm mt-0.5 truncate">
-                    {senderName || "Sender Name"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Live Message Dedication */}
-              {message && (
-                <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
-                  <span className="text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] block mb-1">
-                    Dedication Note
-                  </span>
-                  <p className="text-xs text-white/90 font-extralight italic leading-relaxed line-clamp-3">
-                    “{message}”
-                  </p>
-                </div>
-              )}
-
-              {/* Voucher Code Preview Bar */}
-              <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-[#9a9a9a]">
-                <span className="font-mono tracking-widest text-white/80">MARI-GIFT-••••••</span>
-                <span className="text-[9px] uppercase tracking-wider font-light">Issued at Checkout</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
