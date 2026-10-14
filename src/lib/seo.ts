@@ -253,8 +253,9 @@ export function localBusinessJsonLd(options?: {
     };
   }
 
-  if (options?.reviews && options.reviews.length > 0) {
-    baseData.review = options.reviews.map((r) => ({
+  const realReviews = (options?.reviews || []).filter((r) => r.comment && r.comment.trim());
+  if (realReviews.length > 0) {
+    baseData.review = realReviews.map((r) => ({
       "@type": "Review",
       author: {
         "@type": "Person",
@@ -266,7 +267,7 @@ export function localBusinessJsonLd(options?: {
         bestRating: "5",
         worstRating: "1",
       },
-      reviewBody: r.comment || "Exceptional service and beautiful results!",
+      reviewBody: r.comment,
       ...(r.datePublished ? { datePublished: r.datePublished } : {}),
     }));
   }
