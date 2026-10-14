@@ -59,6 +59,8 @@ export async function POST(req: Request) {
     }
 
     const totalFormatted = formatCad(summary.totalCents || serviceObj?.priceCents || 0);
+    const discountCents = summary.discountCents || 0;
+    const discountFormatted = discountCents > 0 ? formatCad(discountCents) : "";
     const balanceDueFormatted = formatCad(balanceDueCents);
     const paidToDateFormatted = formatCad(paidCents);
     const depositPaidFormatted = formatCad(kind === "deposit" ? depositCents || chargeCents || paidCents : depositCents);
@@ -106,6 +108,7 @@ export async function POST(req: Request) {
         durationMin,
         studioAddress,
         totalFormatted,
+        discountFormatted,
         paymentKind: kind,
         paidLineLabel,
         paidLineFormatted,

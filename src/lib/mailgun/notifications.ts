@@ -53,6 +53,8 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
 
     const summary = booking.paymentSummary || {};
     const totalFormatted = formatCad(summary.totalCents || serviceObj?.priceCents || 0);
+    const discountCents = summary.discountCents || 0;
+    const discountFormatted = discountCents > 0 ? formatCad(discountCents) : "";
     const depositRequiredFormatted = formatCad(summary.depositCents || serviceObj?.depositCents || 0);
     const separatesChargeFromDeposit =
       options.eventType === "balance_paid" || options.eventType === "payment_paid";
@@ -150,6 +152,7 @@ export async function notifyAdminsOfBooking(options: AdminNotificationOptions): 
           paymentStatus: booking.status,
           depositMethod: booking.depositMethod || "N/A",
           totalFormatted,
+          discountFormatted,
           depositRequiredFormatted,
           depositPaidFormatted,
           chargeLabel,

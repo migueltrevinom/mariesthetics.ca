@@ -64,7 +64,7 @@ export interface LuxuryInvoiceProps {
 const DEFAULT_MERCHANT: InvoiceMerchant = {
   name: "Mari Esthetics",
   tagline: "Private Esthetics Studio",
-  address: "1211 Gillespie Cres NW, Edmonton, AB T6L 6X5",
+  address: "1211 Gillespie Cres NW, Edmonton, AB T5T 6M5",
   email: "info@mariesthetics.ca",
   phone: "+1 (825) 785-3081",
 };
@@ -459,15 +459,15 @@ export function LuxuryInvoiceReceipt({
                 </tr>
               ) : null}
 
-              {/* Promotional Discount Line Item */}
+              {/* Promotional Discount / Gift Certificate Line Item */}
               {reconciliation.discountCents && reconciliation.discountCents > 0 ? (
                 <tr>
                   <td className="py-3.5 pr-4">
-                    <p className="font-medium text-sm text-emerald-400 print:text-black">
-                      Promotional Discount
+                    <p className="font-medium text-sm text-emerald-500 dark:text-emerald-400 print:text-black">
+                      Discount / Gift Certificate
                     </p>
                   </td>
-                  <td className="py-3.5 text-right font-mono font-medium text-sm text-emerald-400 print:text-black">
+                  <td className="py-3.5 text-right font-mono font-medium text-sm text-emerald-500 dark:text-emerald-400 print:text-black">
                     -{formatCad(reconciliation.discountCents)}
                   </td>
                 </tr>
@@ -515,6 +515,16 @@ export function LuxuryInvoiceReceipt({
                   {formatCad(reconciliation.treatmentTotalCents)}
                 </span>
               </div>
+
+              {/* Discount / Gift Certificate */}
+              {reconciliation.discountCents && reconciliation.discountCents > 0 ? (
+                <div className="flex justify-between sm:justify-end gap-8 text-emerald-500 dark:text-emerald-400 print:text-black">
+                  <span className="whitespace-nowrap">Discount / Gift Certificate</span>
+                  <span className="font-mono font-medium">
+                    -{formatCad(reconciliation.discountCents)}
+                  </span>
+                </div>
+              ) : null}
 
               {/* Deposit paid earlier */}
               {reconciliation.depositPaidCents && reconciliation.depositPaidCents > 0 ? (
