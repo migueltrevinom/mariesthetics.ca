@@ -219,7 +219,7 @@ function GiftCardsContent() {
                   <input
                     type="number"
                     min="1"
-                    step="5"
+                    step="any"
                     value={customAmount}
                     onChange={(e) => setCustomAmount(e.target.value)}
                     placeholder="e.g. 250"
