@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server";
 import { runAppointmentRemindersJob } from "@/lib/scheduledJobs";
-import { config } from "@/lib/config";
+import { cronAuthError } from "@/lib/auth/cron";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const secret = searchParams.get("secret");
-
-    const authHeader = req.headers.get("authorization");
-    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
-
-    const isSecretValid =
-      secret === config.cronSecret ||
-      bearerToken === config.cronSecret ||
-      process.env.NODE_ENV === "development";
-
-    if (!isSecretValid) {
-      return NextResponse.json({ error: "Unauthorized cron execution request" }, { status: 401 });
+    const denied = cronAuthError(req);
+    if (denied) {
+      return NextResponse.json({ error: denied.error }, { status: denied.status });
     }
 
     const jobResult = await runAppointmentRemindersJob();
