@@ -3,18 +3,26 @@
 import { useState } from "react";
 import { faqItems } from "@/lib/faq";
 
-export function Faq() {
+export function Faq({
+  items = faqItems,
+  eyebrow = "Questions",
+  title = "Good to know.",
+}: {
+  items?: Array<{ q: string; a: string }>;
+  eyebrow?: string;
+  title?: string;
+} = {}) {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
     <section className="relative bg-[var(--background)] text-[var(--foreground)] py-24 md:py-32 transition-colors duration-200">
       <div className="mx-auto max-w-3xl px-6 md:px-10">
-        <p className="eyebrow">Questions</p>
+        <p className="eyebrow">{eyebrow}</p>
         <h2 className="display mt-4 text-4xl text-[var(--ink)] md:text-5xl">
-          Good to know.
+          {title}
         </h2>
         <div className="mt-12 divide-y divide-[var(--line-soft)] border-y border-[var(--line-soft)]">
-          {faqItems.map((item, i) => {
+          {items.map((item, i) => {
             const isOpen = open === i;
             return (
               <div key={item.q}>
