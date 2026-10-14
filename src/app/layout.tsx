@@ -1,4 +1,5 @@
 import { getPageContentLocale, htmlAttrsForLocale } from "@/lib/i18n/htmlLang";
+import { getServerLocale } from "@/lib/i18n/locale";
 import type { Metadata } from "next";
 import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
@@ -130,7 +131,7 @@ export default async function RootLayout({
         />
       </head>
       <body className={`${display.variable} ${body.variable} antialiased`}>
-        <LanguageProvider>
+        <LanguageProvider initialLocale={await getServerLocale()}>
           <LocaleRouteSync />
           <a href="#main" className="skip-link">
             Skip to content

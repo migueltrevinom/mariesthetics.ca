@@ -40,9 +40,16 @@ const LanguageContext = createContext<LanguageContextType>({
   dir: "ltr",
 });
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
-  const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
+export function LanguageProvider({
+  children,
+  initialLocale = "en",
+}: {
+  children: React.ReactNode;
+  initialLocale?: Locale;
+}) {
+  // Seeded from the NEXT_LOCALE cookie on the server so SSR HTML is already localized.
+  const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  const [dir, setDir] = useState<"ltr" | "rtl">(initialLocale === "ar" ? "rtl" : "ltr");
   const [dbOverrides, setDbOverrides] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {

@@ -221,8 +221,9 @@ export function localBusinessJsonLd(options?: {
 }) {
   const baseData: Record<string, unknown> = {
     "@context": "https://schema.org",
-    "@type": "HealthAndBeautyBusiness",
+    "@type": "BeautySalon",
     "@id": `${siteUrl}/#business`,
+    alternateName: "Mari Esthetics West Edmonton",
     name: business.name,
     description: business.description,
     url: siteUrl,
