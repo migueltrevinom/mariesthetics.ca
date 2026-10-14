@@ -1,3 +1,4 @@
+import { BlogLashGuideLink, isLashPost } from "@/components/blog/BlogLashGuideLink";
 import { getOpeningHoursSpec } from "@/lib/businessHours";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -146,6 +147,8 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div className="mt-10">
             <BlogPostBody content={post.content} />
           </div>
+
+          {isLashPost(post) ? <BlogLashGuideLink language={post.language as Locale} /> : null}
 
           <BlogRelatedServices services={post.serviceIds} language={post.language as Locale} />
 
