@@ -58,20 +58,20 @@ export function generateGiftCardEmailHtml({
               <!-- Present Box Container -->
               <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background: linear-gradient(145deg, #13241b 0%, #0e1a14 100%); background-color: #122219; border: 2px solid #c8a86b; border-radius: 16px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
                 
-                <!-- Ribbon & Bow Graphic Area -->
+                <!-- Geometric Talisman Graphic Area -->
                 <tr>
                   <td align="center" style="padding: 28px 24px 16px 24px;">
-                    <div style="display: inline-block; width: 64px; height: 64px; line-height: 64px; font-size: 38px; text-align: center; background: radial-gradient(circle, rgba(200,168,107,0.25) 0%, rgba(200,168,107,0) 70%); border-radius: 50%;">
-                      🎁
+                    <div style="display: inline-block; width: 60px; height: 60px; line-height: 60px; text-align: center; background: radial-gradient(circle, rgba(128,82,255,0.25) 0%, rgba(200,168,107,0.15) 50%, rgba(0,0,0,0) 70%); border-radius: 50%;">
+                      <span style="font-family: Georgia, serif; font-size: 26px; color: #ffb829; font-weight: 300;">✦</span>
                     </div>
-                    <span style="display: block; margin-top: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: #e2c78c; font-weight: 700;">
-                      Special Delivery for You
+                    <span style="display: block; margin-top: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.25em; color: #ffb829; font-weight: 700;">
+                      Exclusive Digital Certificate
                     </span>
-                    <h2 style="margin: 6px 0 0 0; font-family: Georgia, serif; font-size: 22px; color: #f3efe6; font-weight: 400;">
+                    <h2 style="margin: 6px 0 0 0; font-family: Georgia, serif; font-size: 22px; color: #ffffff; font-weight: 400;">
                       You’ve Received a Gift Certificate!
                     </h2>
-                    <p style="margin: 6px 0 0 0; font-size: 13px; color: rgba(243, 239, 230, 0.75);">
-                      From <strong style="color: #f3efe6;">${senderName}</strong> for <strong style="color: #f3efe6;">${recipientName}</strong>
+                    <p style="margin: 6px 0 0 0; font-size: 13px; color: rgba(255, 255, 255, 0.75);">
+                      From <strong style="color: #ffffff;">${senderName}</strong> for <strong style="color: #ffffff;">${recipientName}</strong>
                     </p>
                   </td>
                 </tr>
@@ -79,13 +79,13 @@ export function generateGiftCardEmailHtml({
                 <!-- Gift Amount Box -->
                 <tr>
                   <td align="center" style="padding: 10px 24px 20px 24px;">
-                    <table border="0" cellpadding="0" cellspacing="0" style="background-color: #0b130e; border: 1px solid rgba(200, 168, 107, 0.4); border-radius: 12px; padding: 16px 28px;">
+                    <table border="0" cellpadding="0" cellspacing="0" style="background-color: #050505; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; padding: 16px 28px;">
                       <tr>
                         <td align="center">
-                          <span style="display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: #c8a86b; font-weight: 700;">
+                          <span style="display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em; color: #ffb829; font-weight: 700;">
                             Gift Certificate Value
                           </span>
-                          <span style="display: block; font-family: Georgia, serif; font-size: 36px; font-weight: 700; color: #f3dfb2; margin-top: 4px; letter-spacing: -0.02em;">
+                          <span style="display: block; font-family: Georgia, serif; font-size: 36px; font-weight: 700; color: #ffffff; margin-top: 4px; letter-spacing: -0.02em;">
                             ${formattedAmount}
                           </span>
                         </td>
@@ -100,13 +100,13 @@ export function generateGiftCardEmailHtml({
                     ? `
                 <tr>
                   <td style="padding: 0 28px 20px 28px;">
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: rgba(0,0,0,0.3); border-left: 3px solid #c8a86b; border-radius: 6px; padding: 14px 18px;">
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: rgba(255,255,255,0.03); border-left: 3px solid #8052ff; border-radius: 6px; padding: 14px 18px;">
                       <tr>
                         <td>
-                          <span style="display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #c8a86b; font-weight: 700; margin-bottom: 4px;">
+                          <span style="display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #9a9a9a; font-weight: 700; margin-bottom: 4px;">
                             Personalized Note
                           </span>
-                          <p style="margin: 0; font-family: Georgia, serif; font-style: italic; font-size: 13px; color: #f3efe6; line-height: 1.5;">
+                          <p style="margin: 0; font-family: Georgia, serif; font-style: italic; font-size: 13px; color: #ffffff; line-height: 1.5;">
                             “${message}”
                           </p>
                         </td>
@@ -120,12 +120,12 @@ export function generateGiftCardEmailHtml({
 
                 <!-- Primary CTA Button: Unwrap Interactive Gift Card -->
                 <tr>
-                  <td align="center" style="padding: 10px 28px 30px 28px;">
-                    <a href="${revealUrl}" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #c8a86b 0%, #e2c78c 50%, #b89552 100%); background-color: #c8a86b; color: #0b100d; text-decoration: none; font-size: 14px; font-weight: 700; letter-spacing: 0.05em; padding: 14px 34px; border-radius: 12px; box-shadow: 0 8px 20px rgba(200, 168, 107, 0.35);">
-                      🎁 Tap to Open &amp; Unwrap Your Gift Card →
+                  <td align="center" style="padding: 12px 28px 30px 28px;">
+                    <a href="${revealUrl}" target="_blank" style="display: inline-block; background-color: #8052ff; color: #ffffff; text-decoration: none; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; padding: 15px 36px; border-radius: 9999px; box-shadow: 0 8px 25px rgba(128, 82, 255, 0.45);">
+                      Awaken &amp; Unwrap Certificate →
                     </a>
-                    <span style="display: block; margin-top: 10px; font-size: 11px; color: rgba(243, 239, 230, 0.6);">
-                      Experience the interactive 3D unboxing &amp; reveal online
+                    <span style="display: block; margin-top: 10px; font-size: 11px; color: rgba(255, 255, 255, 0.6);">
+                      Experience the interactive constellation reveal online
                     </span>
                   </td>
                 </tr>
