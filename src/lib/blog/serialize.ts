@@ -64,6 +64,13 @@ export function serializeBlogPost(doc: Record<string, unknown>): PublicBlogPost 
     serviceIds: mapServices(doc.serviceIds),
     updatedAt: doc.updatedAt ? new Date(doc.updatedAt as string | Date).toISOString() : null,
     translations: [],
+    shortAnswer: String(doc.shortAnswer ?? ""),
+    coverImageAlt: String(doc.coverImageAlt ?? ""),
+    images: Array.isArray(doc.images)
+      ? (doc.images as Array<Record<string, unknown>>)
+          .filter((i) => i && i.url)
+          .map((i) => ({ url: String(i.url), alt: String(i.alt ?? ""), caption: i.caption ? String(i.caption) : undefined }))
+      : [],
     resolvedPromo: {
       enabled: false,
       hasValidCoupon: false,

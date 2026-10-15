@@ -8,18 +8,17 @@ import { siteUrl } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
 
   const routes: MetadataRoute.Sitemap = [
-    { url: `${siteUrl}`, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
-    { url: `${siteUrl}/services`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${siteUrl}/book`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${siteUrl}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteUrl}/gift-cards`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteUrl}/locations/west-edmonton`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${siteUrl}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${siteUrl}/llms.txt`, lastModified: now, changeFrequency: "weekly", priority: 0.5 },
-    { url: `${siteUrl}/llms-full.txt`, lastModified: now, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${siteUrl}`, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${siteUrl}/services`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}/book`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/gift-cards`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${siteUrl}/locations/west-edmonton`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${siteUrl}/llms.txt`, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${siteUrl}/llms-full.txt`, changeFrequency: "weekly", priority: 0.5 },
   ];
 
   for (const def of SERVICE_LANDING_PAGES) {
@@ -30,7 +29,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (!segment) continue;
       routes.push({
         url: `${siteUrl}${serviceLandingPath(segment)}`,
-        lastModified: now,
         changeFrequency: "weekly",
         priority: locale === "en" ? 0.85 : 0.8,
         alternates: Object.keys(languages).length > 0 ? { languages } : undefined,
@@ -66,16 +64,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     routes.push({
       url: blogPostUrl(post.slug),
-      lastModified: post.publishedAt
-        ? new Date(post.publishedAt)
-        : post.updatedAt
-          ? new Date(post.updatedAt)
-          : now,
+      // Real document timestamps only — never the sitemap generation time.
+      ...(post.updatedAt || post.publishedAt
+        ? { lastModified: new Date((post.updatedAt || post.publishedAt)!) }
+        : {}),
       changeFrequency: "monthly",
       priority: 0.6,
       alternates: Object.keys(languages).length > 0 ? { languages } : undefined,
     });
   }
+
+  // Blog index changes when any post changes: use the newest real post timestamp.
+  const newest = publishedPosts
+    .map((p) => p.updatedAt || p.publishedAt)
+    .filter(Boolean)
+    .map((d) => new Date(d as Date).getTime())
+    .sort((a, b) => b - a)[0];
+  const blogIndex = routes.find((r) => r.url === `${siteUrl}/blog`);
+  if (blogIndex && newest) blogIndex.lastModified = new Date(newest);
+  routes.push({ url: `${siteUrl}/about/marinelle`, changeFrequency: "monthly", priority: 0.5 });
 
   return routes;
 }
