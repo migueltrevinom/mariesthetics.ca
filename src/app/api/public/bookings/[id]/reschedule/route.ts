@@ -4,7 +4,7 @@ import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Service } from "@/lib/db/models";
 import { assertSlotFree } from "@/lib/booking/availability";
-import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { notifyAdminsOfBooking, notifyClientOfBooking } from "@/lib/mailgun/notifications";
 import { sendSms, isTwilioConfigured } from "@/lib/sms/twilio";
 import { config } from "@/lib/config";
 
@@ -74,10 +74,14 @@ export async function POST(
     booking.reminder2hSent = false;
     await booking.save();
 
-    // Trigger Mailgun updated email notification
+    // Trigger Mailgun updated email notifications
     void notifyAdminsOfBooking({
       bookingId: String(booking._id),
       eventType: "rescheduled",
+    });
+    void notifyClientOfBooking({
+      bookingId: String(booking._id),
+      isRescheduled: true,
     });
 
     // Trigger Twilio SMS confirmation to client

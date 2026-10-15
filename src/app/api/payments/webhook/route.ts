@@ -4,7 +4,7 @@ import { Booking, Payment } from "@/lib/db/models";
 import { config } from "@/lib/config";
 import { getStripe } from "@/lib/payments/stripe";
 import type Stripe from "stripe";
-import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { notifyAdminsOfBooking, notifyClientOfBooking } from "@/lib/mailgun/notifications";
 import { markStudioChargePaid } from "@/lib/payments/studioCharge";
 
 async function applySucceededPayment(meta: {
@@ -74,6 +74,11 @@ async function applySucceededPayment(meta: {
     void notifyAdminsOfBooking({
       bookingId: String(booking._id),
       eventType,
+      chargeCents: payment.amountCents,
+    });
+    void notifyClientOfBooking({
+      bookingId: String(booking._id),
+      kind: meta.kind as any,
       chargeCents: payment.amountCents,
     });
   }

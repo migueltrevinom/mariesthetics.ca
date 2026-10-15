@@ -3,7 +3,7 @@ import { z } from "zod";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Payment } from "@/lib/db/models";
 import { AuthError, requireManager } from "@/lib/auth/jwt";
-import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { notifyAdminsOfBooking, notifyClientOfBooking } from "@/lib/mailgun/notifications";
 
 const bodySchema = z.object({
   approve: z.boolean(),
@@ -64,6 +64,10 @@ export async function POST(
       void notifyAdminsOfBooking({
         bookingId: String(booking._id),
         eventType: "deposit_paid",
+      });
+      void notifyClientOfBooking({
+        bookingId: String(booking._id),
+        kind: "deposit",
       });
       return NextResponse.json({ booking, status: "confirmed" });
     }
