@@ -169,6 +169,10 @@ export type PublishedBlogDiscoveryRow = {
   translationGroupId: string;
   title: string;
   excerpt: string;
+  shortAnswer?: string;
+  category?: string;
+  coverImage?: string;
+  serviceIds?: string[];
   publishedAt?: Date | null;
   updatedAt?: Date | null;
 };
@@ -188,7 +192,7 @@ export async function getPublishedPostsForDiscovery(): Promise<PublishedBlogDisc
   }
   await connectDb();
   const rows = await BlogPost.find({ status: "published" })
-    .select("slug language title excerpt translationGroupId publishedAt updatedAt")
+    .select("slug language title excerpt shortAnswer category coverImage serviceIds translationGroupId publishedAt updatedAt")
     .sort({ publishedAt: -1 })
     .lean();
 
@@ -198,6 +202,10 @@ export async function getPublishedPostsForDiscovery(): Promise<PublishedBlogDisc
     translationGroupId: String(r.translationGroupId || r._id),
     title: String(r.title ?? ""),
     excerpt: String(r.excerpt ?? ""),
+    shortAnswer: String(r.shortAnswer ?? ""),
+    category: String(r.category ?? ""),
+    coverImage: String(r.coverImage ?? ""),
+    serviceIds: Array.isArray(r.serviceIds) ? r.serviceIds.map(String) : [],
     publishedAt: r.publishedAt ?? null,
     updatedAt: r.updatedAt ?? null,
   }));
@@ -208,16 +216,18 @@ export async function getPublishedPostsForSitemap(): Promise<
     slug: string;
     language: string;
     translationGroupId: string;
+    coverImage?: string;
     publishedAt?: Date | null;
     updatedAt?: Date | null;
   }>
 > {
   try {
     const rows = await getPublishedPostsForDiscovery();
-    return rows.map(({ slug, language, translationGroupId, publishedAt, updatedAt }) => ({
+    return rows.map(({ slug, language, translationGroupId, coverImage, publishedAt, updatedAt }) => ({
       slug,
       language,
       translationGroupId,
+      coverImage,
       publishedAt,
       updatedAt,
     }));

@@ -70,6 +70,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         : {}),
       changeFrequency: "monthly",
       priority: 0.6,
+      ...(post.coverImage
+        ? { images: [post.coverImage.startsWith("http") ? post.coverImage : `${siteUrl}${post.coverImage}`] }
+        : {}),
       alternates: Object.keys(languages).length > 0 ? { languages } : undefined,
     });
   }
