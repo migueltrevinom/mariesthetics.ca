@@ -55,7 +55,12 @@ export type PublicBlogPost = {
   resolvedPromo: ResolvedBlogPromo;
   serviceIds: BlogServiceRef[];
   translations: BlogTranslationRef[];
+  shortAnswer?: string;
+  coverImageAlt?: string;
+  images?: BlogImage[];
 };
+
+export type BlogImage = { url: string; alt: string; caption?: string };
 
 export type BlogListItem = Pick<
   PublicBlogPost,
