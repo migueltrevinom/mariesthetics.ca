@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 const CACHE_HEADERS = {
   "Content-Type": "text/plain; charset=utf-8",
-  "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+  "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
 };
 
 export async function GET() {
