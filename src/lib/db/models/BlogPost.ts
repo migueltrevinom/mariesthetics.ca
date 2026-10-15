@@ -8,6 +8,14 @@ const BlogPostSchema = new Schema(
     excerpt: { type: String, default: "", trim: true },
     content: { type: String, required: true },
     coverImage: { type: String, default: "", trim: true },
+    coverImageAlt: { type: String, default: "", trim: true },
+    /** 40–60 word direct answer shown under "The short answer". Optional. */
+    shortAnswer: { type: String, default: "", trim: true },
+    /** Extra in-article images; alt is required (falls back to a localized string). */
+    images: {
+      type: [{ url: { type: String, required: true, trim: true }, alt: { type: String, default: "", trim: true }, caption: { type: String, default: "", trim: true } }],
+      default: [],
+    },
     translationGroupId: {
       type: String,
       trim: true,

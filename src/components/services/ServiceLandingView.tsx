@@ -8,6 +8,8 @@ import type { LandingContent } from "@/lib/services/landing/types";
 import type { LandingServiceRow, RelatedBlogPost } from "@/lib/services/landing/queries";
 import { relatedBlogPath } from "@/lib/services/landing/queries";
 import { serviceLandingPath } from "@/lib/services/landing/paths";
+import { LashSummaryBox } from "@/components/services/LashSummaryBox";
+import type { LashSummary } from "@/lib/services/landing/lashSummary";
 type Props = {
   locale: Locale;
   content: LandingContent;
@@ -15,6 +17,8 @@ type Props = {
   heroImage: string;
   primaryServiceId: string;
   relatedPosts: RelatedBlogPost[];
+  lashSummary?: LashSummary | null;
+  extraFaqs?: Array<{ q: string; a: string }>;
 };
 
 export function ServiceLandingView({
@@ -24,7 +28,10 @@ export function ServiceLandingView({
   heroImage,
   primaryServiceId,
   relatedPosts,
+  lashSummary,
+  extraFaqs = [],
 }: Props) {
+  const faqs = [...extraFaqs, ...content.faqs];
   const dir = locale === "ar" ? "rtl" : "ltr";
 
   return (
@@ -40,6 +47,7 @@ export function ServiceLandingView({
             <h1 className="display mt-4 text-4xl text-[var(--ink)] md:text-5xl lg:text-6xl">
               {content.h1}
             </h1>
+            {lashSummary ? <LashSummaryBox summary={lashSummary} locale={locale} /> : null}
             <div className="mt-6 space-y-4 text-sm leading-relaxed text-[var(--ink-soft)] md:text-base">
               {content.intro.map((p) => (
                 <p key={p.slice(0, 24)}>{p}</p>
@@ -172,7 +180,7 @@ export function ServiceLandingView({
             <h2 className="display text-2xl text-[var(--ink)] md:text-3xl">FAQ</h2>
           </Reveal>
           <dl className="mt-6 space-y-6">
-            {content.faqs.map((faq) => (
+            {faqs.map((faq) => (
               <div key={faq.q} className="rounded-xl border border-[var(--border-color)] p-5">
                 <dt className="font-semibold text-[var(--ink)]">{faq.q}</dt>
                 <dd className="mt-2 text-sm leading-relaxed text-[var(--ink-soft)]">{faq.a}</dd>
