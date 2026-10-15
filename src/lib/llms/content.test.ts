@@ -29,8 +29,8 @@ describe("formatLlmsBlogSection", () => {
     );
 
     assert.match(body, /## Blog articles/);
-    assert.match(body, /\[en\].*powder-brows-edmonton-book-this-fall/);
-    assert.match(body, /\[ar\].*%D8%/);
+    assert.match(body, /English[\s\S]*\[Powder Brows\]\(.*powder-brows-edmonton-book-this-fall\): Book this fall/);
+    assert.match(body, /Arabic[\s\S]*%D8%/);
     assert.doesNotMatch(body, /No published articles yet/);
   });
 
