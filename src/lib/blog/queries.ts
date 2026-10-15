@@ -231,7 +231,9 @@ export async function incrementBlogPostViews(slug: string): Promise<void> {
     await connectDb();
     await BlogPost.updateOne(
       { slug: normalizeBlogSlugForLookup(slug), status: "published" },
-      { $inc: { viewsCount: 1 } }
+      { $inc: { viewsCount: 1 } },
+      // A page view is not a content change: keep updatedAt (sitemap lastmod / dateModified) real.
+      { timestamps: false }
     );
   } catch {
     // non-blocking
