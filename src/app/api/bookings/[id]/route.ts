@@ -5,7 +5,7 @@ import { connectDb } from "@/lib/db/connect";
 import { Booking, Service } from "@/lib/db/models";
 import { AuthError, requireManager } from "@/lib/auth/jwt";
 import { assertSlotFree } from "@/lib/booking/availability";
-import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { notifyAdminsOfBooking, notifyClientOfBooking } from "@/lib/mailgun/notifications";
 import { sendSms, isTwilioConfigured } from "@/lib/sms/twilio";
 import { config } from "@/lib/config";
 
@@ -80,10 +80,14 @@ export async function PATCH(
     ).populate("serviceId");
 
     if (isRescheduled && booking) {
-      // Trigger Mailgun updated appointment notification
+      // Trigger Mailgun updated appointment notifications
       void notifyAdminsOfBooking({
         bookingId: String(booking._id),
         eventType: "rescheduled",
+      });
+      void notifyClientOfBooking({
+        bookingId: String(booking._id),
+        isRescheduled: true,
       });
 
       // Dispatch Twilio SMS notification to client

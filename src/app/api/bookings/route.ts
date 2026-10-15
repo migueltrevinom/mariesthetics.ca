@@ -7,9 +7,8 @@ import { assertSlotFree } from "@/lib/booking/availability";
 import { expireStaleHolds } from "@/lib/booking/holds";
 import { applyDiscount } from "@/lib/money";
 import { config } from "@/lib/config";
-import { getSession } from "@/lib/auth/jwt";
-import { AuthError, requireManager } from "@/lib/auth/jwt";
-import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { AuthError, getSession, requireManager } from "@/lib/auth/jwt";
+import { notifyAdminsOfBooking, notifyClientOfBooking } from "@/lib/mailgun/notifications";
 import { findOrCreateClientForGuest } from "@/lib/booking/clientResolver";
 import { mapCouponDocToRecord, validateCouponForBooking } from "@/lib/couponEligibility";
 
@@ -319,6 +318,16 @@ export async function POST(req: Request) {
 			bookingId: String(booking._id),
 			eventType: isConfirmed ? "deposit_paid" : "deposit_initiated",
 		});
+
+		// Trigger asynchronous client confirmation / hold email with .ics calendar file
+		// For Stripe deposits, confirmation email is dispatched once checkout session payment succeeds
+		if (isConfirmed || booking.depositMethod === "etransfer") {
+			void notifyClientOfBooking({
+				bookingId: String(booking._id),
+				kind: "deposit",
+				chargeCents: depositCents,
+			});
+		}
 
 		return NextResponse.json({
 			booking,

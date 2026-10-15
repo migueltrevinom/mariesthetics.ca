@@ -37,7 +37,7 @@
                 Thank you, <%= clientName || "Valued Client" %>!
               </p>
               <p style="margin: 0 0 25px 0; text-align: center; color: rgba(243, 239, 230, 0.75);">
-                Your reservation for <strong style="color: #f3efe6;"><%= serviceName %></strong> has been received and confirmed. We look forward to welcoming you to the studio!
+                <%- typeof statusIntro !== 'undefined' && statusIntro ? statusIntro : `Your reservation for <strong style="color: #f3efe6;">${serviceName}</strong> has been received and confirmed. We look forward to welcoming you to the studio!` %>
               </p>
 
               <!-- Treatment Details Box -->

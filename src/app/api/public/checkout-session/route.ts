@@ -3,7 +3,7 @@ import { connectDb } from "@/lib/db/connect";
 import { StripePaymentLink } from "@/lib/db/models/StripePaymentLink";
 import { getStripe } from "@/lib/payments/stripe";
 import { Booking, Payment } from "@/lib/db/models";
-import { notifyAdminsOfBooking } from "@/lib/mailgun/notifications";
+import { notifyAdminsOfBooking, notifyClientOfBooking } from "@/lib/mailgun/notifications";
 import "@/lib/db/models/Service";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +83,12 @@ async function syncBookingOnPaidSession(bookingId: string, amountPaid: number, k
 		void notifyAdminsOfBooking({
 			bookingId: String(currentBooking._id),
 			eventType: adminEventForKind(kind),
+			chargeCents: amountPaid,
+		});
+
+		void notifyClientOfBooking({
+			bookingId: String(currentBooking._id),
+			kind: (kind as any) || "deposit",
 			chargeCents: amountPaid,
 		});
 	}
