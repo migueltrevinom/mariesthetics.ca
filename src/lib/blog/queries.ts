@@ -237,3 +237,51 @@ export async function incrementBlogPostViews(slug: string): Promise<void> {
     // non-blocking
   }
 }
+
+/** Related posts in the same language: shared service first, then same category. Excludes the post's own translation group. */
+export async function getRelatedPosts(
+  post: { translationGroupId: string; language: string; category?: string; serviceIds: Array<{ _id: string }> },
+  limit = 4
+): Promise<BlogListItem[]> {
+  if (BLOG_DEV_PREVIEW_ENABLED) return [];
+  try {
+    await connectDb();
+    const serviceIds = post.serviceIds.map((s) => s._id);
+    const or: Record<string, unknown>[] = [];
+    if (serviceIds.length) or.push({ serviceIds: { $in: serviceIds } });
+    if (post.category) or.push({ category: post.category });
+    if (!or.length) return [];
+    const rows = await BlogPost.find({
+      status: "published",
+      language: post.language,
+      translationGroupId: { $ne: post.translationGroupId },
+      $or: or,
+    })
+      .select(`${LIST_SELECT} serviceIds`)
+      .sort(PUBLISHED_SORT)
+      .limit(40)
+      .lean();
+    const sid = new Set(serviceIds.map(String));
+    const shares = (r: Record<string, unknown>) =>
+      Array.isArray(r.serviceIds) && (r.serviceIds as unknown[]).some((x) => sid.has(String(x)));
+    const sorted = [...rows].sort((a, b) => Number(shares(b)) - Number(shares(a)));
+    return sorted.slice(0, limit).map((r) => serializeBlogListItem(r as Record<string, unknown>));
+  } catch {
+    return [];
+  }
+}
+
+/** Published posts by an author in a language (author page). */
+export async function getPostsByAuthor(author: string, language: string, limit = 12): Promise<BlogListItem[]> {
+  try {
+    await connectDb();
+    const rows = await BlogPost.find({ status: "published", author, language })
+      .select(LIST_SELECT)
+      .sort(PUBLISHED_SORT)
+      .limit(limit)
+      .lean();
+    return rows.map((r) => serializeBlogListItem(r as Record<string, unknown>));
+  } catch {
+    return [];
+  }
+}
