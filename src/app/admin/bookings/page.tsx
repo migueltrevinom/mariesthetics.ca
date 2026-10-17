@@ -16,8 +16,14 @@ export default async function AdminBookingsPage() {
   try {
     await connectDb();
     
+    // ⚡ Performance Optimization (Bolt):
+    // Use .lean() and select only needed fields for read-only Service and Client queries to prevent
+    // Mongoose document hydration overhead and reduce memory allocations when loading admin bookings.
     // 1. Fetch active services for selection dropdown
-    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 });
+    const dbServices = await Service.find({ active: true })
+      .select("_id name durationMin priceCents depositCents")
+      .sort({ sortOrder: 1 })
+      .lean();
     formattedServices = dbServices.map((s) => ({
       id: String(s._id),
       name: s.name,
@@ -27,7 +33,11 @@ export default async function AdminBookingsPage() {
     }));
 
     // 2. Fetch last 20 clients for initial selection
-    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20);
+    const dbClients = await Client.find()
+      .select("_id name email phone")
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
     formattedClients = dbClients.map((c) => ({
       id: String(c._id),
       name: c.name,
