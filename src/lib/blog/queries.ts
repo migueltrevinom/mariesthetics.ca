@@ -22,34 +22,26 @@ const PUBLISHED_SORT = { publishedAt: -1 as const, createdAt: -1 as const };
 const LIST_SELECT =
   "title slug excerpt coverImage language category publishedAt translationGroupId";
 
-async function loadPublishedTranslationMap(): Promise<Map<string, BlogTranslationRef[]>> {
+/**
+ * Performance optimization: Query only translations for the specific translationGroupId.
+ * Previously loaded ALL published blog posts across the entire database to build an in-memory map on every single post view.
+ */
+async function loadPublishedTranslationsForGroup(
+  translationGroupId: string
+): Promise<BlogTranslationRef[]> {
   await connectDb();
-  const rows = await BlogPost.find({ status: "published" })
+  const rows = await BlogPost.find({
+    translationGroupId,
+    status: "published",
+  })
     .select("translationGroupId language slug title")
     .lean();
 
-  const map = new Map<string, BlogTranslationRef[]>();
-  for (const row of rows) {
-    const gid = String(row.translationGroupId || row._id);
-    const entry: BlogTranslationRef = {
-      language: (row.language as BlogTranslationRef["language"]) || "en",
-      slug: String(row.slug),
-      title: String(row.title ?? ""),
-    };
-    if (!map.has(gid)) map.set(gid, []);
-    map.get(gid)!.push(entry);
-  }
-  return map;
-}
-
-function attachTranslations(
-  post: PublicBlogPost,
-  map: Map<string, BlogTranslationRef[]>
-): PublicBlogPost {
-  const translations = map.get(post.translationGroupId) || [
-    { language: post.language, slug: post.slug, title: post.title },
-  ];
-  return { ...post, translations };
+  return rows.map((row) => ({
+    language: (row.language as BlogTranslationRef["language"]) || "en",
+    slug: String(row.slug),
+    title: String(row.title ?? ""),
+  }));
 }
 
 export async function getPublishedBlogPosts(
@@ -149,9 +141,14 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBl
 
     if (!doc) return null;
 
-    const map = await loadPublishedTranslationMap();
     const post = serializeBlogPost(doc as Record<string, unknown>);
-    const withTranslations = attachTranslations(post, map);
+    const translations = await loadPublishedTranslationsForGroup(post.translationGroupId);
+    const withTranslations: PublicBlogPost = {
+      ...post,
+      translations: translations.length > 0 ? translations : [
+        { language: post.language, slug: post.slug, title: post.title },
+      ],
+    };
     const resolvedPromo = await resolveBlogPromo({
       promoConfig: withTranslations.promoConfig,
       serviceIds: withTranslations.serviceIds,
