@@ -4,12 +4,16 @@ import "@/lib/db/models/ServiceImage";
 
 export async function getActiveServices() {
   await connectDb();
-  return Service.find({ active: true }).sort({ sortOrder: 1 }).populate("images");
+  // ⚡ Bolt Optimization: Use .lean() on read-only query to avoid document hydration overhead
+  // and reduce memory allocation when fetching active services for public/admin views.
+  return Service.find({ active: true }).sort({ sortOrder: 1 }).populate("images").lean();
 }
 
 export async function getAllServices() {
   await connectDb();
-  return Service.find().sort({ sortOrder: 1 }).populate("images");
+  // ⚡ Bolt Optimization: Use .lean() on read-only query to avoid document hydration overhead
+  // and reduce memory allocation when fetching all services for admin views.
+  return Service.find().sort({ sortOrder: 1 }).populate("images").lean();
 }
 
 export async function createService(data: any) {
