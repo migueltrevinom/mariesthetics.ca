@@ -17,7 +17,12 @@ export default async function AdminBookingsPage() {
     await connectDb();
     
     // 1. Fetch active services for selection dropdown
-    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 });
+    // ⚡ Bolt Optimization: Use .select() and .lean() to prevent Mongoose document hydration
+    // and limit payload memory overhead when populating booking selection dropdowns.
+    const dbServices = await Service.find({ active: true })
+      .select("name durationMin priceCents depositCents")
+      .sort({ sortOrder: 1 })
+      .lean();
     formattedServices = dbServices.map((s) => ({
       id: String(s._id),
       name: s.name,
@@ -27,7 +32,12 @@ export default async function AdminBookingsPage() {
     }));
 
     // 2. Fetch last 20 clients for initial selection
-    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20);
+    // ⚡ Bolt Optimization: Use .select() and .lean() to fetch minimal client fields without hydration.
+    const dbClients = await Client.find()
+      .select("name email phone")
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
     formattedClients = dbClients.map((c) => ({
       id: String(c._id),
       name: c.name,
