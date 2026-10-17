@@ -130,3 +130,32 @@ export function buildLashFaq(s: LashSummary, locale: Locale): Array<{ q: string;
   if (r.deposit) items.push({ q: c.faq.depQ, a: c.faq.depA(r.deposit) });
   return items;
 }
+
+/** Short keyword lead for the price title, per locale. */
+const PRICE_TITLE_LEAD: Record<Locale, string> = {
+  en: "Lash Extensions Edmonton",
+  es: "Extensiones de Pestañas Edmonton",
+  tl: "Lash Extensions Edmonton",
+  pa: "ਲੈਸ਼ ਐਕਸਟੈਂਸ਼ਨ ਐਡਮਿੰਟਨ",
+  ar: "وصلات الرموش إدمونتون",
+};
+
+/** "$70" for whole dollars, "$72.50" otherwise. */
+const titlePrice = (cents: number) =>
+  cents % 100 === 0 ? `$${cents / 100}` : formatCad(cents);
+
+export const PRICE_TITLE_MAX = 65;
+
+/**
+ * Title with live full-set prices from the DB, e.g.
+ * "Lash Extensions Edmonton | Classic $70 · Hybrid $90 · Volume $100".
+ * `withBrand` is true only when "<title> · <brand>" still fits in PRICE_TITLE_MAX;
+ * otherwise the caller should render the title without the brand suffix. Null when no priced sets.
+ */
+export function lashPriceTitle(s: LashSummary | null, locale: Locale, brand: string): { title: string; withBrand: boolean } | null {
+  if (!s || !s.lines.length) return null;
+  const c = LASH_COPY[locale] || LASH_COPY.en;
+  const prices = s.lines.map((l) => `${c.type[l.type]} ${titlePrice(l.set!.priceCents)}`).join(" · ");
+  const base = `${PRICE_TITLE_LEAD[locale] || PRICE_TITLE_LEAD.en} | ${prices}`;
+  return { title: base, withBrand: `${base} · ${brand}`.length <= PRICE_TITLE_MAX };
+}

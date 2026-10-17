@@ -19,12 +19,12 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
   title: "West Edmonton Esthetics Studio · Glastonbury & The Hamptons",
   description:
-    "Private home esthetics studio serving West Edmonton (Glastonbury, The Hamptons, Granville, Lewis Estates, T5T). Tailored facials, lash lifts, brow shaping, and dermaplaning in a calm 1-on-1 sanctuary.",
+    "Private home esthetics studio serving West Edmonton (Glastonbury, The Hamptons, Granville, Lewis Estates, T5T). Tailored facials, lash extensions, powder brows, and lip blush in a calm 1-on-1 sanctuary.",
   path: "/locations/west-edmonton",
   keywords: [
     "esthetician West Edmonton",
     "facials Glastonbury Edmonton",
-    "lash lift The Hamptons Edmonton",
+    "lash extensions The Hamptons Edmonton",
     "dermaplaning West Edmonton",
     "brow shaping Glastonbury",
     "home studio esthetician T5T",
@@ -88,7 +88,7 @@ export default async function WestEdmontonLocationPage() {
     "@id": `${siteUrl}/locations/west-edmonton#business`,
     name: `${business.name} — West Edmonton Studio`,
     description:
-      "Private esthetics studio serving West Edmonton, Glastonbury, and The Hamptons. Custom facials, lash lifts, and skin treatments.",
+      "Private esthetics studio serving West Edmonton, Glastonbury, and The Hamptons. Custom facials, lash extensions, and permanent makeup.",
     url: `${siteUrl}/locations/west-edmonton`,
     telephone: business.phone,
     priceRange: business.priceRange,
@@ -141,7 +141,7 @@ export default async function WestEdmontonLocationPage() {
               Your neighborhood retreat for <span className="gold-text italic font-normal">glowing skin</span>.
             </h1>
             <p className="mt-6 max-w-2xl text-base sm:text-lg leading-relaxed text-[var(--ink-soft)]">
-              Located in Glastonbury, West Edmonton. Escape the commercial salon noise and enjoy quiet, customized skincare, lash lifts, brow artistry, and dermaplaning in a private 1-on-1 home studio.
+              Located in Glastonbury, West Edmonton. Escape the commercial salon noise and enjoy quiet, customized skincare, lash extensions, powder brows, and lip blush in a private 1-on-1 home studio.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -206,7 +206,7 @@ export default async function WestEdmontonLocationPage() {
                     Tailored Skincare &amp; Lashes
                   </h3>
                   <p className="mt-3 text-sm text-[var(--ink-soft)] leading-relaxed">
-                    Personalized facials, dermaplaning, lash lifts, and brow shaping customized to your exact skin goals.
+                    Personalized facials, lash extensions, and permanent makeup customized to your exact goals.
                   </p>
                 </div>
                 <span className="mt-6 text-xs text-[#c8a86b] font-semibold">Transparent Pricing</span>

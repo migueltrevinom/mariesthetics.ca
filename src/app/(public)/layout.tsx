@@ -4,6 +4,9 @@ import { FloatingBookButton } from "@/components/public/FloatingBookButton";
 import type { NavService } from "@/components/public/MegaMenu";
 import { connectDb } from "@/lib/db/connect";
 import { Service } from "@/lib/db/models";
+import { getOpeningHoursSpec } from "@/lib/businessHours";
+import { formatHoursByLocale } from "@/lib/hoursDisplay";
+import { OpeningHoursProvider } from "@/components/public/OpeningHoursContext";
 
 async function getNavServices(): Promise<NavService[]> {
   try {
@@ -30,9 +33,11 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const navServices = await getNavServices();
+  const [navServices, openingHours] = await Promise.all([getNavServices(), getOpeningHoursSpec()]);
+  const hoursByLocale = formatHoursByLocale(openingHours);
 
   return (
+    <OpeningHoursProvider linesByLocale={hoursByLocale}>
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] transition-colors duration-200 print:bg-white print:min-h-0">
       <div className="print:hidden">
         <SiteHeader navServices={navServices} />
@@ -43,5 +48,6 @@ export default async function PublicLayout({
       </div>
       <FloatingBookButton />
     </div>
+    </OpeningHoursProvider>
   );
 }

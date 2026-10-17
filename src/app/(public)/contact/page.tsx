@@ -5,9 +5,11 @@ import { whatsappUrl } from "@/lib/config";
 import { business, breadcrumbJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { useLanguage } from "@/components/i18n/LanguageContext";
+import { useOpeningHoursLines } from "@/components/public/OpeningHoursContext";
 
 export default function ContactPage() {
   const { t } = useLanguage();
+  const hoursLines = useOpeningHoursLines();
   const href = whatsappUrl(
     "Hi Mari! I’d like to get in touch about Mari Esthetics."
   );
@@ -59,16 +61,23 @@ export default function ContactPage() {
                 ? t("contactPage.hoursEyebrow")
                 : "Hours"}
             </p>
-            <p className="mt-3 text-sm text-[var(--ink)] font-semibold">
-              {t("contactPage.hoursValue") !== "contactPage.hoursValue"
-                ? t("contactPage.hoursValue")
-                : "Tue – Sat"}
-            </p>
-            <p className="text-sm text-[var(--ink-soft)]">
-              {t("contactPage.hoursTime") !== "contactPage.hoursTime"
-                ? t("contactPage.hoursTime")
-                : "9:00 am – 6:00 pm"}
-            </p>
+            <div className="mt-3 space-y-1.5">
+              {hoursLines.length ? (
+                hoursLines.map((line) => (
+                  <p key={line.days} className="text-sm">
+                    <span className="text-[var(--ink)] font-semibold">{line.days}</span>
+                    <br />
+                    <span className="text-[var(--ink-soft)]">{line.time}</span>
+                  </p>
+                ))
+              ) : (
+                <p className="text-sm text-[var(--ink-soft)]">
+                  {t("megaMenu.byAppointment") !== "megaMenu.byAppointment"
+                    ? t("megaMenu.byAppointment")
+                    : "by appointment"}
+                </p>
+              )}
+            </div>
           </div>
           <div className="card p-6 border border-[var(--border-color)] bg-[var(--card-bg)] shadow-sm">
             <p className="eyebrow">

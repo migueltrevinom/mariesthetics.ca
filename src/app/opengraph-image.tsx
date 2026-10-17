@@ -54,7 +54,7 @@ export default function OgImage() {
             fontFamily: "system-ui, sans-serif",
           }}
         >
-          Facials · Lash Lifts · Brows · Dermaplaning
+          Facials · Lash Extensions · Powder Brows · Lip Blush
         </div>
       </div>
     ),

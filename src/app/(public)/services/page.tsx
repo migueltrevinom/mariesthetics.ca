@@ -20,11 +20,11 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildMetadata({
   title: "Services & Pricing",
   description:
-    "Explore customized facial treatments, dermaplaning, lash lifts, and brow shaping in Edmonton. Transparent pricing and instant online booking at Mari Esthetics.",
+    "Explore customized facials, lash extensions, powder brows, and lip blush in Edmonton. Transparent pricing and instant online booking at Mari Esthetics.",
   path: "/services",
   keywords: [
     "facials Edmonton pricing",
-    "lash lift Edmonton price",
+    "lash extensions Edmonton price",
     "brow shaping Edmonton",
     "dermaplaning Edmonton",
     "esthetics services Edmonton",

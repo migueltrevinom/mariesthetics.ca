@@ -27,7 +27,7 @@
     "eyebrow": "Pribadong Studio · West Edmonton",
     "title1": "Makinis na Balat at Lashes sa West Edmonton.",
     "title2": "Ang iyong sariling beauty ritual.",
-    "subtitle": "Customized facials, dermaplaning, at lash lifts sa tahimik na 1-on-1 studio.",
+    "subtitle": "Customized facials, lash extensions, at permanent makeup sa tahimik na 1-on-1 studio.",
     "ctaBook": "Mag-book Ngayon",
     "ctaServices": "Tingnan ang Serbisyo"
   },
@@ -43,7 +43,7 @@
     "eyebrow": "Mabilis na Booking",
     "title": "Paano Mag-Book",
     "step1Title": "Pumili ng Serbisyo",
-    "step1Desc": "Signature facials, dermaplaning, lash lifts, o brow shaping.",
+    "step1Desc": "Signature facials, lash extensions, powder brows, o lip blush.",
     "step2Title": "Pumili ng Oras",
     "step2Desc": "Pumili ng angkop na oras sa live Edmonton availability.",
     "step3Title": "Iseguro ang Slot",
@@ -81,17 +81,17 @@
     "bookTreatment": "Mag-book ng Serbisyo →",
     "mins": "mins",
     "categories": {
-      "lashes": "Lashes at Lift",
+      "lashes": "Lash Extensions",
       "facials": "Facials at Skin Care",
       "permanentMakeUp": "Permanent Makeup",
-      "brows": "Brow Shaping at Lift",
+      "brows": "Brows",
       "general": "Pangkalahatang Esthetics"
     },
     "categoryDescriptions": {
-      "lashes": "Lash lifts, tinting at extensions na angkop sa iyong natural na ganda.",
+      "lashes": "Classic, hybrid at volume lash extensions na angkop sa iyong natural na ganda.",
       "facials": "Customized facial treatments, dermaplaning, at malalim na paglilinis ng balat.",
       "permanentMakeUp": "Lip blush, soft powder brows, at matagalang permanent esthetics.",
-      "brows": "Precision brow lamination, shaping, at tinting.",
+      "brows": "Precision brow design at definition.",
       "general": "Luxury esthetics at specialized skin care."
     }
   },
@@ -103,8 +103,6 @@
     "bookBtn": "Mag-book ng Appointment",
     "whatsappEyebrow": "WhatsApp",
     "hoursEyebrow": "Oras",
-    "hoursValue": "Martes – Sabado",
-    "hoursTime": "9:00 am – 6:00 pm",
     "areaEyebrow": "Lugar ng Serbisyo",
     "surroundingArea": "at mga karatig-lugar",
     "privateStudioNote": "Pribadong studio — ang eksaktong address ay ipapadala kapag kumpirmado na ang appointment."

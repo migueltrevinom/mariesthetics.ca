@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildLashSummary, buildLashFaq } from "./lashSummary";
+import { buildLashSummary, buildLashFaq, lashPriceTitle } from "./lashSummary";
 
 const r = (name: string, priceCents: number, durationMin = 120, depositCents = 2500, category = "lashes") => ({ _id: name, name, slug: name.toLowerCase().replace(/\W+/g, "-"), category, priceCents, depositCents, durationMin });
 
@@ -13,4 +13,16 @@ test("full sets only, fills paired by type, no data -> null", () => {
   const faq = buildLashFaq(s, "en");
   assert.match(faq[0].a, /Classic \$70\.00, Hybrid \$90\.00, Volume \$100\.00/);
   assert.match(faq[2].a, /120–150 min/);
+});
+
+test("lash price title uses live full-set prices, drops brand when too long", () => {
+  const s = buildLashSummary([r("Classic Set", 7000), r("Classic Fill", 4500), r("Hybrid Set", 9000), r("Volume Set (2D-5D)", 10000), r("Volume Fill", 5500)]);
+  const en = lashPriceTitle(s, "en", "Mari Esthetics")!;
+  assert.equal(en.title, "Lash Extensions Edmonton | Classic $70 · Hybrid $90 · Volume $100");
+  assert.equal(en.withBrand, false);
+  const one = lashPriceTitle(buildLashSummary([r("Classic Set", 7250)]), "en", "Mari Esthetics")!;
+  assert.equal(one.title, "Lash Extensions Edmonton | Classic $72.50");
+  assert.equal(one.withBrand, true);
+  assert.equal(lashPriceTitle(null, "en", "Mari Esthetics"), null);
+  assert.match(lashPriceTitle(s, "es", "Mari Esthetics")!.title, /Clásicas \$70 · Híbridas \$90 · Volumen \$100/);
 });
