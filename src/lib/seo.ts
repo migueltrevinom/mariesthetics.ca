@@ -17,7 +17,7 @@ export const business = {
   legalName: "Mari Esthetics",
   tagline: "Personalized skincare & lash artistry in West Edmonton.",
   description:
-    "Mari Esthetics is a private home esthetics studio located in West Edmonton (Glastonbury / The Hamptons, T5T). Tailored facials, lash lifts, brow shaping and dermaplaning in a calm, one-on-one setting.",
+    "Mari Esthetics is a private home esthetics studio located in West Edmonton (Glastonbury / The Hamptons, T5T). Tailored facials, lash extensions, powder brows and lip blush in a calm, one-on-one setting.",
   // Service-area business — city + region only, no street address published.
   // Published in structured data only (approved by Miguel); the UI still shares it after booking.
   streetAddress: "1211 Gillespie Crescent NW",
@@ -52,7 +52,7 @@ export const business = {
 export const seoKeywords = [
   "esthetician West Edmonton",
   "facials Glastonbury Edmonton",
-  "lash lift The Hamptons Edmonton",
+  "lash extensions The Hamptons Edmonton",
   "dermaplaning West Edmonton",
   "home studio esthetician Edmonton T5T",
   "brow shaping West Edmonton",
@@ -75,6 +75,8 @@ type BuildMetadataInput = {
   authors?: string[];
   hreflangAlternates?: Record<string, string>;
   ogLocale?: string;
+  /** Use the title as-is (no " · Mari Esthetics" template suffix), e.g. when it is already long. */
+  absoluteTitle?: boolean;
 };
 
 export function stripBrandSuffix(title?: string): string | undefined {
@@ -97,12 +99,17 @@ export function buildMetadata({
   authors,
   hreflangAlternates,
   ogLocale = "en_CA",
+  absoluteTitle = false,
 }: BuildMetadataInput = {}): Metadata {
   // The root layout template appends " · Mari Esthetics"; drop a brand suffix that
   // content already carries so the name never appears twice.
   title = stripBrandSuffix(title);
   const canonical = `${siteUrl}${path === "/" ? "" : path}`;
-  const fullTitle = title ? `${title} · ${business.name}` : `${business.name} · Edmonton Esthetics Studio`;
+  const fullTitle = title
+    ? absoluteTitle
+      ? title
+      : `${title} · ${business.name}`
+    : `${business.name} · Edmonton Esthetics Studio`;
   const ogImages = ogImage
     ? [{ url: ogImage.startsWith("http") ? ogImage : `${siteUrl}${ogImage}` }]
     : [{ url: `${siteUrl}/opengraph-image` }];
@@ -110,7 +117,7 @@ export function buildMetadata({
   return {
     // Omit the key entirely when no page title is given, so the root layout's
     // default title still applies (an explicit undefined removes <title>).
-    ...(title ? { title } : {}),
+    ...(title ? { title: absoluteTitle ? { absolute: title } : title } : {}),
     description,
     keywords: keywords ?? seoKeywords,
     alternates: {

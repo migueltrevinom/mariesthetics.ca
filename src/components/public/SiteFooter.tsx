@@ -8,6 +8,7 @@ import { Logo } from "@/components/public/Logo";
 import { ThemeToggle } from "@/components/admin/ThemeToggle";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import { useLanguage } from "@/components/i18n/LanguageContext";
+import { useOpeningHoursLines } from "@/components/public/OpeningHoursContext";
 
 export interface SocialLinkItem {
   _id: string;
@@ -18,6 +19,7 @@ export interface SocialLinkItem {
 
 export function SiteFooter() {
   const { t } = useLanguage();
+  const hoursLines = useOpeningHoursLines();
   const [socials, setSocials] = useState<SocialLinkItem[]>([]);
 
   useEffect(() => {
@@ -122,12 +124,11 @@ export function SiteFooter() {
                 : "Visit & Hours"}
             </p>
             <ul className="mt-4 space-y-3 text-sm text-[var(--ink-soft)]">
-              <li>
-                {t("contactPage.hoursValue") !== "contactPage.hoursValue"
-                  ? t("contactPage.hoursValue")
-                  : "Monday – Saturday"}
-              </li>
-              <li>9:00 am – 8:00 pm</li>
+              {hoursLines.map((line) => (
+                <li key={line.days}>
+                  <span className="text-[var(--ink)]">{line.days}</span> · {line.time}
+                </li>
+              ))}
               <li className="pt-2">
                 <a
                   href={whatsappUrl()}

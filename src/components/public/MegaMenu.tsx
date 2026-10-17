@@ -7,6 +7,7 @@ import { business } from "@/lib/seo";
 import { formatCad } from "@/lib/money";
 import { Logo } from "@/components/public/Logo";
 import { useLanguage } from "@/components/i18n/LanguageContext";
+import { useOpeningHoursLines } from "@/components/public/OpeningHoursContext";
 
 export type NavService = {
   id: string;
@@ -29,9 +30,9 @@ const DEFAULT_CATEGORY_LABELS: Record<string, string> = {
 const DEFAULT_CATEGORY_BLURB: Record<string, string> = {
   facials: "Custom facials & dermaplaning",
   facial: "Custom facials & dermaplaning",
-  lashes: "Lifts & lash maintenance",
-  permanentMakeUp: "Shaping, tint & definition",
-  brows: "Shaping, tint & definition",
+  lashes: "Lash extensions & fills",
+  permanentMakeUp: "Powder brows & lip blush",
+  brows: "Brow design & definition",
   general: "Everything else we offer",
 };
 
@@ -83,6 +84,7 @@ export function MegaMenu({
   navServices: NavService[];
 }) {
   const { t } = useLanguage();
+  const hoursLines = useOpeningHoursLines();
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const [categoryMetaMap, setCategoryMetaMap] = useState<Map<string, CategoryMeta>>(new Map());
 
@@ -423,7 +425,11 @@ export function MegaMenu({
               </ul>
 
               <div className="mt-auto space-y-2 pt-10 text-sm text-[var(--ink-soft)]">
-                <p>Mon – Sat · 9:00 am – 8:00 pm</p>
+                {hoursLines.map((line) => (
+                  <p key={line.days}>
+                    {line.days} · {line.time}
+                  </p>
+                ))}
                 <p>
                   {business.locality}, {business.region} ·{" "}
                   {t("megaMenu.byAppointment") !== "megaMenu.byAppointment"

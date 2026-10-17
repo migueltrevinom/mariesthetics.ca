@@ -587,7 +587,7 @@ export function BookingWizard({
                       : ""
                   }`}
                 >
-                  {categoryLabels[c] ?? c}
+                  {t(`servicesPage.categories.${c}`) !== `servicesPage.categories.${c}` ? t(`servicesPage.categories.${c}`) : categoryLabels[c] ?? c}
                 </button>
               ))}
             </div>

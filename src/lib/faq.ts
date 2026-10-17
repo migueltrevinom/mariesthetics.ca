@@ -9,7 +9,7 @@ export const faqItems = [
   },
   {
     q: "What services do you offer?",
-    a: "Personalized facials, classic lash lifts, lash maintenance, brow shaping and tinting, and dermaplaning. Every treatment is tailored to your skin during a one-on-one consultation.",
+    a: "Personalized facials, classic, hybrid and volume lash extensions and fills, powder brows, lip blush and lip neutralization. Every treatment is tailored to your skin during a one-on-one consultation.",
   },
   {
     q: "How do I pay the remaining balance or leave a tip?",
