@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-10-01 - Pre-flatten Static Translation Dictionaries
+
+**Learning:** Resolving nested translation keys dynamically with `keyPath.split('.')` and object traversals in React components triggers high array allocation and property search overhead on every render pass across internationalized UI components.
+
+**Action:** Pre-flatten static JSON translation dictionaries at module initialization into single-level `$keyPath \rightarrow string$` maps to convert translation resolution into $O(1)$ direct dictionary lookups with zero string allocations during rendering.
