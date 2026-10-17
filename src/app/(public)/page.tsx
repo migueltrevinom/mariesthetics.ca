@@ -14,6 +14,7 @@ import { buildHomeFaq, HOME_DESCRIPTION, HOME_FAQ_HEADING, HOME_TITLE, type Home
 import { getGoogleReviews } from "@/lib/googleReviews";
 import { computeHomePrices } from "@/lib/home/prices";
 import { HomeLinks } from "@/components/public/sections/HomeLinks";
+import { loadReadMinutes, loadTreatmentGuideCards } from "@/lib/home/treatmentGuidesData";
 import { localeToHreflang } from "@/lib/blog/locales";
 import { Hero } from "@/components/public/sections/Hero";
 import { ServicesPreview } from "@/components/public/sections/ServicesPreview";
@@ -178,11 +179,13 @@ async function getData(): Promise<{
 export default async function HomePage() {
   const { services, plans, reviewStats } = await getData();
   const locale = await getServerLocale();
-  const [latestPosts, prices, google] = await Promise.all([
+  const [latestPosts, prices, google, guideCards] = await Promise.all([
     getLatestPublishedPosts(locale, 3),
     getHomePrices(),
     getGoogleReviews(),
+    loadTreatmentGuideCards(),
   ]);
+  const readMinutes = await loadReadMinutes(latestPosts.map((p) => p._id));
   // Prefer the real Google Business Profile aggregate; else real site reviews; else omit.
   const aggregate = google
     ? { ratingValue: google.rating, reviewCount: google.userRatingCount }
@@ -201,7 +204,7 @@ export default async function HomePage() {
       <BlogPreview posts={latestPosts} />
       <Testimonials google={google} />
       <SocialReels />
-      <HomeLinks locale={locale} posts={latestPosts} />
+      <HomeLinks locale={locale} posts={latestPosts} cards={guideCards} readMinutes={readMinutes} />
       <Faq items={homeFaq} eyebrow={faqHeading.eyebrow} title={faqHeading.title} />
       <CtaBand />
       <JsonLd

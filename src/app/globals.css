@@ -169,9 +169,11 @@ a {
 
 /* Accessibility */
 .skip-link {
+  /* Hidden above the page (not off to the side), so RTL pages don't get a sideways scroll. */
   position: absolute;
-  left: -999px;
+  inset-inline-start: 1rem;
   top: 0;
+  transform: translateY(-200%);
   z-index: 100;
   background: var(--gold);
   color: var(--night);
@@ -179,8 +181,8 @@ a {
   font-weight: 600;
 }
 .skip-link:focus {
-  left: 1rem;
   top: 1rem;
+  transform: none;
 }
 
 :focus-visible {
