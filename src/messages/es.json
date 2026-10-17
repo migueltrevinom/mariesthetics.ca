@@ -27,7 +27,7 @@
     "eyebrow": "Estudio Privado · West Edmonton",
     "title1": "Piel Radiante y Pestañas en el Oeste de Edmonton.",
     "title2": "Tu ritual privado de belleza.",
-    "subtitle": "Faciales personalizados, dermaplaning y lash lift en un ambiente exclusivo 1 a 1.",
+    "subtitle": "Faciales personalizados, extensiones de pestañas y maquillaje permanente en un ambiente exclusivo 1 a 1.",
     "ctaBook": "Reservar Cita",
     "ctaServices": "Ver Servicios"
   },
@@ -43,7 +43,7 @@
     "eyebrow": "Reserva Fácil",
     "title": "Cómo Funciona",
     "step1Title": "Elige tu Tratamiento",
-    "step1Desc": "Faciales personalizados, dermaplaning, lash lift o diseño de cejas.",
+    "step1Desc": "Faciales personalizados, extensiones de pestañas, cejas en polvo o lip blush.",
     "step2Title": "Selecciona Fecha y Hora",
     "step2Desc": "Elige tu horario ideal con disponibilidad en tiempo real.",
     "step3Title": "Asegura tu Horario",
@@ -81,17 +81,17 @@
     "bookTreatment": "Reservar Tratamiento →",
     "mins": "mins",
     "categories": {
-      "lashes": "Pestañas y Lifting",
+      "lashes": "Extensiones de Pestañas",
       "facials": "Faciales y Cuidado de la Piel",
       "permanentMakeUp": "Maquillaje Permanente",
       "brows": "Diseño de Cejas",
       "general": "Estética General"
     },
     "categoryDescriptions": {
-      "lashes": "Lifting de pestañas, tinte y extensiones adaptadas a tu belleza natural.",
+      "lashes": "Extensiones de pestañas clásicas, híbridas y de volumen adaptadas a tu belleza natural.",
       "facials": "Tratamientos faciales personalizados, dermaplaning y limpieza profunda.",
       "permanentMakeUp": "Lip blush, cejas efecto polvo y estética permanente de larga duración.",
-      "brows": "Laminado de cejas, diseño de precisión y tinte.",
+      "brows": "Diseño de cejas de precisión y definición.",
       "general": "Estética de lujo general y cuidado de la piel especializado."
     }
   },
@@ -103,8 +103,6 @@
     "bookBtn": "Reservar una cita",
     "whatsappEyebrow": "WhatsApp",
     "hoursEyebrow": "Horario",
-    "hoursValue": "Mar – Sáb",
-    "hoursTime": "9:00 am – 6:00 pm",
     "areaEyebrow": "Área de Servicio",
     "surroundingArea": "y alrededores",
     "privateStudioNote": "Estudio privado — la dirección exacta se comparte una vez confirmada tu cita."

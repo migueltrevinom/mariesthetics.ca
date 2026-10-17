@@ -19,13 +19,14 @@ import {
   slugsByLocaleForLanding,
 } from "@/lib/services/landing/resolve";
 import { localeToHreflang } from "@/lib/blog/locales";
-import { buildLashFaq, buildLashSummary } from "@/lib/services/landing/lashSummary";
+import { buildLashFaq, buildLashSummary, lashPriceTitle } from "@/lib/services/landing/lashSummary";
 import {
   breadcrumbJsonLd,
   buildMetadata,
   faqJsonLd,
   localBusinessJsonLd,
   serviceLandingJsonLd,
+  business,
   siteUrl,
 } from "@/lib/seo";
 
@@ -45,8 +46,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const services = await loadServicesForLanding(resolved.definition);
   const heroImage = primaryLandingImage(services, resolved.definition.heroServiceSlug);
 
+  // Lash guide: live full-set prices from the DB in the title (never hardcoded).
+  const priceTitle =
+    resolved.definition.key === "lash-extensions"
+      ? lashPriceTitle(buildLashSummary(services), resolved.locale, business.name)
+      : null;
+
   return buildMetadata({
-    title: content.metaTitle,
+    title: priceTitle ? priceTitle.title : content.metaTitle,
+    absoluteTitle: priceTitle ? !priceTitle.withBrand : false,
     description: content.metaDescription,
     path,
     hreflangAlternates: hreflangAlternatesForLanding(resolved.definition),

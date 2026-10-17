@@ -17,7 +17,7 @@ export const metadata: Metadata = buildMetadata({
   keywords: [
     "esthetician blog Edmonton",
     "skin care tips West Edmonton",
-    "lash lift aftercare",
+    "lash extension aftercare",
     "facial skin care advice",
   ],
 });

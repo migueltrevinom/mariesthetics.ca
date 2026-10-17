@@ -27,7 +27,7 @@
     "eyebrow": "Private Home Studio · West Edmonton",
     "title1": "Glass Skin & Lashes in West Edmonton.",
     "title2": "Your private glow ritual.",
-    "subtitle": "Tailored facials, dermaplaning, and lash lifts in a quiet 1-on-1 sanctuary.",
+    "subtitle": "Tailored facials, lash extensions, and permanent makeup in a quiet 1-on-1 sanctuary.",
     "ctaBook": "Book Appointment",
     "ctaServices": "Explore Services"
   },
@@ -43,7 +43,7 @@
     "eyebrow": "Simple Booking",
     "title": "How It Works",
     "step1Title": "Pick Your Treatment",
-    "step1Desc": "Choose from signature facials, dermaplaning, lash lifts, or brow shaping.",
+    "step1Desc": "Choose from signature facials, lash extensions, powder brows, or lip blush.",
     "step2Title": "Select Your Slot",
     "step2Desc": "Pick a time that fits your schedule with live Edmonton availability.",
     "step3Title": "Lock Your Time",
@@ -107,17 +107,17 @@
     "bookTreatment": "Book Treatment →",
     "mins": "mins",
     "categories": {
-      "lashes": "Lashes & Lift",
+      "lashes": "Lash Extensions",
       "facials": "Facials & Skin Care",
       "permanentMakeUp": "Permanent Makeup",
-      "brows": "Brow Shaping & Lifts",
+      "brows": "Brows",
       "general": "General Esthetics"
     },
     "categoryDescriptions": {
-      "lashes": "Lash lifts, tinting & extensions tailored to your natural beauty.",
+      "lashes": "Classic, hybrid & volume lash extensions tailored to your natural beauty.",
       "facials": "Customized facial treatments, dermaplaning, and deep skin cleansing.",
       "permanentMakeUp": "Lip blush, soft powder brows, and long-lasting permanent esthetics.",
-      "brows": "Precision brow lamination, shaping, and tinting.",
+      "brows": "Precision brow design and definition.",
       "general": "General luxury esthetics and specialized skin care."
     }
   },
