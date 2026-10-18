@@ -22,34 +22,27 @@ const PUBLISHED_SORT = { publishedAt: -1 as const, createdAt: -1 as const };
 const LIST_SELECT =
   "title slug excerpt coverImage language category publishedAt translationGroupId";
 
-async function loadPublishedTranslationMap(): Promise<Map<string, BlogTranslationRef[]>> {
+// Performance optimization: Instead of fetching all published posts across the entire collection on every blog detail view,
+// loadTranslationsForGroup queries only the language variants that share the target post's translationGroupId (or _id).
+// Querying on the indexed translationGroupId field eliminates full collection scans and unnecessary memory allocations.
+async function loadTranslationsForGroup(
+  translationGroupId: string,
+  docId?: string
+): Promise<BlogTranslationRef[]> {
   await connectDb();
-  const rows = await BlogPost.find({ status: "published" })
-    .select("translationGroupId language slug title")
+  const query = docId
+    ? { status: "published", $or: [{ translationGroupId }, { _id: docId }] }
+    : { status: "published", translationGroupId };
+
+  const rows = await BlogPost.find(query)
+    .select("language slug title")
     .lean();
 
-  const map = new Map<string, BlogTranslationRef[]>();
-  for (const row of rows) {
-    const gid = String(row.translationGroupId || row._id);
-    const entry: BlogTranslationRef = {
-      language: (row.language as BlogTranslationRef["language"]) || "en",
-      slug: String(row.slug),
-      title: String(row.title ?? ""),
-    };
-    if (!map.has(gid)) map.set(gid, []);
-    map.get(gid)!.push(entry);
-  }
-  return map;
-}
-
-function attachTranslations(
-  post: PublicBlogPost,
-  map: Map<string, BlogTranslationRef[]>
-): PublicBlogPost {
-  const translations = map.get(post.translationGroupId) || [
-    { language: post.language, slug: post.slug, title: post.title },
-  ];
-  return { ...post, translations };
+  return rows.map((row) => ({
+    language: (row.language as BlogTranslationRef["language"]) || "en",
+    slug: String(row.slug),
+    title: String(row.title ?? ""),
+  }));
 }
 
 export async function getPublishedBlogPosts(
@@ -149,9 +142,18 @@ export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBl
 
     if (!doc) return null;
 
-    const map = await loadPublishedTranslationMap();
     const post = serializeBlogPost(doc as Record<string, unknown>);
-    const withTranslations = attachTranslations(post, map);
+    const translations = await loadTranslationsForGroup(
+      post.translationGroupId,
+      String(doc._id)
+    );
+    const withTranslations = {
+      ...post,
+      translations:
+        translations.length > 0
+          ? translations
+          : [{ language: post.language, slug: post.slug, title: post.title }],
+    };
     const resolvedPromo = await resolveBlogPromo({
       promoConfig: withTranslations.promoConfig,
       serviceIds: withTranslations.serviceIds,
