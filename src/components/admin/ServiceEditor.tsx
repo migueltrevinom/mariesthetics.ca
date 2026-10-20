@@ -571,7 +571,7 @@ export function ServiceEditor({
                   Search Keywords (Comma Separated)
                 </label>
                 <input
-                  placeholder="e.g. facial edmonton, skin treatment, dermaplaning, mari esthetics"
+                  placeholder="e.g. facial edmonton, skin treatment, hydra facial, mari esthetics"
                   style={{ backgroundColor: "var(--card-bg)" }}
                   className="w-full border border-[var(--border-color)] px-3 py-2 text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b] rounded-xl transition-colors"
                   value={form.keywords || ""}

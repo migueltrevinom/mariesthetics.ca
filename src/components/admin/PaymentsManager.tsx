@@ -1240,7 +1240,7 @@ export function PaymentsManager({
 										<input
 											type="text"
 											required
-											placeholder="e.g. Lash Lift Deposit, Custom Tip"
+											placeholder="e.g. Classic Set Deposit, Custom Tip"
 											className="w-full border border-[var(--border-color)] bg-[var(--card-bg)] px-3 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
 											value={description}
 											onChange={(e) => setDescription(e.target.value)}
