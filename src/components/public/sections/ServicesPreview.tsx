@@ -36,7 +36,7 @@ export function ServicesPreview({ services }: { services: PreviewService[] }) {
               Crafted for your <span className="gold-text italic">natural glow.</span>
             </h2>
             <p className="mt-3 text-sm text-[var(--ink-soft)] max-w-md">
-              Bespoke skincare, lash sets, and brow shaping in a serene 1-on-1 studio.
+              Facials, lash extensions, powder brows and lip blush in a serene 1-on-1 studio.
             </p>
           </Reveal>
           <Reveal delay={120}>

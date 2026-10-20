@@ -19,7 +19,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Gentle cleanse of the lash line before application",
         "Individual extensions applied to isolated natural lashes",
         "Comfort check and aftercare walkthrough before you leave",
-        "Typical first full sets run 2–2.5 hours; fills are shorter",
+        "Full sets run about {setDuration}; fills about {fillDuration}",
       ],
       aftercare: [
         "Keep lashes dry for the first 24 hours; avoid steam, saunas, and heavy sweating",
@@ -68,7 +68,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Limpieza suave de la línea de pestañas antes de aplicar",
         "Extensiones individuales en pestañas naturales aisladas",
         "Revisión de comodidad e instrucciones de cuidado al terminar",
-        "Primera sesión completa suele llevar 2–2.5 horas; retoques más cortos",
+        "Un set completo dura unos {setDuration}; los rellenos, unos {fillDuration}",
       ],
       aftercare: [
         "Mantén las pestañas secas 24 horas; evita vapor, sauna y sudor intenso",
@@ -117,7 +117,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Gentle cleanse ng lash line bago i-apply",
         "Individual extensions sa isolated natural lashes",
         "Comfort check at aftercare bago umuwi",
-        "Unang full set kadalasan 2–2.5 oras; fills mas mabilis",
+        "Full set mga {setDuration}; fills mga {fillDuration}",
       ],
       aftercare: [
         "Panatilihing tuyo ang lashes 24 oras; iwas steam, sauna, at sobrang pawis",
@@ -166,7 +166,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "ਲਗਾਉਣ ਤੋਂ ਪਹਾਂ ਲੈਸ਼ ਲਾਈਨ ਦੀ ਹਲਕੀ ਸਫਾਈ",
         "ਅਲੱਗ-ਅਲੱਗ ਕੁਦਰਤੀ ਲੈਸ਼ਾਂ ਉੱਤੇ ਇਕੱਲੀ ਇਕਸਟੈਨਸ਼ਨ",
         "ਜਾਣ ਤੋਂ ਪਹਾਂ ਆਰਾਮ ਜਾਂਚ ਅਤੇ aftercare ਸਮਝਾਉਣਾ",
-        "ਪਹਿਲੀ ਪੂਰੀ ਸੈੱਟ ਲਗਭਗ 2–2.5 ਘੰਟੇ; ਫਿਲ ਛੋਟੀ",
+        "ਪੂਰਾ ਸੈੱਟ ਲਗਭਗ {setDuration}; ਫਿਲ ਲਗਭਗ {fillDuration}",
       ],
       aftercare: [
         "ਪਹਿਲੇ 24 ਘੰਟੇ ਲੈਸ਼ਿਜ਼ ਸੁੱਕੀਆਂ ਰੱਖੋ; ਭਾਫ, ਸੌਨਾ ਅਤੇ ਭਾਰੀ ਪਸੀਨੇ ਤੋਂ ਬਚੋ",
@@ -215,7 +215,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "تنظيف لطيف لخط الرموش قبل التركيب",
         "وصلات فردية على رموش طبيعية معزولة",
         "مراجعة الراحة وتعليمات العناية قبل المغادرة",
-        "الجلسة الأولى الكاملة عادة 2–2.5 ساعة؛ التعبئة أقصر",
+        "المجموعة الكاملة حوالي {setDuration}؛ التعبئة حوالي {fillDuration}",
       ],
       aftercare: [
         "أبقِ الرموش جافة 24 ساعة؛ تجنبي البخار والساونا والعرق الشديد",
@@ -266,14 +266,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Numbing options discussed for comfort during pigment application",
         "Soft powder technique layered for even, natural density",
         "Aftercare kit overview and healing timeline (typically 4–6 weeks for colour to settle)",
-        "Optional touch-up visit scheduled within the recommended window",
+        "Clear guidance on how colour softens and settles as brows heal",
       ],
       aftercare: [
         "Keep brows dry and avoid heavy sweating for the first 10 days",
         "Apply only the aftercare products provided; no makeup on the brow area while healing",
         "Do not pick flaking skin; light scabbing is normal during healing",
         "Avoid swimming pools, hot tubs, and direct sun on the brows until cleared",
-        "Schedule your touch-up when healing is complete for long-term even colour",
+        "Let brows heal fully before judging the final colour; it softens as skin settles",
       ],
       faqs: [
         {
@@ -315,14 +315,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Opciones de anestesia tópica para mayor comodidad",
         "Técnica polvo en capas para densidad uniforme",
         "Instrucciones de cuidado y cronograma de curación (4–6 semanas para asentar color)",
-        "Retoque opcional dentro de la ventana recomendada",
+        "Guía clara de cómo el color se suaviza y asienta al curar",
       ],
       aftercare: [
         "Mantén cejas secas y evita sudor intenso los primeros 10 días",
         "Usa solo productos indicados; sin maquillaje en la zona mientras cura",
         "No arranques costras; la descamación ligera es normal",
         "Evita piscina, jacuzzi y sol directo hasta autorizar",
-        "Agenda retoque al terminar la curación para color parejo",
+        "Deja curar por completo antes de juzgar el color final",
       ],
       faqs: [
         {
@@ -364,14 +364,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Usapan sa numbing para comfortable",
         "Powder technique naka-layer para even density",
         "Aftercare at healing timeline (4–6 weeks para settle ang kulay)",
-        "Optional touch-up sa recommended window",
+        "Malinaw na gabay kung paano lumalambot at nagse-settle ang kulay habang naghi-heal",
       ],
       aftercare: [
         "Panatilihing dry ang brows 10 araw; iwas heavy sweat",
         "Aftercare products lang; walang makeup sa brow area habang healing",
         "Huwag dukutin ang flaking; normal ang light scab",
         "Iwas pool, hot tub, at direct sun hanggang cleared",
-        "Mag-touch-up pag tapos na ang healing",
+        "Hintaying matapos ang healing bago husgahan ang final na kulay",
       ],
       faqs: [
         {
@@ -413,14 +413,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "ਆਰਾਮ ਲਈ ਨੰਬਿੰਗ ਵਿਕਲਪ",
         "ਪਰਤਾਂ ਵਿੱਚ ਪਾਊਡਰ ਤਕਨੀਕ",
         "aftercare ਅਤੇ ਹੀਲਿੰਗ ਟਾਈਮਲਾਈਨ (4–6 ਹਫ਼ਤੇ ਰੰਗ ਸੈੱਟ)",
-        "ਸਿਫ਼ਾਰਸ਼ੀ ਵਿੰਡੋ ਵਿੱਚ ਟੱਚ-ਅੱਪ",
+        "ਹੀਲਿੰਗ ਦੌਰਾਨ ਰੰਗ ਕਿਵੇਂ ਨਰਮ ਹੋ ਕੇ ਟਿਕਦਾ ਹੈ, ਇਸ ਦੀ ਸਾਫ਼ ਜਾਣਕਾਰੀ",
       ],
       aftercare: [
         "ਪਹਿਲੇ 10 ਦਿਨ ਸੁੱਕੀਆਂ ਰੱਖੋ; ਭਾਰੀ ਪਸੀਨੇ ਤੋਂ ਬਚੋ",
         "ਸਿਰਫ਼ ਦਿੱਤੇ ਉਤਪਾਦ; ਹੀਲਿੰਗ ਦੌਰਾਨ ਮੇਕਅਪ ਨਹੀਂ",
         "ਖਰੋਚੇ ਨਾ ਚੁੱਕੋ; ਹਲਕੀ ਸਕੈਬਿੰਗ ਸਧਾਰਨ",
         "ਪੂਲ, ਹੌਟ ਟਬ, ਸਿੱਧੀ ਧੁੱਪ ਤੋਂ ਬਚੋ",
-        "ਹੀਲਿੰਗ ਪੂਰੀ ਹੋਣ ਤੇ ਟੱਚ-ਅੱਪ",
+        "ਅੰਤਿਮ ਰੰਗ ਦਾ ਅੰਦਾਜ਼ਾ ਹੀਲਿੰਗ ਪੂਰੀ ਹੋਣ ਤੋਂ ਬਾਅਦ ਲਗਾਓ",
       ],
       faqs: [
         {
@@ -462,14 +462,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "مناقشة التخدير الموضعي للراحة",
         "تقنية بودرة بطبقات لكثافة متساوية",
         "تعليمات العناية ومدة الشفاء (4–6 أسابيع لاستقرار اللون)",
-        "جلسة تعبئة اختيارية ضمن الإطار الموصى به",
+        "شرح واضح لكيف يهدأ اللون ويستقر أثناء الشفاء",
       ],
       aftercare: [
         "أبقِ الحواجب جافة 10 أيام؛ تجنبي العرق الشديد",
         "منتجات العناية المقدمة فقط؛ لا مكياج على المنطقة",
         "لا تقشري القشور؛ التقشر الخفيف طبيعي",
         "تجنبي المسبح والجاكوزي والشمس المباشرة حتى السماح",
-        "احجزي التعبئة بعد اكتمال الشفاء",
+        "انتظري اكتمال الشفاء قبل الحكم على اللون النهائي",
       ],
       faqs: [
         {
@@ -513,14 +513,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Topical numbing for comfort during the procedure",
         "Layered pigment application for even, natural saturation",
         "Healing instructions tailored to Edmonton’s dry indoor seasons",
-        "Follow-up touch-up timing explained before you leave",
+        "Healing timeline explained before you leave",
       ],
       aftercare: [
         "Keep lips moisturised with recommended aftercare balm; avoid picking dry flakes",
         "No spicy foods, hot drinks on the lips, or kissing for the first few days as advised",
         "Avoid swimming, saunas, and heavy workouts that soak the lip area while healing",
         "Use a clean straw if needed; skip lip makeup until skin has closed",
-        "Attend your touch-up visit once healing is complete for balanced colour",
+        "Give colour several weeks to settle before judging the final shade",
       ],
       faqs: [
         {
@@ -562,14 +562,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Anestesia tópica para comodidad",
         "Pigmento en capas para saturación pareja",
         "Cuidados adaptados al invierno seco de Edmonton",
-        "Explicación del retoque antes de irte",
+        "Explicación del tiempo de curación antes de irte",
       ],
       aftercare: [
         "Hidrata con bálsamo indicado; no arranques costras",
         "Evita picante, bebidas muy calientes en labios y besos los primeros días",
         "Sin piscina, sauna ni ejercicio intenso que moje la zona",
         "Pajita limpia si hace falta; sin labial hasta que cierre la piel",
-        "Retoque cuando termine la curación para color equilibrado",
+        "Dale unas semanas al color para asentarse antes de juzgar el tono final",
       ],
       faqs: [
         {
@@ -611,14 +611,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Topical numbing",
         "Layered pigment para even",
         "Aftercare para sa dry Edmonton winter",
-        "Touch-up schedule bago umuwi",
+        "Healing timeline bago umuwi",
       ],
       aftercare: [
         "Moisturise gamit recommended balm; huwag dukutin flakes",
         "Iwas maanghang, mainit sa labi, halikan first days",
         "Iwas pool, sauna, heavy sweat habang healing",
         "Straw kung kailangan; walang lip makeup hanggang closed skin",
-        "Touch-up pag complete healing",
+        "Bigyan ng ilang linggo ang kulay bago husgahan ang final shade",
       ],
       faqs: [
         {
@@ -660,14 +660,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "ਟੌਪਿਕਲ ਨੰਬਿੰਗ",
         "ਪਰਤਾਂ ਵਿੱਚ ਪਿਗਮੈਂਟ",
         "ਸੁੱਕੀ ਸਰਦੀ ਲਈ aftercare",
-        "ਟੱਚ-ਅੱਪ ਸਮਾਂ ਸਮਝਾਉਣਾ",
+        "ਹੀਲਿੰਗ ਦੀ ਸਮਾਂ-ਰੇਖਾ ਸਮਝਾਉਣਾ",
       ],
       aftercare: [
         "ਸਿਫ਼ਾਰਸ਼ੀ ਬਾਲਮ; ਖਰੋਚੇ ਨਾ ਚੁੱਕੋ",
         "ਪਹਿਲੇ ਦਿਨ ਤੀਖਾ, ਬਹੁਤ ਗਰਮ, ਚੁੰਮੀ ਤੋਂ ਬਚੋ",
         "ਪੂਲ, ਸੌਨਾ, ਭਾਰੀ ਵਰਕਆਉਟ ਤੋਂ ਬਚੋ",
         "ਸਟ੍ਰਾ ਵਰਤੋ; ਲਿਪ ਮੇਕਅਪ ਬੰਦ ਸਕਿਨ ਤੱਕ ਨਹੀਂ",
-        "ਹੀਲਿੰਗ ਪੂਰੀ ਹੋਣ ਤੇ ਟੱਚ-ਅੱਪ",
+        "ਅੰਤਿਮ ਰੰਗ ਦਾ ਅੰਦਾਜ਼ਾ ਹੀਲਿੰਗ ਪੂਰੀ ਹੋਣ ਤੋਂ ਬਾਅਦ ਲਗਾਓ",
       ],
       faqs: [
         {
@@ -709,14 +709,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "تخدير موضعي",
         "طبقات صبغة متساوية",
         "عناية مناسبة لشتاء إدمونتون الجاف",
-        "شرح موعد التعبئة قبل المغادرة",
+        "شرح مدة الشفاء قبل المغادرة",
       ],
       aftercare: [
         "رطّبي ببلسم موصى به؛ لا تقشري الجفاف",
         "تجنبي الحار والمشروبات الساخنة على الشفاه والتقبيل أول الأيام",
         "تجنبي السباحة والساونا والتمرين المكثف",
         "قشة نظيفة عند الحاجة؛ لا أحمر شفاه حتى يغلق الجلد",
-        "تعبئة بعد اكتمال الشفاء",
+        "امنحي اللون بضعة أسابيع ليستقر قبل الحكم على الدرجة النهائية",
       ],
       faqs: [
         {
@@ -767,7 +767,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Avoid sun, tanning beds, and chlorinated water on lips while healing",
         "No picking at peeling; let skin shed naturally",
         "Skip lip products with strong actives until fully healed",
-        "Return for planned sessions or touch-ups as colour settles over weeks",
+        "Return for planned sessions as colour settles over weeks",
       ],
       faqs: [
         {
@@ -1254,7 +1254,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Gentle cleanse followed by vortex exfoliation and extraction",
         "Serum infusion tailored to hydration or brightening focus",
         "Finishing moisturizer and SPF application",
-        "Typical appointment length around 60 minutes",
+        "Appointment length about {duration}",
       ],
       aftercare: [
         "Avoid saunas, steam rooms, and intense workouts for 24 hours",
@@ -1303,7 +1303,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Limpieza y exfoliación vortex con extracción suave",
         "Infusión de sérum hidratante o iluminador",
         "Hidratante final y FPS",
-        "Cita alrededor de 60 minutos",
+        "Cita de unos {duration}",
       ],
       aftercare: [
         "Sin sauna, vapor ni ejercicio intenso 24 h",
@@ -1352,7 +1352,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "Vortex exfoliation at extraction",
         "Serum infusion hydrate o brighten",
         "Moisturizer at SPF finish",
-        "Mga 60 minuto",
+        "Mga {duration}",
       ],
       aftercare: [
         "Iwas sauna, steam, hard workout 24h",
@@ -1401,7 +1401,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "ਵੋਰਟੈਕਸ ਐਕਸਫੋਲੀਏਸ਼ਨ",
         "ਸੀਰਮ ਇਨਫਿਊਜ਼ਨ",
         "ਮੋਿਸਚਰਾਈਜ਼ਰ ਅਤੇ SPF",
-        "ਲਗਭਗ 60 ਮਿੰਟ",
+        "ਲਗਭਗ {duration}",
       ],
       aftercare: [
         "24 ਘੰਟੇ ਸੌਨਾ/ਭਾਰੀ ਵਰਕਆਉਟ ਨਹੀਂ",
@@ -1450,7 +1450,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         "تقشير vortex واستخراج لطيف",
         "حقن سيروم مرطب أو مشرق",
         "مرطب وواقي شمس",
-        "حوالي 60 دقيقة",
+        "حوالي {duration}",
       ],
       aftercare: [
         "تجنبي الساونا والعرق الشديد 24 ساعة",
@@ -1493,7 +1493,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       h1: "Anti-aging facial for mature west-end skin",
       intro: [
         "Fine lines look deeper when skin is dehydrated from furnace air—and winter sun bouncing off snow on the Henday does not help. An anti-aging facial focuses on gentle stimulation, peptides, and rich hydration to support skin that feels slack or tired after busy Edmonton weeks.",
-        "This service fits women who want a dedicated hour away from laundry, hockey schedules, and late Oilers nights—whether you live in Glastonbury, Lewis Estates, or drive in from St. Albert. We tailor steps to your comfort and skin sensitivity.",
+        "This service fits women who want a dedicated {duration} away from laundry, hockey schedules, and late Oilers nights—whether you live in Glastonbury, Lewis Estates, or drive in from St. Albert. We tailor steps to your comfort and skin sensitivity.",
         "Appointments are one-on-one in a quiet T5T home studio near Callingwood and The Hamptons, with time to discuss home care that works in dry indoor heat.",
       ],
       whatToExpect: [
@@ -1542,7 +1542,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       h1: "Facial anti-edad para piel madura",
       intro: [
         "Las líneas finas se marcan más con el calefactor y el sol en la nieve del Henday. Este facial combina estimulación suave, péptidos e hidratación para piel que se siente cansada tras semanas de hockey y Oilers.",
-        "Una hora para ti—Glastonbury, Lewis Estates o conduciendo desde St. Albert. Adaptamos pasos a tu sensibilidad.",
+        "{duration} para ti—Glastonbury, Lewis Estates o conduciendo desde St. Albert. Adaptamos pasos a tu sensibilidad.",
         "Cita individual en estudio tranquilo T5T cerca de Callingwood y The Hamptons.",
       ],
       whatToExpect: [
@@ -1591,7 +1591,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       h1: "Anti-aging facial para mature west-end skin",
       intro: [
         "Mas kitang lines kapag dehydrated sa furnace—snow glare sa Henday pa. Gentle stimulation, peptides, hydration para sa skin na pagod sa busy week, hockey, Oilers.",
-        "Isang oras para sa iyo—Glastonbury, Lewis Estates, o drive mula St. Albert. Steps ayon sa sensitivity mo.",
+        "{duration} para sa iyo—Glastonbury, Lewis Estates, o drive mula St. Albert. Steps ayon sa sensitivity mo.",
         "One-on-one quiet T5T malapit Callingwood at The Hamptons.",
       ],
       whatToExpect: [
@@ -1640,7 +1640,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       h1: "ਪਰਿਪੱਕ ਵੈਸਟ ਐਂਡ ਚਮੜੀ ਲਈ ਫੇਸ਼ੀਅਲ",
       intro: [
         "ਫਰਨੇਸ ਨਾਲ ਡਿਹਾਈਡ੍ਰੇਸ਼ਨ ਵਿੱਚ ਲਾਈਨਾਂ ਡੂੰਘੀਆਂ ਦਿਖਦੀਆਂ ਹਨ—Henday ਤੇ ਬਰਫ ਦੀ ਧੁੱਪ। ਨਰਮ ਉਤੇਜਨਾ, ਪੇਪਟਾਈਡਸ, ਹਾਈਡ੍ਰੇਸ਼ਨ—ਹਾਕੀ ਅਤੇ Oilers ਤੋਂ ਬਾਅਦ ਥਕੀ ਚਮੜੀ ਲਈ।",
-        "ਇੱਕ ਘੰਟਾ ਆਪਣੇ ਲਈ—Glastonbury, Lewis Estates, St. Albert। ਕਦਮ ਤੁਹਾਡੀ ਸੰਵੇਦਨਸ਼ੀਲਤਾ ਅਨੁਸਾਰ।",
+        "{duration} ਆਪਣੇ ਲਈ—Glastonbury, Lewis Estates, St. Albert। ਕਦਮ ਤੁਹਾਡੀ ਸੰਵੇਦਨਸ਼ੀਲਤਾ ਅਨੁਸਾਰ।",
         "ਸ਼ਾਂਤ T5T Callingwood ਅਤੇ The Hamptons ਨੇੜੇ।",
       ],
       whatToExpect: [
@@ -1689,7 +1689,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       h1: "فيشيال مضاد للشيخوخة للبشرة الناضجة",
       intro: [
         "الخطوط الدقيقة تبرز مع جفاف المدفأة ووهج الثلج على Henday. تحفيز لطيف وببتيدات وترطيب للبشرة المتعبة بعد أسابيع الهوكي وليالي Oilers.",
-        "ساعة لكِ—Glastonbury أو Lewis Estates أو من St. Albert. نكيّف الخطوات لحساسية بشرتكِ.",
+        "{duration} لكِ—Glastonbury أو Lewis Estates أو من St. Albert. نكيّف الخطوات لحساسية بشرتكِ.",
         "موعد فردي في استوديو هادئ T5T قرب Callingwood وThe Hamptons.",
       ],
       whatToExpect: [

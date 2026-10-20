@@ -79,7 +79,7 @@ export function QuizzesManager({ initialQuizzes, services }: QuizzesManagerProps
         order: 1,
         options: [
           { optionId: "o1", optionText: "Deep Hydration & Radiant Glow", icon: "✨", recommendedServiceId: services[0]?._id || "" },
-          { optionId: "o2", optionText: "Lifting & Lash Definition", icon: "👁️", recommendedServiceId: services[1]?._id || "" },
+          { optionId: "o2", optionText: "Lash Extensions & Definition", icon: "👁️", recommendedServiceId: services[1]?._id || "" },
         ],
       },
     ]);

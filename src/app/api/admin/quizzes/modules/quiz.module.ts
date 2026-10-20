@@ -37,7 +37,7 @@ export async function fetchPublicQuizBySlug(slug: string) {
           order: 1,
           options: [
             { optionId: "o1", optionText: "Deep Hydration & Radiant Glow", icon: "✨", recommendedServiceId: defaultServices[0]?._id || defaultServiceId },
-            { optionId: "o2", optionText: "Lifting & Lash Definition", icon: "👁️", recommendedServiceId: defaultServices[1]?._id || defaultServiceId },
+            { optionId: "o2", optionText: "Lash Extensions & Definition", icon: "👁️", recommendedServiceId: defaultServices[1]?._id || defaultServiceId },
             { optionId: "o3", optionText: "Clean & Sculpted Brows", icon: "✍️", recommendedServiceId: defaultServices[2]?._id || defaultServiceId },
           ],
         },

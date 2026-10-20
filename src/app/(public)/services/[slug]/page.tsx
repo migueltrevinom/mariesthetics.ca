@@ -7,6 +7,7 @@ import { ServiceLandingView } from "@/components/services/ServiceLandingView";
 import { ServiceLandingTranslationProvider } from "@/components/services/ServiceLandingTranslationContext";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getLandingContent } from "@/lib/services/landing/content";
+import { applyLandingDurations } from "@/lib/services/landing/durations";
 import {
   loadRelatedBlogPosts,
   loadServicesForLanding,
@@ -71,9 +72,10 @@ export default async function ServiceLandingPage({ params }: PageProps) {
   if (!resolved) notFound();
 
   const { definition, locale } = resolved;
-  const content = getLandingContent(definition.key, locale);
   const services = await loadServicesForLanding(definition);
   if (!services.length) notFound();
+  // Appointment lengths always come from live DB durations, never hardcoded copy.
+  const content = applyLandingDurations(getLandingContent(definition.key, locale), services, locale);
 
   const hero =
     services.find((s) => s.slug === definition.heroServiceSlug) || services[0];
