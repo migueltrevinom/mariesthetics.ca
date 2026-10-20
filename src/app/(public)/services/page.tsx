@@ -25,8 +25,8 @@ export const metadata: Metadata = buildMetadata({
   keywords: [
     "facials Edmonton pricing",
     "lash extensions Edmonton price",
-    "brow shaping Edmonton",
-    "dermaplaning Edmonton",
+    "powder brows Edmonton price",
+    "lip blush Edmonton price",
     "esthetics services Edmonton",
   ],
 });

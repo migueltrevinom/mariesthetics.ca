@@ -89,7 +89,7 @@
     },
     "categoryDescriptions": {
       "lashes": "Extensiones de pestañas clásicas, híbridas y de volumen adaptadas a tu belleza natural.",
-      "facials": "Tratamientos faciales personalizados, dermaplaning y limpieza profunda.",
+      "facials": "Faciales básico, de limpieza profunda, antiedad e hydra adaptados a tu piel.",
       "permanentMakeUp": "Lip blush, cejas efecto polvo y estética permanente de larga duración.",
       "brows": "Diseño de cejas de precisión y definición.",
       "general": "Estética de lujo general y cuidado de la piel especializado."
@@ -138,7 +138,7 @@
   "giftCardsPage": {
     "eyebrow": "Certificados y Vales Digitales",
     "title": "Regala el Cuidado Personal.",
-    "subtitle": "Consiente a alguien especial con tratamientos faciales personalizados, extensiones de pestañas o laminado de cejas."
+    "subtitle": "Consiente a alguien especial con faciales personalizados, extensiones de pestañas, cejas efecto polvo o lip blush."
   },
   "megaMenu": {
     "eyebrow": "El estudio",
