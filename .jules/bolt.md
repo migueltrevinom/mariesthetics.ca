@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-10-08 - Eliminate Redundant Service Lookups in Availability Scans
+
+**Learning:** Multi-day availability scans (e.g. `next-available/route.ts`) and route handlers checking service existence prior to calling `getAvailableSlots` cause N+1 database queries if helper functions only accept string IDs.
+
+**Action:** Accept pre-fetched lean service objects in availability calculation functions to skip redundant `Service.findById` calls on multi-day scan loops and API routes.
