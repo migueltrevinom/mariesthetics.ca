@@ -20,7 +20,8 @@ export async function GET(req: Request) {
     });
 
     await connectDb();
-    const service = await Service.findById(parsed.serviceId);
+    // Use .lean() on read-only service query to prevent document hydration overhead
+    const service = await Service.findById(parsed.serviceId).lean();
     if (!service) {
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
