@@ -26,7 +26,8 @@ export class ServiceImageRepository {
    */
   static async getImagesByService(serviceId: string) {
     await connectDb();
-    return ServiceImage.find({ serviceId }).sort({ createdAt: 1 });
+    // ⚡ Performance Optimization (Bolt): Use .lean() to eliminate document hydration overhead for read-only image queries
+    return ServiceImage.find({ serviceId }).sort({ createdAt: 1 }).lean();
   }
 
   /**
