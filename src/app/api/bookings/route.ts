@@ -50,7 +50,8 @@ export async function GET(req: Request) {
 				if (endParam) query.start.$lte = new Date(endParam);
 			}
 
-			let q = Booking.find(query).populate("serviceId");
+			// Use .lean() to eliminate Mongoose document hydration overhead on read-only list query
+			let q = Booking.find(query).populate("serviceId").lean();
 			if (startParam || endParam) {
 				q = q.sort({ start: 1 });
 			} else {
@@ -65,7 +66,11 @@ export async function GET(req: Request) {
 			return NextResponse.json({ bookings: [] });
 		}
 
-		const bookings = await Booking.find({ clientId: session.sub }).sort({ start: -1 }).populate("serviceId");
+		// Use .lean() to eliminate Mongoose document hydration overhead on read-only list query
+		const bookings = await Booking.find({ clientId: session.sub })
+			.sort({ start: -1 })
+			.populate("serviceId")
+			.lean();
 		return NextResponse.json({ bookings });
 	} catch (err) {
 		if (err instanceof AuthError) {
