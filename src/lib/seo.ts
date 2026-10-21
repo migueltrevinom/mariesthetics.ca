@@ -176,7 +176,7 @@ export function articleJsonLd(post: {
     inLanguage: post.inLanguage || "en-CA",
     author: {
       "@type": "Person",
-      name: post.author || "Marinelle Tala",
+      name: post.author || "Marinelle Trevino",
     },
     publisher: {
       "@type": ["Organization", "HealthAndBeautyBusiness"],

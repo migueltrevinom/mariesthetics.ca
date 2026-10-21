@@ -86,7 +86,7 @@ export async function createBlogTranslationSet(data: {
       publishedAt,
       metaTitle: entry.metaTitle ?? "",
       metaDescription: entry.metaDescription ?? "",
-      author: data.author ?? "Marinelle Tala",
+      author: data.author ?? "Marinelle Trevino",
       promoConfig: data.promoConfig,
     });
     created.push(post);
