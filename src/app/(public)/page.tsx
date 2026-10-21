@@ -94,10 +94,18 @@ async function getData(): Promise<{
 }> {
   try {
     await connectDb();
+    // ⚡ Bolt Optimization: Add field projections (.select) to reduce MongoDB payload and memory overhead.
     const [services, plans, reviews] = await Promise.all([
-      Service.find({ active: true }).sort({ sortOrder: 1 }).limit(6).lean(),
+      Service.find({ active: true })
+        .select("name description durationMin priceCents depositCents category photos")
+        .sort({ sortOrder: 1 })
+        .limit(6)
+        .lean(),
       SubscriptionPlan.find({ active: true }).populate("includedServiceIds", "name priceCents").limit(2).lean(),
-      Review.find({ status: "submitted" }).sort({ submittedAt: -1 }).lean(),
+      Review.find({ status: "submitted" })
+        .select("guest rating comment submittedAt")
+        .sort({ submittedAt: -1 })
+        .lean(),
     ]);
 
     const reviewCount = reviews.length;
@@ -107,17 +115,20 @@ async function getData(): Promise<{
       ratingValue = sum / reviewCount;
     }
 
-    const reviewItems: ReviewSchemaItem[] = reviews.slice(0, 10).map((r) => ({
-      author: String(r.guest?.name || "Verified Client"),
-      rating: Number(r.rating) || 5,
-      comment: r.comment ? String(r.comment) : undefined,
-      datePublished: r.submittedAt
-        ? new Date(r.submittedAt).toISOString().split("T")[0]
-        : undefined,
-    }));
+    const reviewItems: ReviewSchemaItem[] = reviews.slice(0, 10).map((r) => {
+      const guestObj = (r.guest && typeof r.guest === "object") ? (r.guest as Record<string, unknown>) : null;
+      return {
+        author: String(guestObj?.name || "Verified Client"),
+        rating: Number(r.rating) || 5,
+        comment: r.comment ? String(r.comment) : undefined,
+        datePublished: r.submittedAt
+          ? new Date(r.submittedAt).toISOString().split("T")[0]
+          : undefined,
+      };
+    });
 
     return {
-      services: services.map((s: any) => ({
+      services: services.map((s: Record<string, unknown>) => ({
         _id: String(s._id),
         name: String(s.name),
         description: String(s.description ?? ""),
@@ -125,20 +136,21 @@ async function getData(): Promise<{
         priceCents: Number(s.priceCents),
         depositCents: Number(s.depositCents || 0),
         category: String(s.category || "facials"),
-        photos: Array.isArray(s.photos) ? s.photos : [],
+        photos: Array.isArray(s.photos) ? s.photos.map(String) : [],
       })),
-      plans: plans.map((p: any) => {
-        const coveredServices = (p.includedServiceIds || [])
-          .map((srv: any) => {
-            if (typeof srv === "object" && srv !== null && srv.name) {
+      plans: plans.map((p: Record<string, unknown>) => {
+        const coveredServices = ((p.includedServiceIds as unknown[]) || [])
+          .map((srv: unknown) => {
+            if (typeof srv === "object" && srv !== null && "name" in srv) {
+              const obj = srv as Record<string, unknown>;
               return {
-                _id: String(srv._id),
-                name: String(srv.name),
-                priceCents: Number(srv.priceCents || 0),
+                _id: String(obj._id),
+                name: String(obj.name),
+                priceCents: Number(obj.priceCents || 0),
               };
             }
-            const srvId = typeof srv === "object" && srv !== null ? String(srv._id || srv) : String(srv);
-            const matched = services.find((s: any) => String(s._id) === srvId);
+            const srvId = typeof srv === "object" && srv !== null ? String((srv as Record<string, unknown>)._id || srv) : String(srv);
+            const matched = (services as Array<Record<string, unknown>>).find((s) => String(s._id) === srvId);
             if (matched) {
               return {
                 _id: String(matched._id),
