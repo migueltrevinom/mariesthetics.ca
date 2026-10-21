@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { connectDb } from "@/lib/db/connect";
 import { Service } from "@/lib/db/models/Service";
 import { getAvailableSlots } from "@/lib/booking/availability";
-import { getEdmontonDateParts, createEdmontonDate } from "@/lib/timezone";
+import { getEdmontonDateParts } from "@/lib/timezone";
 import { addDays, format } from "date-fns";
 
 export const dynamic = "force-dynamic";
@@ -10,13 +10,16 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     await connectDb();
-    const service = await Service.findOne({ active: true }).sort({ sortOrder: 1 });
+    // Performance optimization: select only required fields with .lean() to avoid document hydration overhead
+    const service = await Service.findOne({ active: true })
+      .sort({ sortOrder: 1 })
+      .select("_id slug durationMin active")
+      .lean();
     if (!service) {
       return NextResponse.json({ success: false, error: "No active service available" }, { status: 404 });
     }
 
     const now = new Date();
-    const todayParts = getEdmontonDateParts(now);
 
     let foundSlot: { date: string; time: string; formattedLabel: string } | null = null;
 
@@ -27,7 +30,8 @@ export async function GET() {
       const dayIso = targetParts.isoDate;
 
       try {
-        const { slots } = await getAvailableSlots(String(service._id), dayIso);
+        // Performance optimization: pass pre-fetched lean service object directly to prevent duplicate DB calls inside the 7-day loop
+        const { slots } = await getAvailableSlots(service, dayIso);
 
         // Filter out past slots for today
         const validSlots = slots.filter((slot) => {
@@ -55,7 +59,7 @@ export async function GET() {
           };
           break;
         }
-      } catch (err) {
+      } catch {
         // Skip unavailable days
       }
     }
@@ -70,7 +74,7 @@ export async function GET() {
       serviceSlug: service.slug,
       ...foundSlot,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[Next Available Slot GET Error]:", err);
     return NextResponse.json({ error: "Failed to fetch next available slot" }, { status: 500 });
   }

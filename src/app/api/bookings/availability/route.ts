@@ -20,12 +20,13 @@ export async function GET(req: Request) {
     });
 
     await connectDb();
-    const service = await Service.findById(parsed.serviceId);
+    // Performance optimization: select only durationMin and active with .lean(), then pass directly to getAvailableSlots to avoid duplicate DB calls
+    const service = await Service.findById(parsed.serviceId).select("durationMin active").lean();
     if (!service) {
       return NextResponse.json({ error: "Service not found" }, { status: 404 });
     }
 
-    const { slots } = await getAvailableSlots(parsed.serviceId, parsed.date);
+    const { slots } = await getAvailableSlots(service, parsed.date);
     return NextResponse.json({ slots });
   } catch (err) {
     if (err instanceof z.ZodError) {
