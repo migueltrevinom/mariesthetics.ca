@@ -32,14 +32,14 @@ function siteOverview(): string {
   return `# Mari Esthetics
 
 > Private home esthetics studio in West Edmonton (Glastonbury / The Hamptons, T5T), Alberta, Canada.
-> Lash extensions, powder brows, lip blush, lip neutralization and facials in a calm one-on-one setting with esthetician Marinelle Tala.
+> Lash extensions, powder brows, lip blush, lip neutralization and facials in a calm one-on-one setting with esthetician Marinelle Trevino.
 
 - Website: ${siteUrl}
 - Booking: ${siteUrl}/book
 - Services & pricing: ${siteUrl}/services
 - Location (service area): ${siteUrl}/locations/west-edmonton
 - Blog index: ${siteUrl}/blog
-- Author: ${siteUrl}/about/marinelle (Marinelle Tala, esthetician, Mari Esthetics)
+- Author: ${siteUrl}/about/marinelle (Marinelle Trevino, esthetician, Mari Esthetics)
 - Contact: ${siteUrl}/contact
 - Phone: ${business.phoneDisplay}
 - Prices below are read live from the studio's booking system.

@@ -15,7 +15,7 @@ export const createBlogSchema = z.object({
   publishedAt: z.string().nullable().optional(),
   metaTitle: z.string().optional().default(""),
   metaDescription: z.string().optional().default(""),
-  author: z.string().optional().default("Marinelle Tala"),
+  author: z.string().optional().default("Marinelle Trevino"),
   promoConfig: z
     .object({
       enabled: z.boolean().default(false),
@@ -58,7 +58,7 @@ export const createBlogTranslationSetSchema = z.object({
   publishedAt: z.string().nullable().optional(),
   coverImage: z.string().optional().default(""),
   category: z.string().optional().default(""),
-  author: z.string().optional().default("Marinelle Tala"),
+  author: z.string().optional().default("Marinelle Trevino"),
   serviceIds: z.array(z.string()).optional().default([]),
   promoConfig: createBlogSchema.shape.promoConfig.optional(),
   translations: z.array(translationEntrySchema).min(1, "At least one translation is required"),

@@ -1,6 +1,7 @@
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost } from "@/lib/db/models";
 import type { Locale } from "@/components/i18n/LanguageContext";
+import { authorNamesForDbLookup } from "@/lib/blog/authors";
 import { serializeBlogListItem, serializeBlogPost } from "@/lib/blog/serialize";
 import type { BlogListItem, BlogTranslationRef, PublicBlogPost } from "@/lib/blog/types";
 import { pickLocalizedPostsForListing } from "@/lib/blog/translations";
@@ -287,7 +288,7 @@ export async function getRelatedPosts(
 export async function getPostsByAuthor(author: string, language: string, limit = 12): Promise<BlogListItem[]> {
   try {
     await connectDb();
-    const rows = await BlogPost.find({ status: "published", author, language })
+    const rows = await BlogPost.find({ status: "published", author: { $in: authorNamesForDbLookup(author) }, language })
       .select(LIST_SELECT)
       .sort(PUBLISHED_SORT)
       .limit(limit)

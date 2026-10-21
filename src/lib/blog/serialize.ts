@@ -1,3 +1,4 @@
+import { DEFAULT_BLOG_AUTHOR } from "@/lib/blog/authors";
 import type { BlogListItem, PublicBlogPost, BlogServiceRef } from "@/lib/blog/types";
 
 function mapServices(raw: unknown): BlogServiceRef[] {
@@ -59,7 +60,7 @@ export function serializeBlogPost(doc: Record<string, unknown>): PublicBlogPost 
     content: String(doc.content ?? ""),
     metaTitle: String(doc.metaTitle ?? ""),
     metaDescription: String(doc.metaDescription ?? ""),
-    author: String(doc.author ?? "Marinelle Tala"),
+    author: String(doc.author ?? DEFAULT_BLOG_AUTHOR),
     promoConfig: promoFromDoc(doc.promoConfig),
     serviceIds: mapServices(doc.serviceIds),
     updatedAt: doc.updatedAt ? new Date(doc.updatedAt as string | Date).toISOString() : null,

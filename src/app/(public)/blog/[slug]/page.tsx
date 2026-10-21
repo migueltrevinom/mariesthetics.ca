@@ -155,7 +155,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             <p className="mt-6 text-sm text-[var(--ink-soft)]">
               {copy.by}{" "}
               {author ? (
-                <Link href={authorPath(author)} rel="author" className="font-semibold text-[var(--ink)] underline-offset-4 hover:underline">{post.author}</Link>
+                <Link href={authorPath(author)} rel="author" className="font-semibold text-[var(--ink)] underline-offset-4 hover:underline">{author.name}</Link>
               ) : (
                 <span className="font-semibold text-[var(--ink)]">{post.author}</span>
               )}

@@ -47,7 +47,7 @@ export default async function AdminBlogsPage() {
     viewsCount: p.viewsCount || 0,
     metaTitle: p.metaTitle || "",
     metaDescription: p.metaDescription || "",
-    author: p.author || "Marinelle Tala",
+    author: p.author || "Marinelle Trevino",
     promoConfig: {
       enabled: Boolean(p.promoConfig?.enabled),
       couponId: p.promoConfig?.couponId ? String(p.promoConfig.couponId) : null,

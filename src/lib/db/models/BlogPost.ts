@@ -40,7 +40,7 @@ const BlogPostSchema = new Schema(
     viewsCount: { type: Number, default: 0 },
     metaTitle: { type: String, default: "", trim: true },
     metaDescription: { type: String, default: "", trim: true },
-    author: { type: String, default: "Marinelle Tala", trim: true },
+    author: { type: String, default: "Marinelle Trevino", trim: true },
     promoConfig: {
       enabled: { type: Boolean, default: false },
       couponId: { type: Schema.Types.ObjectId, ref: "Coupon", default: null },
