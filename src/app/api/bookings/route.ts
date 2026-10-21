@@ -50,7 +50,8 @@ export async function GET(req: Request) {
 				if (endParam) query.start.$lte = new Date(endParam);
 			}
 
-			let q = Booking.find(query).populate("serviceId");
+			// ⚡ Bolt Optimization: Use .lean() on read-only admin booking queries to avoid Mongoose document hydration overhead.
+			let q = Booking.find(query).populate("serviceId").lean();
 			if (startParam || endParam) {
 				q = q.sort({ start: 1 });
 			} else {
@@ -65,7 +66,11 @@ export async function GET(req: Request) {
 			return NextResponse.json({ bookings: [] });
 		}
 
-		const bookings = await Booking.find({ clientId: session.sub }).sort({ start: -1 }).populate("serviceId");
+		// ⚡ Bolt Optimization: Use .lean() on read-only client booking list queries to avoid Mongoose document hydration.
+		const bookings = await Booking.find({ clientId: session.sub })
+			.sort({ start: -1 })
+			.populate("serviceId")
+			.lean();
 		return NextResponse.json({ bookings });
 	} catch (err) {
 		if (err instanceof AuthError) {
