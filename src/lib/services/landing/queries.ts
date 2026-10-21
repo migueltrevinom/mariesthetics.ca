@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost, Service, ServiceImage } from "@/lib/db/models";
 import type { LandingDefinition, LandingMatch } from "./types";
@@ -31,86 +32,97 @@ function matchesService(row: LandingServiceRow, match: LandingMatch): boolean {
   return match.slugs.includes(row.slug);
 }
 
-export async function loadServicesForLanding(
-  definition: LandingDefinition
-): Promise<LandingServiceRow[]> {
-  try {
-    await connectDb();
-  } catch {
-    if (SERVICE_LANDING_DEV_PREVIEW) return previewServicesForLanding(definition);
-    return [];
-  }
-
-  const all = await Service.find({ active: true }).sort({ sortOrder: 1 }).lean();
-
-  const imageMap = new Map<string, string[]>();
-  try {
-    const images = await ServiceImage.find({ isPrivate: false }).lean();
-    for (const img of images as Array<{ serviceId: unknown; url?: string }>) {
-      const id = String(img.serviceId);
-      if (!imageMap.has(id)) imageMap.set(id, []);
-      if (img.url) imageMap.get(id)!.push(img.url);
+// ⚡ Bolt Optimization: Wrap with React cache() to deduplicate data fetching across generateMetadata
+// and page rendering during a single server request on service landing pages.
+export const loadServicesForLanding = cache(
+  async (definition: LandingDefinition): Promise<LandingServiceRow[]> => {
+    try {
+      await connectDb();
+    } catch {
+      if (SERVICE_LANDING_DEV_PREVIEW) return previewServicesForLanding(definition);
+      return [];
     }
-  } catch {
-    // optional
-  }
 
-  const rows: LandingServiceRow[] = [];
-  for (const s of all) {
-    const slug = String(s.slug || "");
-    const row: LandingServiceRow = {
-      _id: String(s._id),
-      name: String(s.name),
-      description: String(s.description ?? ""),
-      slug,
-      durationMin: Number(s.durationMin),
-      priceCents: Number(s.priceCents),
-      depositCents: Number(s.depositCents),
-      category: String(s.category ?? "general"),
-      photos:
-        Array.isArray(s.photos) && s.photos.length > 0
-          ? s.photos.map(String)
-          : imageMap.get(String(s._id)) || [],
-      nameTranslations: s.nameTranslations as Record<string, string> | undefined,
-      descriptionTranslations: s.descriptionTranslations as Record<string, string> | undefined,
-    };
-    if (matchesService(row, definition.match)) {
-      rows.push(row);
+    // ⚡ Bolt Optimization: Use .select() projection to retrieve only fields needed for landing rendering.
+    const all = await Service.find({ active: true })
+      .select("name description slug durationMin priceCents depositCents category photos nameTranslations descriptionTranslations")
+      .sort({ sortOrder: 1 })
+      .lean();
+
+    const imageMap = new Map<string, string[]>();
+    try {
+      // ⚡ Bolt Optimization: Select only serviceId and url to eliminate unused image metadata transfer.
+      const images = await ServiceImage.find({ isPrivate: false })
+        .select("serviceId url")
+        .lean();
+      for (const img of images as Array<{ serviceId: unknown; url?: string }>) {
+        const id = String(img.serviceId);
+        if (!imageMap.has(id)) imageMap.set(id, []);
+        if (img.url) imageMap.get(id)!.push(img.url);
+      }
+    } catch {
+      // optional
     }
-  }
-  if (!rows.length && SERVICE_LANDING_DEV_PREVIEW) {
-    return previewServicesForLanding(definition);
-  }
-  return rows;
-}
 
-export async function loadRelatedBlogPosts(
-  serviceIds: string[],
-  language: string = "en",
-  limit = 3
-): Promise<RelatedBlogPost[]> {
-  if (!serviceIds.length) return [];
-  try {
-    await connectDb();
-  } catch {
-    return [];
+    const rows: LandingServiceRow[] = [];
+    for (const s of all) {
+      const slug = String(s.slug || "");
+      const row: LandingServiceRow = {
+        _id: String(s._id),
+        name: String(s.name),
+        description: String(s.description ?? ""),
+        slug,
+        durationMin: Number(s.durationMin),
+        priceCents: Number(s.priceCents),
+        depositCents: Number(s.depositCents),
+        category: String(s.category ?? "general"),
+        photos:
+          Array.isArray(s.photos) && s.photos.length > 0
+            ? s.photos.map(String)
+            : imageMap.get(String(s._id)) || [],
+        nameTranslations: s.nameTranslations as Record<string, string> | undefined,
+        descriptionTranslations: s.descriptionTranslations as Record<string, string> | undefined,
+      };
+      if (matchesService(row, definition.match)) {
+        rows.push(row);
+      }
+    }
+    if (!rows.length && SERVICE_LANDING_DEV_PREVIEW) {
+      return previewServicesForLanding(definition);
+    }
+    return rows;
   }
-  const posts = await BlogPost.find({
-    status: "published",
-    serviceIds: { $in: serviceIds },
-    language,
-  })
-    .sort({ publishedAt: -1 })
-    .limit(limit)
-    .select("title slug excerpt")
-    .lean();
+);
 
-  return posts.map((p) => ({
-    title: String(p.title),
-    slug: String(p.slug),
-    excerpt: String(p.excerpt ?? ""),
-  }));
-}
+export const loadRelatedBlogPosts = cache(
+  async (
+    serviceIds: string[],
+    language: string = "en",
+    limit = 3
+  ): Promise<RelatedBlogPost[]> => {
+    if (!serviceIds.length) return [];
+    try {
+      await connectDb();
+    } catch {
+      return [];
+    }
+    const posts = await BlogPost.find({
+      status: "published",
+      serviceIds: { $in: serviceIds },
+      language,
+    })
+      .sort({ publishedAt: -1 })
+      .limit(limit)
+      .select("title slug excerpt")
+      .lean();
+
+    return posts.map((p) => ({
+      title: String(p.title),
+      slug: String(p.slug),
+      excerpt: String(p.excerpt ?? ""),
+    }));
+  }
+);
 
 export function primaryLandingImage(
   services: LandingServiceRow[],

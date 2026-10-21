@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - React cache() Request Deduplication & Field Projections on Hot Public Paths
+
+**Learning:** In Next.js App Router, `generateMetadata` and Page rendering both run during the same server request and frequently invoke shared data-loader helpers. Wrapping read helpers in React `cache()` eliminates duplicate MongoDB queries per request. Pair this with explicit Mongoose `.select()` field projections on public routes to avoid retrieving unused document fields over the wire.
+
+**Action:** Wrap data-loading functions called across both `generateMetadata` and Page components in `cache()`, and add `.select(...)` to all read-only Mongoose `.find()` calls on public landing routes.

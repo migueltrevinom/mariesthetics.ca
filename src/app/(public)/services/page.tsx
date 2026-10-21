@@ -1,19 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
 import { connectDb } from "@/lib/db/connect";
 import { Category, Promotion, Service, ServiceImage, SubscriptionPlan } from "@/lib/db/models";
-import { formatCad } from "@/lib/money";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { Reveal } from "@/components/public/Reveal";
 import {
   breadcrumbJsonLd,
   buildMetadata,
   individualServiceJsonLd,
   serviceCatalogJsonLd,
 } from "@/lib/seo";
-
-import { getFastIpfsUrl } from "@/lib/ipfs";
+import { ServicesContent } from "@/components/public/sections/ServicesContent";
 
 export const dynamic = "force-dynamic";
 
@@ -66,42 +61,43 @@ type CategoryItem = {
   description: string;
 };
 
-const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
-  facials: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800",
-  facial: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?auto=format&fit=crop&q=80&w=800",
-  lashes: "https://images.unsplash.com/photo-1583001809873-a1284d563572?auto=format&fit=crop&q=80&w=800",
-  permanentMakeUp: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
-  brows: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
-  general: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
-};
-
 async function getData() {
   try {
     await connectDb();
+    // ⚡ Bolt Optimization: Add field projections (.select) to prevent over-fetching unused properties and reduce payload overhead.
     const [services, promotions, plans, serviceImages, categories] = await Promise.all([
-      Service.find({ active: true }).sort({ sortOrder: 1 }).lean(),
+      Service.find({ active: true })
+        .select("name description durationMin priceCents depositCents category photos nameTranslations descriptionTranslations")
+        .sort({ sortOrder: 1 })
+        .lean(),
       Promotion.find({
         active: true,
         startsAt: { $lte: new Date() },
         endsAt: { $gte: new Date() },
-      }).lean(),
+      })
+        .select("title description")
+        .lean(),
       SubscriptionPlan.find({ active: true }).populate("includedServiceIds", "name priceCents").lean(),
-      ServiceImage.find({ isPrivate: false }).lean(),
-      Category.find({ active: true }).sort({ sortOrder: 1, name: 1 }).lean(),
+      ServiceImage.find({ isPrivate: false }).select("serviceId url").lean(),
+      Category.find({ active: true })
+        .select("name slug description")
+        .sort({ sortOrder: 1, name: 1 })
+        .lean(),
     ]);
 
     const imageMap = new Map<string, string[]>();
-    for (const img of serviceImages as any[]) {
+    for (const img of serviceImages as Array<Record<string, unknown>>) {
       const sId = String(img.serviceId);
       if (!imageMap.has(sId)) imageMap.set(sId, []);
-      if (img.url) imageMap.get(sId)!.push(img.url);
+      if (img.url) imageMap.get(sId)!.push(String(img.url));
     }
 
     return {
       offline: false,
-      services: services.map((s: any) => {
+      services: services.map((s: Record<string, unknown>) => {
         const sId = String(s._id);
-        const uploadedPhotos = (s.photos && s.photos.length > 0) ? s.photos : (imageMap.get(sId) || []);
+        const photosArr = Array.isArray(s.photos) ? s.photos.map(String) : [];
+        const uploadedPhotos = (photosArr.length > 0) ? photosArr : (imageMap.get(sId) || []);
         return {
           _id: sId,
           name: String(s.name),
@@ -111,27 +107,28 @@ async function getData() {
           depositCents: Number(s.depositCents),
           category: String(s.category ?? "general"),
           photos: uploadedPhotos,
-          nameTranslations: s.nameTranslations || undefined,
-          descriptionTranslations: s.descriptionTranslations || undefined,
+          nameTranslations: s.nameTranslations as Record<string, string> | undefined,
+          descriptionTranslations: s.descriptionTranslations as Record<string, string> | undefined,
         };
       }) as ServiceItem[],
-      promotions: promotions.map((p: any) => ({
+      promotions: promotions.map((p: Record<string, unknown>) => ({
         _id: String(p._id),
         title: String(p.title),
         description: String(p.description ?? ""),
       })) as Promo[],
-      plans: plans.map((p: any) => {
-        const coveredServices = (p.includedServiceIds || [])
-          .map((srv: any) => {
-            if (typeof srv === "object" && srv !== null && srv.name) {
+      plans: plans.map((p: Record<string, unknown>) => {
+        const coveredServices = ((p.includedServiceIds as unknown[]) || [])
+          .map((srv: unknown) => {
+            if (typeof srv === "object" && srv !== null && "name" in srv) {
+              const obj = srv as Record<string, unknown>;
               return {
-                _id: String(srv._id),
-                name: String(srv.name),
-                priceCents: Number(srv.priceCents || 0),
+                _id: String(obj._id),
+                name: String(obj.name),
+                priceCents: Number(obj.priceCents || 0),
               };
             }
-            const srvId = typeof srv === "object" && srv !== null ? String(srv._id || srv) : String(srv);
-            const matched = (services as any[]).find((s: any) => String(s._id) === srvId);
+            const srvId = typeof srv === "object" && srv !== null ? String((srv as Record<string, unknown>)._id || srv) : String(srv);
+            const matched = (services as Array<Record<string, unknown>>).find((s) => String(s._id) === srvId);
             if (matched) {
               return {
                 _id: String(matched._id),
@@ -154,7 +151,7 @@ async function getData() {
           includedServiceIds: coveredServices,
         };
       }) as Plan[],
-      categories: categories.map((c: any) => ({
+      categories: categories.map((c: Record<string, unknown>) => ({
         _id: String(c._id),
         name: String(c.name),
         slug: String(c.slug),
@@ -165,8 +162,6 @@ async function getData() {
     return { offline: true, services: [], promotions: [], plans: [], categories: [] };
   }
 }
-
-import { ServicesContent } from "@/components/public/sections/ServicesContent";
 
 export default async function ServicesPage() {
   const { services, plans, categories: dbCategories, offline } = await getData();
