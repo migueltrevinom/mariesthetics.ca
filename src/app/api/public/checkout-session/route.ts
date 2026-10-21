@@ -288,7 +288,7 @@ export async function GET(req: Request) {
 					}
 				: null,
 			provider: {
-				name: "Marinelle Tala",
+				name: "Marinelle Trevino",
 				businessName: "Mari Esthetics",
 				address: "1211 Gillespie Crescent NW, Edmonton, AB",
 				email: "mari@mariesthetics.ca",

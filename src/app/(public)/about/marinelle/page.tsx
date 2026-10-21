@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { AUTHORS, personJsonLd } from "@/lib/blog/authors";
+import { AUTHORS, DEFAULT_BLOG_AUTHOR, personJsonLd } from "@/lib/blog/authors";
 import { getPostsByAuthor } from "@/lib/blog/queries";
 import { blogPostPath } from "@/lib/blog/slug";
 import { getServerLocale } from "@/lib/i18n/locale";
@@ -10,7 +10,7 @@ import { localeToHreflang } from "@/lib/blog/locales";
 
 export const dynamic = "force-dynamic";
 
-const author = AUTHORS["Marinelle Tala"];
+const author = AUTHORS[DEFAULT_BLOG_AUTHOR];
 const COPY = {
   en: { posts: "Articles by Marinelle", insta: "Instagram" },
   es: { posts: "Artículos de Marinelle", insta: "Instagram" },

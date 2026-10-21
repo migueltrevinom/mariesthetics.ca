@@ -222,7 +222,7 @@ export function SubscribeModal({
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Marinelle Tala"
+                  placeholder="Marinelle Trevino"
                   className="w-full bg-[var(--background)] border border-[var(--border-color)] rounded-xl px-4 py-2.5 text-[var(--ink)] font-medium"
                 />
               </div>
