@@ -16,8 +16,8 @@ export default async function AdminBookingsPage() {
   try {
     await connectDb();
     
-    // 1. Fetch active services for selection dropdown
-    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 });
+    // 1. Fetch active services for selection dropdown (.lean() avoids Mongoose document hydration overhead)
+    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 }).lean();
     formattedServices = dbServices.map((s) => ({
       id: String(s._id),
       name: s.name,
@@ -26,8 +26,8 @@ export default async function AdminBookingsPage() {
       depositCents: s.depositCents,
     }));
 
-    // 2. Fetch last 20 clients for initial selection
-    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20);
+    // 2. Fetch last 20 clients for initial selection (.lean() avoids Mongoose document hydration overhead)
+    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20).lean();
     formattedClients = dbClients.map((c) => ({
       id: String(c._id),
       name: c.name,
