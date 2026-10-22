@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - Memoize Global Context Values to Prevent App-Wide Re-Renders
+
+**Learning:** Top-level React Providers (like `LanguageProvider` wrapping the entire public layout) that expose inline object literals or inline functions in `value={{ locale, setLocale, t, dir }}` cause every subscribed component across the app to re-render whenever the provider re-renders (e.g. after dynamic DB translations load).
+
+**Action:** Always wrap context values in `useMemo` and provider callbacks in `useCallback` when constructing context values.
