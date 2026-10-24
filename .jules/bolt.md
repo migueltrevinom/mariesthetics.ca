@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - Targeted Translation Group Lookups and React cache() for Blog Queries
+
+**Learning:** `getPublishedBlogPostBySlug` previously loaded the entire published blog collection into memory (`loadPublishedTranslationMap`) to map translations for a single post, and was invoked multiple times per page view (e.g., in `generateMetadata` and `BlogPostPage`).
+
+**Action:** Query translation references by `translationGroupId` directly, and wrap server-side data fetching functions shared between `generateMetadata` and page components in React `cache()` to deduplicate DB calls within a single render cycle.
