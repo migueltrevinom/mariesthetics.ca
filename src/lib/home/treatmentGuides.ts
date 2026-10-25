@@ -46,32 +46,80 @@ const text = (r: GuideServiceRow) => `${r.name} ${r.slug.replace(/-/g, " ")}`;
 
 /** Services a guide's "from" price may come from: full lash sets only (no fills), no facial add-ons. */
 function candidatesFor(def: LandingDefinition, rows: GuideServiceRow[]): GuideServiceRow[] {
-  const matched = rows.filter((r) =>
-    def.match.type === "category" ? r.category === def.match.category : def.match.slugs.includes(r.slug)
-  );
-  const priced = matched.filter((r) => r.priceCents > 0);
-  if (def.key === "lash-extensions") return priced.filter(isFullSet);
-  if (def.match.type === "category" && def.match.category === "facials") {
-    return priced.filter((r) => !EXCLUDE_FACIAL.test(text(r)));
+  const result: GuideServiceRow[] = [];
+  const isCategory = def.match.type === "category";
+  const matchCategory = isCategory ? def.match.category : undefined;
+  const matchSlugs = isCategory ? undefined : def.match.slugs;
+  const isLash = def.key === "lash-extensions";
+  const isFacialsCategory = isCategory && matchCategory === "facials";
+
+  // Performance optimization: Single-pass filtering over rows to eliminate intermediate array allocations
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (r.priceCents <= 0) continue;
+
+    const matches = isCategory ? r.category === matchCategory : matchSlugs!.includes(r.slug);
+    if (!matches) continue;
+
+    if (isLash) {
+      if (isFullSet(r)) result.push(r);
+    } else if (isFacialsCategory) {
+      if (!EXCLUDE_FACIAL.test(text(r))) result.push(r);
+    } else {
+      result.push(r);
+    }
   }
-  return priced;
+
+  return result;
 }
 
 /** One card per service guide, built only from live DB rows (nothing is invented). */
 export function buildTreatmentGuideCards(rows: GuideServiceRow[]): TreatmentGuideCard[] {
   return SERVICE_LANDING_PAGES.map((def) => {
     const cands = candidatesFor(def, rows);
-    const cheapest = [...cands].sort((a, b) => a.priceCents - b.priceCents)[0];
-    const durs = cands.map((r) => r.durationMin).filter((d) => d > 0);
-    const hero = rows.find((r) => r.slug === def.heroServiceSlug && r.photos.length > 0);
-    const withPhoto = hero || cands.find((r) => r.photos.length > 0);
+
+    let cheapest: GuideServiceRow | undefined;
+    let minDur: number | undefined;
+    let maxDur: number | undefined;
+    let candWithPhoto: GuideServiceRow | undefined;
+
+    // Performance optimization: Single-pass scan replaces O(N log N) array sorting, map/filter chains, and Math.min/max spread calls
+    for (let i = 0; i < cands.length; i++) {
+      const c = cands[i];
+      if (!cheapest || c.priceCents < cheapest.priceCents) {
+        cheapest = c;
+      }
+      if (c.durationMin > 0) {
+        if (minDur === undefined || c.durationMin < minDur) {
+          minDur = c.durationMin;
+        }
+        if (maxDur === undefined || c.durationMin > maxDur) {
+          maxDur = c.durationMin;
+        }
+      }
+      if (!candWithPhoto && c.photos.length > 0) {
+        candWithPhoto = c;
+      }
+    }
+
+    let heroPhoto: string | undefined;
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      if (r.slug === def.heroServiceSlug && r.photos.length > 0) {
+        heroPhoto = r.photos[0];
+        break;
+      }
+    }
+
+    const image = heroPhoto ?? candWithPhoto?.photos[0];
+
     return {
       key: def.key,
       group: GROUP_OF[def.key],
       fromCents: cheapest?.priceCents,
-      minDur: durs.length ? Math.min(...durs) : undefined,
-      maxDur: durs.length ? Math.max(...durs) : undefined,
-      image: withPhoto?.photos[0],
+      minDur,
+      maxDur,
+      image,
     };
   });
 }
