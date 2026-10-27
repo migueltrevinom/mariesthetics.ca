@@ -30,6 +30,7 @@ export const VOLUME_PRICE_CHECKS: VolumePriceCheck[] = [
   { studio: "Studio Vanassa", sourceUrl: "https://www.studiovanassa.com/lashes-brows", checked: "2026-10-27", fullSetCad: 158, fillCad: 84, kind: "lash-studio" },
   { studio: "Lashes by Hana", sourceUrl: "https://lashesbyhana.setmore.com/book", checked: "2026-10-27", fullSetCad: 140, fillCad: null, kind: "lash-studio" },
   { studio: "Maybloom Beauty", sourceUrl: "https://maybloombeauty.setmore.com/book", checked: "2026-10-27", fullSetCad: 140, fillCad: 80, kind: "lash-studio" },
+  { studio: "Hannah's Lash Lounge", sourceUrl: "https://hannahslashlounge.setmore.com/", checked: "2026-10-27", fullSetCad: 115, fillCad: 85, kind: "lash-studio" },
   { studio: "Binhs Nails Meadowlark", sourceUrl: "https://binhsnails.com/", checked: "2026-10-27", fullSetCad: 95, fillCad: null, kind: "nail-salon" },
 ];
 

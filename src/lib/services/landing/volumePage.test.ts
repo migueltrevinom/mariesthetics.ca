@@ -4,6 +4,7 @@ import { isVolumeFill, isVolumeSet, lashMenuRank, pickVolumePair } from "./volum
 import { volumeLashStudioSetRange } from "./volumeCompare";
 import { buildVolumeFaqs, buildVolumeHead, volumeCompareLine, volumeServiceJsonLd } from "./volumePage";
 import { VOLUME_COPY } from "./volumeCopy";
+import { VOLUME_COST_POST, volumePostPath } from "./volumePosts";
 import { landingDefinitionForService } from "./resolve";
 import { hreflangForSinglePath } from "@/lib/seo";
 
@@ -103,19 +104,39 @@ test("schema has one offer per row, duration, deposit, and no rating or street a
 
 test("price comparison is computed from sourced lash studios and does not say cheapest", () => {
   const range = volumeLashStudioSetRange()!;
-  assert.equal(range.min, 140);
+  const hannah = range.sources.find((s) => s.studio === "Hannah's Lash Lounge");
+  assert.ok(hannah);
+  assert.equal(hannah.fullSetCad, 115);
+  assert.equal(hannah.fillCad, 85);
+  assert.equal(hannah.sourceUrl, "https://hannahslashlounge.setmore.com/");
+  assert.equal(hannah.checked, "2026-10-27");
+  assert.equal(range.min, 115);
   assert.equal(range.max, 225);
   assert.equal(range.checked, "2026-10-27");
   assert.equal(range.sources.some((s) => s.fullSetCad === 95), false);
   assert.ok(range.sources.every((s) => s.sourceUrl && s.checked));
   const line = volumeCompareLine("en", range)!;
-  assert.match(line.sentence, /\$140 to \$225/);
+  assert.match(line.sentence, /\$115 to \$225/);
   assert.match(line.sentence, /Oct 27, 2026/);
   assert.match(line.lowest, /one of the lowest-priced/);
   assert.equal(/cheapest/i.test(`${line.sentence} ${line.lowest}`), false);
   for (const copy of Object.values(VOLUME_COPY)) {
-    assert.equal(/cheapest|más barat|pinaka-mura|الأرخص/i.test(copy.lowestLine), false);
+    const sentence = copy.compareSentence("$115", "$225", "Oct 27, 2026");
+    assert.match(sentence, /\$115/);
+    assert.match(sentence, /\$225/);
+    assert.match(sentence, /Oct 27, 2026/);
+    assert.equal(/cheapest|más barat|pinaka-mura|الأرخص/i.test(`${sentence} ${copy.lowestLine}`), false);
   }
+});
+
+test("each language links the price comparison to its own volume cost post", () => {
+  assert.equal(volumePostPath(VOLUME_COST_POST.en), "/blog/volume-lash-cost-edmonton-2026-full-set-fill-prices");
+  assert.equal(volumePostPath(VOLUME_COST_POST.es), "/blog/precio-pestanas-de-volumen-edmonton-2026");
+  assert.equal(volumePostPath(VOLUME_COST_POST.tl), "/blog/magkano-volume-lashes-edmonton-2026");
+  assert.equal(volumePostPath(VOLUME_COST_POST.pa), "/blog/edmonton-volume-lashes-kimat-2026");
+  assert.match(volumePostPath(VOLUME_COST_POST.ar), /\/blog\/%D9%83%D9%85-%D8%B3%D8%B9%D8%B1-/);
+  assert.equal(VOLUME_COST_POST.pa === VOLUME_COST_POST.en, false);
+  assert.equal(VOLUME_COST_POST.ar === VOLUME_COST_POST.en, false);
 });
 
 test("shared pages advertise hreflang for every language plus x-default", () => {

@@ -47,13 +47,13 @@ export const VOLUME_FEATURED_POSTS: Record<Locale, VolumePostLink[]> = {
   ],
 };
 
-/** Lash cost post. Punjabi and Arabic editions are not published; those pages link to the English post. */
+/** Dedicated volume cost post, one published URL per language. */
 export const VOLUME_COST_POST: Record<Locale, string> = {
-  en: "lash-extensions-cost-edmonton-2026-prices-west-edmonton",
-  es: "cuanto-cuestan-extensiones-de-pestanas-edmonton-precios-2026-west-edmonton",
-  tl: "magkano-lash-extensions-edmonton-presyo-2026-west-edmonton",
-  pa: "lash-extensions-cost-edmonton-2026-prices-west-edmonton",
-  ar: "lash-extensions-cost-edmonton-2026-prices-west-edmonton",
+  en: "volume-lash-cost-edmonton-2026-full-set-fill-prices",
+  es: "precio-pestanas-de-volumen-edmonton-2026",
+  tl: "magkano-volume-lashes-edmonton-2026",
+  pa: "edmonton-volume-lashes-kimat-2026",
+  ar: "كم-سعر-رموش-الفوليوم-في-ادمونتون-2026",
 };
 
 export const VOLUME_PARKA_POST: Record<Locale, string> = {
