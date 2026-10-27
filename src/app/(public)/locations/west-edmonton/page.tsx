@@ -11,8 +11,13 @@ import {
   buildMetadata,
   business,
   faqJsonLd,
+  hreflangForSinglePath,
   siteUrl,
 } from "@/lib/seo";
+import { getServerLocale } from "@/lib/i18n/locale";
+import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
+import { landingSlugForLocale } from "@/lib/services/landing/resolve";
+import { serviceLandingPath } from "@/lib/services/landing/paths";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +26,7 @@ export const metadata: Metadata = buildMetadata({
   description:
     "Private home esthetics studio serving West Edmonton (Glastonbury, The Hamptons, Granville, Lewis Estates, T5T). Tailored facials, lash extensions, powder brows, and lip blush in a calm 1-on-1 sanctuary.",
   path: "/locations/west-edmonton",
+  hreflangAlternates: hreflangForSinglePath("/locations/west-edmonton"),
   keywords: [
     "esthetician West Edmonton",
     "facials Glastonbury Edmonton",
@@ -81,6 +87,11 @@ const localFaqs = [
 
 export default async function WestEdmontonLocationPage() {
   const services = await getServices();
+  const locale = await getServerLocale();
+  const guideHref = (key: "volume-lashes" | "lash-extensions") => {
+    const def = SERVICE_LANDING_PAGES.find((d) => d.key === key)!;
+    return serviceLandingPath(landingSlugForLocale(def, locale));
+  };
 
   const locationJsonLd = {
     "@context": "https://schema.org",
@@ -150,6 +161,12 @@ export default async function WestEdmontonLocationPage() {
               </Link>
               <Link href="/services" className="btn-ghost">
                 View Full Pricing
+              </Link>
+              <Link href={guideHref("volume-lashes")} className="btn-ghost">
+                Volume lash extensions
+              </Link>
+              <Link href={guideHref("lash-extensions")} className="btn-ghost">
+                Lash extensions
               </Link>
             </div>
           </Reveal>

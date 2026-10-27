@@ -2,6 +2,7 @@ import type { Locale } from "@/components/i18n/LanguageContext";
 import { SERVICE_LANDING_PAGES } from "./registry";
 import { normalizeServiceLandingSlugParam } from "./paths";
 import type { LandingDefinition, ResolvedLanding } from "./types";
+import { isVolumeLash } from "./volumeMatch";
 
 const LOCALES: Locale[] = ["en", "es", "tl", "pa", "ar"];
 
@@ -53,9 +54,14 @@ const FACIAL_DEDICATED_SLUGS = new Set([
 export function landingDefinitionForService(service: {
   category: string;
   slug: string;
+  name?: string;
+  _id?: string;
 }): LandingDefinition | undefined {
+  if (isVolumeLash(service)) {
+    return SERVICE_LANDING_PAGES.find((d) => d.key === "volume-lashes");
+  }
   for (const def of SERVICE_LANDING_PAGES) {
-    if (def.match.type === "serviceSlugs" && def.match.slugs.includes(service.slug)) {
+    if (def.match.type === "serviceSlugs" && service.slug && def.match.slugs.includes(service.slug)) {
       return def;
     }
   }

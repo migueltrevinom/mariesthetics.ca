@@ -3,6 +3,13 @@ import type { LandingKey } from "./types";
 
 /** Short nav labels only — keep out of client bundles that import full landing copy. */
 export const LANDING_CHIP_LABELS: Record<LandingKey, Record<Locale, string>> = {
+  "volume-lashes": {
+    en: "Volume lashes",
+    es: "Pestañas de volumen",
+    tl: "Volume lashes",
+    pa: "ਵਾਲਿਊਮ ਲੈਸ਼",
+    ar: "رموش فوليوم",
+  },
   "lash-extensions": {
     en: "Lash extensions",
     es: "Extensiones de pestañas",

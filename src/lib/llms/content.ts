@@ -10,6 +10,7 @@ import { business, siteUrl } from "@/lib/seo";
 import { formatCad } from "@/lib/money";
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost, Service } from "@/lib/db/models";
+import { isVolumeLash } from "@/lib/services/landing/volumeMatch";
 
 export type LlmsServiceRow = { _id: string; name: string; slug: string; category: string; priceCents: number; depositCents: number; durationMin: number };
 
@@ -47,7 +48,9 @@ function siteOverview(): string {
 }
 
 function matches(def: LandingDefinition, s: LlmsServiceRow) {
-  return def.match.type === "category" ? s.category === def.match.category : def.match.slugs.includes(s.slug);
+  if (def.match.type === "category") return s.category === def.match.category;
+  if (def.match.type === "volumeLashes") return isVolumeLash(s);
+  return def.match.slugs.includes(s.slug);
 }
 
 /** Service guides with live prices from the DB (exported for tests). */
@@ -76,7 +79,7 @@ export function formatLlmsServiceLandingsSection(services: LlmsServiceRow[]): st
 function serviceKeyFor(row: LlmsBlogRow, byId: Map<string, LlmsServiceRow>): LandingKey | "other" {
   for (const id of row.serviceIds || []) {
     const s = byId.get(id);
-    const def = s ? landingDefinitionForService({ category: s.category, slug: s.slug }) : undefined;
+    const def = s ? landingDefinitionForService({ category: s.category, slug: s.slug, name: s.name, _id: s._id }) : undefined;
     if (def) return def.key;
   }
   if (row.category === "lashes") return "lash-extensions";

@@ -9,6 +9,10 @@ import { ThemeToggle } from "@/components/admin/ThemeToggle";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import { useLanguage } from "@/components/i18n/LanguageContext";
 import { useOpeningHoursLines } from "@/components/public/OpeningHoursContext";
+import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
+import { LANDING_CHIP_LABELS } from "@/lib/services/landing/quickLabels";
+import { landingSlugForLocale } from "@/lib/services/landing/resolve";
+import { serviceLandingPath } from "@/lib/services/landing/paths";
 
 export interface SocialLinkItem {
   _id: string;
@@ -18,7 +22,11 @@ export interface SocialLinkItem {
 }
 
 export function SiteFooter() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const serviceLinks = SERVICE_LANDING_PAGES.map((def) => ({
+    href: serviceLandingPath(landingSlugForLocale(def, locale)),
+    label: LANDING_CHIP_LABELS[def.key][locale] || LANDING_CHIP_LABELS[def.key].en,
+  }));
   const hoursLines = useOpeningHoursLines();
   const [socials, setSocials] = useState<SocialLinkItem[]>([]);
 
@@ -107,6 +115,18 @@ export function SiteFooter() {
             </p>
             <ul className="mt-4 space-y-3 text-sm text-[var(--ink-soft)]">
               {nav.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="transition-colors hover:text-gold-bright">
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="eyebrow mt-8">
+              {t("nav.services") !== "nav.services" ? t("nav.services") : "Services"}
+            </p>
+            <ul className="mt-4 space-y-3 text-sm text-[var(--ink-soft)]">
+              {serviceLinks.map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="transition-colors hover:text-gold-bright">
                     {item.label}

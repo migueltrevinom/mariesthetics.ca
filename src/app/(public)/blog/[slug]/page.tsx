@@ -107,7 +107,9 @@ export default async function BlogPostPage({ params }: PageProps) {
   // Service guide for breadcrumb/alt: first linked service with a guide, else category.
   const svc = post.serviceIds[0];
   const guideDef =
-    post.serviceIds.map((s) => (s.slug ? landingDefinitionForService({ category: s.category || "", slug: s.slug }) : undefined)).find(Boolean) ||
+    post.serviceIds
+      .map((s) => landingDefinitionForService({ category: s.category || "", slug: s.slug || "", name: s.name, _id: s._id }))
+      .find(Boolean) ||
     (post.category === "lashes" ? SERVICE_LANDING_PAGES.find((d) => d.key === "lash-extensions") : undefined);
   const guideLabel = guideDef ? LANDING_CHIP_LABELS[guideDef.key]?.[lang] || LANDING_CHIP_LABELS[guideDef.key]?.en : undefined;
   const guidePathStr = guideDef ? serviceLandingPath(landingSlugForLocale(guideDef, lang)) : undefined;

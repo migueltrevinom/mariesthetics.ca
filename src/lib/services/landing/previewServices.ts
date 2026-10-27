@@ -16,6 +16,27 @@ export function previewServicesForLanding(definition: LandingDefinition): Landin
   });
 
   switch (definition.key) {
+    case "volume-lashes":
+      return [
+        base({
+          _id: "6a6fdccb61dda32cf4b924f1",
+          name: "Volume Set (2D-5D)",
+          slug: "volume-set",
+          priceCents: 10000,
+          durationMin: 150,
+          category: "lashes",
+          description: "Lightweight multi-dimensional lash extensions, 2D–5D.",
+        }),
+        base({
+          _id: "6a6fe50561dda32cf4b924f6",
+          name: "Volume Fill",
+          slug: "",
+          priceCents: 7000,
+          durationMin: 90,
+          category: "lashes",
+          description: "Volume fill. Recommended every 2–3 weeks. A new set is required past 4 weeks or under 40% remaining. Lash bath included.",
+        }),
+      ];
     case "lash-extensions":
       return [
         base({ _id: "p1", name: "Classic Set", slug: "classic-set", priceCents: 7000, category: "lashes" }),

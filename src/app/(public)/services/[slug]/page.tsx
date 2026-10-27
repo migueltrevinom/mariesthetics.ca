@@ -1,9 +1,10 @@
 import { getOpeningHoursSpec } from "@/lib/businessHours";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
-import { LEGACY_SERVICE_LANDING_REDIRECTS } from "@/lib/services/landing/registry";
+import { LEGACY_SERVICE_LANDING_REDIRECTS, SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
 import { normalizeServiceLandingSlugParam } from "@/lib/services/landing/paths";
 import { ServiceLandingView } from "@/components/services/ServiceLandingView";
+import { VolumeLandingView } from "@/components/services/VolumeLandingView";
 import { ServiceLandingTranslationProvider } from "@/components/services/ServiceLandingTranslationContext";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getLandingContent } from "@/lib/services/landing/content";
@@ -16,11 +17,18 @@ import {
 import { serviceLandingPath } from "@/lib/services/landing/paths";
 import {
   hreflangAlternatesForLanding,
+  landingSlugForLocale,
   resolveLandingBySlugParam,
   slugsByLocaleForLanding,
 } from "@/lib/services/landing/resolve";
 import { localeToHreflang } from "@/lib/blog/locales";
-import { buildLashFaq, buildLashSummary, lashPriceTitle } from "@/lib/services/landing/lashSummary";
+import { buildLashFaq, buildLashSummary, LASH_COPY, lashPriceTitle } from "@/lib/services/landing/lashSummary";
+import { buildVolumeFaqs, buildVolumeHead, volumeCompareLine, volumeServiceJsonLd } from "@/lib/services/landing/volumePage";
+import { LASH_PAGE_VOLUME_LINK, VOLUME_COPY } from "@/lib/services/landing/volumeCopy";
+import { pickVolumePair } from "@/lib/services/landing/volumeMatch";
+import { VOLUME_COST_POST, VOLUME_FEATURED_POSTS, VOLUME_PARKA_POST, resolvePublishedVolumePosts, volumePostPath } from "@/lib/services/landing/volumePosts";
+import { AUTHORS, DEFAULT_BLOG_AUTHOR, personJsonLd } from "@/lib/blog/authors";
+import { formatCad } from "@/lib/money";
 import {
   breadcrumbJsonLd,
   buildMetadata,
@@ -47,16 +55,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const services = await loadServicesForLanding(resolved.definition);
   const heroImage = primaryLandingImage(services, resolved.definition.heroServiceSlug);
 
-  // Lash guide: live full-set prices from the DB in the title (never hardcoded).
-  const priceTitle =
-    resolved.definition.key === "lash-extensions"
-      ? lashPriceTitle(buildLashSummary(services), resolved.locale, business.name)
-      : null;
+  // Lash guides: live prices from the DB in the title (never hardcoded).
+  let title = content.metaTitle;
+  let description = content.metaDescription;
+  let absoluteTitle = false;
+  if (resolved.definition.key === "volume-lashes") {
+    const head = buildVolumeHead(services, resolved.locale, business.name);
+    if (head) {
+      title = head.title;
+      description = head.description;
+      absoluteTitle = !head.withBrand;
+    }
+  } else if (resolved.definition.key === "lash-extensions") {
+    const head = lashPriceTitle(buildLashSummary(services), resolved.locale, business.name);
+    if (head) {
+      title = head.title;
+      absoluteTitle = !head.withBrand;
+    }
+  }
 
   return buildMetadata({
-    title: priceTitle ? priceTitle.title : content.metaTitle,
-    absoluteTitle: priceTitle ? !priceTitle.withBrand : false,
-    description: content.metaDescription,
+    title,
+    absoluteTitle,
+    description,
     path,
     hreflangAlternates: hreflangAlternatesForLanding(resolved.definition),
     ogLocale: localeToHreflang(resolved.locale).replace("-", "_"),
@@ -80,12 +101,85 @@ export default async function ServiceLandingPage({ params }: PageProps) {
   const hero =
     services.find((s) => s.slug === definition.heroServiceSlug) || services[0];
   const heroImage = primaryLandingImage(services, definition.heroServiceSlug) || "";
-  const relatedPosts = await loadRelatedBlogPosts(services.map((s) => s._id), locale);
   const pagePath = serviceLandingPath(resolved.pathSlug);
   const pageUrl = `${siteUrl}${pagePath}`;
   const inLanguage = localeToHreflang(locale);
   const lashSummary = definition.key === "lash-extensions" ? buildLashSummary(services) : null;
   const lashFaqs = lashSummary ? buildLashFaq(lashSummary, locale) : [];
+  const volumeDef = SERVICE_LANDING_PAGES.find((d) => d.key === "volume-lashes");
+  const volumeGuide =
+    definition.key === "lash-extensions" && volumeDef
+      ? { href: serviceLandingPath(landingSlugForLocale(volumeDef, locale)), label: LASH_PAGE_VOLUME_LINK[locale] || LASH_PAGE_VOLUME_LINK.en }
+      : null;
+
+  if (definition.key === "volume-lashes") {
+    const pair = pickVolumePair(services);
+    const ordered = [pair.set, pair.fill].filter((row): row is NonNullable<typeof pair.set> => !!row);
+    const lashDef = SERVICE_LANDING_PAGES.find((d) => d.key === "lash-extensions")!;
+    const summary = buildLashSummary(await loadServicesForLanding(lashDef));
+    const lashCopy = LASH_COPY[locale] || LASH_COPY.en;
+    const choices = (summary?.lines || [])
+      .filter((line) => line.set)
+      .map((line) => ({
+        key: line.type,
+        label: lashCopy.type[line.type],
+        price: formatCad(line.set!.priceCents),
+        bookHref: `/book?serviceId=${line.set!._id}`,
+        cta: lashCopy.book(lashCopy.type[line.type]),
+      }));
+    const parkaPath = volumePostPath(VOLUME_PARKA_POST[locale] || VOLUME_PARKA_POST.en);
+    const posts = (await resolvePublishedVolumePosts(VOLUME_FEATURED_POSTS[locale] || VOLUME_FEATURED_POSTS.en)).map((post) => ({
+      title: post.title,
+      href: volumePostPath(post.slug),
+    }));
+    const compareLine = volumeCompareLine(locale);
+    const volumeCopy = VOLUME_COPY[locale] || VOLUME_COPY.en;
+    const compare = compareLine
+      ? { ...compareLine, href: volumePostPath(VOLUME_COST_POST[locale] || VOLUME_COST_POST.en), linkLabel: volumeCopy.compareLinkLabel }
+      : null;
+    const volumeFaqs = buildVolumeFaqs(ordered, locale, `${siteUrl}${parkaPath}`);
+    const head = buildVolumeHead(ordered, locale, business.name);
+    const volumeHero = primaryLandingImage(ordered, definition.heroServiceSlug) || heroImage;
+    return (
+      <ServiceLandingTranslationProvider slugsByLocale={slugsByLocaleForLanding(definition)}>
+        <VolumeLandingView
+          locale={locale}
+          set={pair.set}
+          fill={pair.fill}
+          heroImage={volumeHero}
+          choices={choices}
+          lashGuideHref={serviceLandingPath(landingSlugForLocale(lashDef, locale))}
+          parkaHref={parkaPath}
+          compare={compare}
+          posts={posts}
+          faqs={volumeFaqs}
+        />
+        <JsonLd
+          data={[
+            volumeServiceJsonLd({
+              name: content.h1,
+              description: [head?.description || content.metaDescription, pair.set?.description, pair.fill?.description].filter(Boolean).join(" "),
+              url: pageUrl,
+              image: volumeHero,
+              services: ordered,
+            }),
+            { "@context": "https://schema.org", ...personJsonLd(AUTHORS[DEFAULT_BLOG_AUTHOR], locale) },
+            { ...faqJsonLd(volumeFaqs), inLanguage },
+            breadcrumbJsonLd(
+              [
+                { name: "Home", path: "/" },
+                { name: "Services", path: "/services" },
+                { name: content.h1, path: pagePath },
+              ],
+              { inLanguage }
+            ),
+          ]}
+        />
+      </ServiceLandingTranslationProvider>
+    );
+  }
+
+  const relatedPosts = await loadRelatedBlogPosts(services.map((s) => s._id), locale);
 
   return (
     <ServiceLandingTranslationProvider slugsByLocale={slugsByLocaleForLanding(definition)}>
@@ -98,6 +192,7 @@ export default async function ServiceLandingPage({ params }: PageProps) {
         relatedPosts={relatedPosts}
         lashSummary={lashSummary}
         extraFaqs={lashFaqs}
+        volumeGuide={volumeGuide}
       />
       <JsonLd
         data={[

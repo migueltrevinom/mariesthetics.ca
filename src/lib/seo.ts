@@ -79,6 +79,19 @@ type BuildMetadataInput = {
   absoluteTitle?: boolean;
 };
 
+/** hreflang set for pages that share one URL across languages (cookie locale, not a translated path). */
+export function hreflangForSinglePath(path: string): Record<string, string> {
+  const url = `${siteUrl}${path === "/" ? "" : path}`;
+  return {
+    "en-CA": url,
+    es: url,
+    tl: url,
+    pa: url,
+    ar: url,
+    "x-default": url,
+  };
+}
+
 export function stripBrandSuffix(title?: string): string | undefined {
   if (!title) return title;
   const brand = business.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

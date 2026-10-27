@@ -15,8 +15,12 @@ const HEADINGS: Record<Locale, { related: string; guide: string }> = {
 
 /** Guide-page path for a service in the given language, or null if it has no guide. */
 export function serviceGuidePath(svc: BlogServiceRef, language: Locale): string | null {
-  if (!svc.slug) return null;
-  const def = landingDefinitionForService({ category: svc.category || "", slug: svc.slug });
+  const def = landingDefinitionForService({
+    category: svc.category || "",
+    slug: svc.slug || "",
+    name: svc.name,
+    _id: svc._id,
+  });
   return def ? serviceLandingPath(landingSlugForLocale(def, language)) : null;
 }
 
