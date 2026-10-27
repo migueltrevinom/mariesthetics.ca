@@ -1,6 +1,7 @@
 import type { Locale } from "@/components/i18n/LanguageContext";
 import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
 import { isFullSet } from "@/lib/services/landing/lashSummary";
+import { isVolumeSet } from "@/lib/services/landing/volumeMatch";
 import type { LandingDefinition, LandingKey } from "@/lib/services/landing/types";
 import { formatCad } from "@/lib/money";
 
@@ -31,6 +32,7 @@ export type TreatmentGuideCard = {
 export const GUIDE_GROUPS: GuideGroup[] = ["lashes", "browsLips", "facials"];
 
 const GROUP_OF: Record<LandingKey, GuideGroup> = {
+  "volume-lashes": "lashes",
   "lash-extensions": "lashes",
   "powder-brows": "browsLips",
   "lip-blush": "browsLips",
@@ -46,10 +48,13 @@ const text = (r: GuideServiceRow) => `${r.name} ${r.slug.replace(/-/g, " ")}`;
 
 /** Services a guide's "from" price may come from: full lash sets only (no fills), no facial add-ons. */
 function candidatesFor(def: LandingDefinition, rows: GuideServiceRow[]): GuideServiceRow[] {
-  const matched = rows.filter((r) =>
-    def.match.type === "category" ? r.category === def.match.category : def.match.slugs.includes(r.slug)
-  );
+  const matched = rows.filter((r) => {
+    if (def.match.type === "category") return r.category === def.match.category;
+    if (def.match.type === "volumeLashes") return r.category === "lashes";
+    return def.match.slugs.includes(r.slug);
+  });
   const priced = matched.filter((r) => r.priceCents > 0);
+  if (def.key === "volume-lashes") return priced.filter(isVolumeSet);
   if (def.key === "lash-extensions") return priced.filter(isFullSet);
   if (def.match.type === "category" && def.match.category === "facials") {
     return priced.filter((r) => !EXCLUDE_FACIAL.test(text(r)));
@@ -107,6 +112,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     subtitle: "Starting prices and appointment times, updated live from our booking system.",
     groups: { lashes: "Lashes", browsLips: "Brows & Lips", facials: "Facials" },
     benefit: {
+      "volume-lashes": "Fuller volume lashes, one-on-one in West Edmonton",
       "lash-extensions": "Soft, wearable fullness mapped to your eye shape",
       "powder-brows": "Natural-looking brows for busy routines",
       "lip-blush": "Subtle lip colour, shade chosen with Mari",
@@ -126,6 +132,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     subtitle: "Precios desde y duración de cada cita, actualizados en vivo desde nuestro sistema de reservas.",
     groups: { lashes: "Pestañas", browsLips: "Cejas y labios", facials: "Faciales" },
     benefit: {
+      "volume-lashes": "Pestañas de volumen más llenas, atención individual en el oeste de Edmonton",
       "lash-extensions": "Volumen suave y natural, diseñado para la forma de tus ojos",
       "powder-brows": "Cejas de aspecto natural para rutinas ocupadas",
       "lip-blush": "Color sutil en los labios, tono elegido con Mari",
@@ -145,6 +152,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     subtitle: "Panimulang presyo at tagal ng appointment, live mula sa aming booking system.",
     groups: { lashes: "Lashes", browsLips: "Brows at Lips", facials: "Facials" },
     benefit: {
+      "volume-lashes": "Mas punong volume lashes, one-on-one sa West Edmonton",
       "lash-extensions": "Malambot at natural na kapal, ayon sa hugis ng mata mo",
       "powder-brows": "Natural na brows para sa abalang araw-araw",
       "lip-blush": "Banayad na kulay ng labi, pinili kasama si Mari",
@@ -164,6 +172,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     subtitle: "ਸ਼ੁਰੂਆਤੀ ਕੀਮਤਾਂ ਅਤੇ ਅਪਾਇੰਟਮੈਂਟ ਦਾ ਸਮਾਂ, ਸਾਡੇ ਬੁਕਿੰਗ ਸਿਸਟਮ ਤੋਂ ਲਾਈਵ।",
     groups: { lashes: "ਲੈਸ਼", browsLips: "ਬ੍ਰੋਜ਼ ਅਤੇ ਲਿਪਸ", facials: "ਫੇਸ਼ੀਅਲ" },
     benefit: {
+      "volume-lashes": "ਵਧੇਰੇ ਭਰੀਆਂ ਵਾਲਿਊਮ ਲੈਸ਼, ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਇੱਕ-ਤੋਂ-ਇੱਕ",
       "lash-extensions": "ਤੁਹਾਡੀਆਂ ਅੱਖਾਂ ਦੀ ਸ਼ਕਲ ਮੁਤਾਬਕ ਨਰਮ, ਕੁਦਰਤੀ ਭਰਪੂਰਤਾ",
       "powder-brows": "ਰੁੱਝੀ ਰੁਟੀਨ ਲਈ ਕੁਦਰਤੀ ਦਿੱਖ ਵਾਲੇ ਬ੍ਰੋਜ਼",
       "lip-blush": "ਬੁੱਲ੍ਹਾਂ ਲਈ ਹਲਕਾ ਰੰਗ, ਸ਼ੇਡ Mari ਨਾਲ ਮਿਲ ਕੇ ਚੁਣਿਆ",
@@ -183,6 +192,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     subtitle: "الأسعار الابتدائية ومدة كل موعد، محدّثة مباشرة من نظام الحجز لدينا.",
     groups: { lashes: "الرموش", browsLips: "الحواجب والشفاه", facials: "الفيشيال" },
     benefit: {
+      "volume-lashes": "رموش فوليوم أكثف، جلسة فردية في غرب إدمونتون",
       "lash-extensions": "كثافة ناعمة وطبيعية مصممة لشكل عينيك",
       "powder-brows": "حواجب بمظهر طبيعي تناسب روتينك المزدحم",
       "lip-blush": "لون شفاه ناعم، تختارين درجته مع ماري",

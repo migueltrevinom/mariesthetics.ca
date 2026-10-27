@@ -4,6 +4,15 @@ import { resolveLandingBySlugParam } from "./resolve";
 import { serviceLandingPath } from "./paths";
 
 describe("service landing resolve", () => {
+  it("resolves volume lashes in each language", () => {
+    assert.equal(resolveLandingBySlugParam("volume-lashes-edmonton")!.locale, "en");
+    assert.equal(resolveLandingBySlugParam("volume-lashes-edmonton")!.definition.key, "volume-lashes");
+    assert.equal(resolveLandingBySlugParam("pestanas-de-volumen-edmonton")!.locale, "es");
+    assert.equal(resolveLandingBySlugParam("volume-lashes-edmonton-tl")!.locale, "tl");
+    assert.equal(resolveLandingBySlugParam("volume-lashes-edmonton-pa")!.locale, "pa");
+    assert.equal(resolveLandingBySlugParam(encodeURIComponent("رموش-فوليوم-ادمونتون"))!.locale, "ar");
+  });
+
   it("resolves English lash extensions slug", () => {
     const r = resolveLandingBySlugParam("lash-extensions-edmonton");
     assert.ok(r);

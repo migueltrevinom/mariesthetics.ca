@@ -4,19 +4,19 @@ import { getPublishedPostsForSitemap } from "@/lib/blog/queries";
 import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
 import { hreflangAlternatesForLanding } from "@/lib/services/landing/resolve";
 import { serviceLandingPath } from "@/lib/services/landing/paths";
-import { siteUrl } from "@/lib/seo";
+import { hreflangForSinglePath, siteUrl } from "@/lib/seo";
 export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const routes: MetadataRoute.Sitemap = [
-    { url: `${siteUrl}`, changeFrequency: "weekly", priority: 1.0 },
-    { url: `${siteUrl}/services`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}`, changeFrequency: "weekly", priority: 1.0, alternates: { languages: hreflangForSinglePath("/") } },
+    { url: `${siteUrl}/services`, changeFrequency: "daily", priority: 0.9, alternates: { languages: hreflangForSinglePath("/services") } },
     { url: `${siteUrl}/book`, changeFrequency: "daily", priority: 0.9 },
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${siteUrl}/gift-cards`, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${siteUrl}/locations/west-edmonton`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${siteUrl}/locations/west-edmonton`, changeFrequency: "weekly", priority: 0.9, alternates: { languages: hreflangForSinglePath("/locations/west-edmonton") } },
+    { url: `${siteUrl}/blog`, changeFrequency: "weekly", priority: 0.8, alternates: { languages: hreflangForSinglePath("/blog") } },
     { url: `${siteUrl}/llms.txt`, changeFrequency: "weekly", priority: 0.5 },
     { url: `${siteUrl}/llms-full.txt`, changeFrequency: "weekly", priority: 0.5 },
   ];

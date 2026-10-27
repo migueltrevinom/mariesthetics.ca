@@ -1,5 +1,6 @@
 import type { Locale } from "@/components/i18n/LanguageContext";
 import type { LandingContent, LandingKey } from "./types";
+import { volumeLandingContent } from "./volumeCopy";
 
 const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
   "lash-extensions": {
@@ -1978,6 +1979,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       allServicesLabel: "عرض كل الخدمات",
     },
   },
+  "volume-lashes": volumeLandingContent,
 };
 
 export function getLandingContent(key: LandingKey, locale: Locale): LandingContent {

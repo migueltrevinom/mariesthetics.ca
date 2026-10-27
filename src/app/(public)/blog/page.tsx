@@ -4,7 +4,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { Reveal } from "@/components/public/Reveal";
 import { getPublishedBlogPosts } from "@/lib/blog/queries";
 import { getServerLocale } from "@/lib/i18n/locale";
-import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, hreflangForSinglePath } from "@/lib/seo";
 
 /** Locale comes from NEXT_LOCALE cookie — must not serve one cached listing for all languages. */
 export const dynamic = "force-dynamic";
@@ -14,6 +14,7 @@ export const metadata: Metadata = buildMetadata({
   description:
     "Skin care tips, lash and brow insights, and studio news from Mari Esthetics — your private esthetics studio in West Edmonton.",
   path: "/blog",
+  hreflangAlternates: hreflangForSinglePath("/blog"),
   keywords: [
     "esthetician blog Edmonton",
     "skin care tips West Edmonton",
