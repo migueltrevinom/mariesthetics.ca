@@ -2,11 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { business } from "@/lib/seo";
 import { useLanguage } from "@/components/i18n/LanguageContext";
+import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
+import { landingSlugForLocale } from "@/lib/services/landing/resolve";
+import { serviceLandingPath } from "@/lib/services/landing/paths";
+import { volumeCalloutText } from "@/lib/services/landing/volumeCopy";
 
-export function Hero() {
-  const { t } = useLanguage();
+export function Hero({ volume }: { volume?: { setCents?: number; fillCents?: number } }) {
+  const { t, locale } = useLanguage();
+  const callout = volume ? volumeCalloutText(locale, volume.setCents, volume.fillCents) : null;
+  const volumeDef = SERVICE_LANDING_PAGES.find((d) => d.key === "volume-lashes");
+  const volumeHref = volumeDef ? serviceLandingPath(landingSlugForLocale(volumeDef, locale)) : "/services";
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden bg-[var(--background)] transition-colors duration-200">
@@ -37,6 +43,11 @@ export function Hero() {
         <p className="reveal reveal-delay-2 mt-8 max-w-xl text-lg leading-relaxed text-ink-soft">
           {t("hero.subtitle")}
         </p>
+        {callout ? (
+          <Link href={volumeHref} className="reveal reveal-delay-2 mt-6 inline-flex max-w-xl rounded-full border border-[#c8a86b]/50 bg-black/35 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md hover:border-[#c8a86b]">
+            {callout}
+          </Link>
+        ) : null}
         <div className="reveal reveal-delay-3 mt-10 flex flex-wrap gap-4 items-center">
           <Link href="/book" className="btn-primary">
             {t("hero.ctaBook")}

@@ -7,6 +7,7 @@ import {
   breadcrumbJsonLd,
   buildMetadata,
   faqJsonLd,
+  hreflangForSinglePath,
   localBusinessJsonLd,
   type ReviewSchemaItem,
 } from "@/lib/seo";
@@ -27,6 +28,7 @@ import { CtaBand } from "@/components/public/sections/CtaBand";
 import { BlogPreview } from "@/components/public/sections/BlogPreview";
 import { getLatestPublishedPosts } from "@/lib/blog/queries";
 import { getServerLocale } from "@/lib/i18n/locale";
+import { pickVolumePair } from "@/lib/services/landing/volumeMatch";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +38,33 @@ export async function generateMetadata(): Promise<Metadata> {
     title: HOME_TITLE[locale] || HOME_TITLE.en,
     description: HOME_DESCRIPTION[locale] || HOME_DESCRIPTION.en,
     path: "/",
+    hreflangAlternates: hreflangForSinglePath("/"),
   });
+}
+
+async function getVolumeOffer(): Promise<{ setCents?: number; fillCents?: number }> {
+  try {
+    await connectDb();
+    const rows = (await Service.find({ active: true, category: "lashes" }).select("name slug priceCents").lean()) as Array<{
+      name?: string;
+      slug?: string;
+      priceCents?: number;
+    }>;
+    const pair = pickVolumePair(
+      rows.map((r) => ({
+        name: String(r.name || ""),
+        slug: String(r.slug || ""),
+        category: "lashes",
+        priceCents: Number(r.priceCents) || 0,
+      }))
+    );
+    return {
+      ...(pair.set?.priceCents ? { setCents: pair.set.priceCents } : {}),
+      ...(pair.fill?.priceCents ? { fillCents: pair.fill.priceCents } : {}),
+    };
+  } catch {
+    return {};
+  }
 }
 
 async function getHomePrices(): Promise<HomePrices> {
@@ -179,11 +207,12 @@ async function getData(): Promise<{
 export default async function HomePage() {
   const { services, plans, reviewStats } = await getData();
   const locale = await getServerLocale();
-  const [latestPosts, prices, google, guideCards] = await Promise.all([
+  const [latestPosts, prices, google, guideCards, volumeOffer] = await Promise.all([
     getLatestPublishedPosts(locale, 3),
     getHomePrices(),
     getGoogleReviews(),
     loadTreatmentGuideCards(),
+    getVolumeOffer(),
   ]);
   const readMinutes = await loadReadMinutes(latestPosts.map((p) => p._id));
   // Prefer the real Google Business Profile aggregate; else real site reviews; else omit.
@@ -197,7 +226,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero />
+      <Hero volume={volumeOffer} />
       <ServicesPreview services={services} />
       <HowItWorks />
       <MembershipBand plans={plans} />

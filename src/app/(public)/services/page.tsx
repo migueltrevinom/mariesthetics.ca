@@ -9,6 +9,7 @@ import { Reveal } from "@/components/public/Reveal";
 import {
   breadcrumbJsonLd,
   buildMetadata,
+  hreflangForSinglePath,
   individualServiceJsonLd,
   serviceCatalogJsonLd,
 } from "@/lib/seo";
@@ -22,6 +23,7 @@ export const metadata: Metadata = buildMetadata({
   description:
     "Explore customized facials, lash extensions, powder brows, and lip blush in Edmonton. Transparent pricing and instant online booking at Mari Esthetics.",
   path: "/services",
+  hreflangAlternates: hreflangForSinglePath("/services"),
   keywords: [
     "facials Edmonton pricing",
     "lash extensions Edmonton price",
@@ -111,6 +113,7 @@ async function getData() {
           depositCents: Number(s.depositCents),
           category: String(s.category ?? "general"),
           photos: uploadedPhotos,
+          slug: String(s.slug ?? ""),
           nameTranslations: s.nameTranslations || undefined,
           descriptionTranslations: s.descriptionTranslations || undefined,
         };

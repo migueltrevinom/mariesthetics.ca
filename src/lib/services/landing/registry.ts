@@ -2,6 +2,18 @@ import type { LandingDefinition } from "./types";
 
 export const SERVICE_LANDING_PAGES: LandingDefinition[] = [
   {
+    key: "volume-lashes",
+    match: { type: "volumeLashes" },
+    heroServiceSlug: "volume-set",
+    slugs: {
+      en: "volume-lashes-edmonton",
+      es: "pestanas-de-volumen-edmonton",
+      tl: "volume-lashes-edmonton-tl",
+      pa: "volume-lashes-edmonton-pa",
+      ar: "رموش-فوليوم-ادمونتون",
+    },
+  },
+  {
     key: "lash-extensions",
     match: { type: "category", category: "lashes" },
     heroServiceSlug: "classic-set",

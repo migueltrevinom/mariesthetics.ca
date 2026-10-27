@@ -3,11 +3,11 @@ import { formatCad } from "@/lib/money";
 
 /** Localized homepage <title> (brand suffix is added once by the root layout template). */
 export const HOME_TITLE: Record<Locale, string> = {
-  en: "Facials, Lashes & Brows in West Edmonton",
-  es: "Faciales, Pestañas y Cejas en el Oeste de Edmonton",
-  tl: "Facials, Lashes at Brows sa West Edmonton",
-  pa: "ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਫੇਸ਼ੀਅਲ, ਲੈਸ਼ ਅਤੇ ਬ੍ਰੋਜ਼",
-  ar: "فيشيال ورموش وحواجب في غرب إدمونتون",
+  en: "Volume Lashes, Facials & Brows in West Edmonton",
+  es: "Pestañas de Volumen, Faciales y Cejas en el Oeste de Edmonton",
+  tl: "Volume Lashes, Facials at Brows sa West Edmonton",
+  pa: "ਵਾਲਿਊਮ ਲੈਸ਼, ਫੇਸ਼ੀਅਲ ਅਤੇ ਬ੍ਰੋਜ਼ ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ",
+  ar: "رموش فوليوم وفيشيال وحواجب في غرب إدمونتون",
 };
 
 export const HOME_DESCRIPTION: Record<Locale, string> = {

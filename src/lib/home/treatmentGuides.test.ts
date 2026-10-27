@@ -22,6 +22,7 @@ const row = (r: Partial<GuideServiceRow> & Pick<GuideServiceRow, "name" | "slug"
 const ROWS: GuideServiceRow[] = [
   row({ name: "Classic Set", slug: "classic-set", category: "lashes", priceCents: 7000, durationMin: 120, photos: ["https://cdn.verifik.co/mariesthetics/services/classic-set.jpg"] }),
   row({ name: "Volume Set (2D-5D)", slug: "volume-set", category: "lashes", priceCents: 10000, durationMin: 150 }),
+  row({ name: "Volume Fill", slug: "", category: "lashes", priceCents: 7000, durationMin: 90 }),
   row({ name: "Classic Fill", slug: "classic-fill", category: "lashes", priceCents: 4500, durationMin: 60 }),
   row({ name: "Basic Facial", slug: "basic-facial", category: "facials", priceCents: 5000, durationMin: 50 }),
   row({ name: "Hydra Facial", slug: "hydra-facial", category: "facials", priceCents: 10000, durationMin: 75, photos: ["https://cdn.verifik.co/mariesthetics/services/hydra-facial.jpg"] }),
@@ -31,6 +32,12 @@ const ROWS: GuideServiceRow[] = [
 test("one card per landing guide, in registry order", () => {
   const cards = buildTreatmentGuideCards(ROWS);
   assert.deepEqual(cards.map((c) => c.key), SERVICE_LANDING_PAGES.map((d) => d.key));
+});
+
+test("volume guide from-price is the set, not the empty-slug fill", () => {
+  const volume = buildTreatmentGuideCards(ROWS).find((c) => c.key === "volume-lashes")!;
+  assert.equal(volume.fromCents, 10000);
+  assert.equal(volume.group, "lashes");
 });
 
 test("lash 'from' price ignores fills and uses full sets only", () => {

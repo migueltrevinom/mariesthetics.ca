@@ -3,6 +3,7 @@ import { BlogPost, Service, ServiceImage } from "@/lib/db/models";
 import type { LandingDefinition, LandingMatch } from "./types";
 import { blogPostPath } from "@/lib/blog/slug";
 import { previewServicesForLanding, SERVICE_LANDING_DEV_PREVIEW } from "./previewServices";
+import { isVolumeLash } from "./volumeMatch";
 
 export type LandingServiceRow = {
   _id: string;
@@ -27,6 +28,9 @@ export type RelatedBlogPost = {
 function matchesService(row: LandingServiceRow, match: LandingMatch): boolean {
   if (match.type === "category") {
     return row.category === match.category;
+  }
+  if (match.type === "volumeLashes") {
+    return isVolumeLash(row);
   }
   return match.slugs.includes(row.slug);
 }

@@ -12,6 +12,7 @@ import { ServiceLandingQuickLinks } from "@/components/services/ServiceLandingQu
 import { landingDefinitionForService } from "@/lib/services/landing/resolve";
 import { landingSlugForLocale } from "@/lib/services/landing/resolve";
 import { serviceLandingPath } from "@/lib/services/landing/paths";
+import { lashMenuRank } from "@/lib/services/landing/volumeMatch";
 
 export type ServiceItem = {
   _id: string;
@@ -188,7 +189,10 @@ export function ServicesContent({
 
         {/* Category Sections */}
         {categories.map((category) => {
-          const categoryServices = services.filter((s) => s.category === category);
+          const categoryServices = services
+            .filter((s) => s.category === category)
+            .slice()
+            .sort((a, b) => (category === "lashes" ? lashMenuRank(a) - lashMenuRank(b) : 0));
           const catObj = categoryMap[category];
           const categoryTitle =
             t(`servicesPage.categories.${category}`) !== `servicesPage.categories.${category}`
@@ -235,6 +239,8 @@ export function ServicesContent({
                   const landingDef = landingDefinitionForService({
                     category: service.category,
                     slug: service.slug || "",
+                    name: service.name,
+                    _id: service._id,
                   });
                   const landingHref = landingDef
                     ? serviceLandingPath(landingSlugForLocale(landingDef, locale))

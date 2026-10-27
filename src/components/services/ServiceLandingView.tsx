@@ -19,6 +19,7 @@ type Props = {
   relatedPosts: RelatedBlogPost[];
   lashSummary?: LashSummary | null;
   extraFaqs?: Array<{ q: string; a: string }>;
+  volumeGuide?: { href: string; label: string } | null;
 };
 
 export function ServiceLandingView({
@@ -30,6 +31,7 @@ export function ServiceLandingView({
   relatedPosts,
   lashSummary,
   extraFaqs = [],
+  volumeGuide,
 }: Props) {
   const faqs = [...extraFaqs, ...content.faqs];
   const dir = locale === "ar" ? "rtl" : "ltr";
@@ -108,6 +110,13 @@ export function ServiceLandingView({
         <section className="mt-16">
           <Reveal>
             <h2 className="display text-2xl text-[var(--ink)] md:text-3xl">{content.pricingHeading}</h2>
+            {volumeGuide ? (
+              <p className="mt-3 text-sm">
+                <Link href={volumeGuide.href} className="font-semibold text-gold hover:text-gold-bright">
+                  {volumeGuide.label}
+                </Link>
+              </p>
+            ) : null}
             <p className="mt-2 text-xs text-[var(--ink-soft)]">
               Prices and deposits are loaded from the live studio menu and update automatically.
             </p>

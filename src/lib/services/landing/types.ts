@@ -1,6 +1,7 @@
 import type { Locale } from "@/components/i18n/LanguageContext";
 
 export type LandingKey =
+  | "volume-lashes"
   | "lash-extensions"
   | "powder-brows"
   | "lip-blush"
@@ -12,7 +13,9 @@ export type LandingKey =
 
 export type LandingMatch =
   | { type: "category"; category: string }
-  | { type: "serviceSlugs"; slugs: string[] };
+  | { type: "serviceSlugs"; slugs: string[] }
+  /** Volume Set + Volume Fill. Matched by name or id because Volume Fill's slug may be empty. */
+  | { type: "volumeLashes" };
 
 export type LandingDefinition = {
   key: LandingKey;
