@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 import en from "@/messages/en.json";
 import tl from "@/messages/tl.json";
 import pa from "@/messages/pa.json";
@@ -80,7 +80,8 @@ export function LanguageProvider({
     void loadDbTranslations();
   }, []);
 
-  const setLocale = (newLocale: Locale) => {
+  // Memoize setLocale to prevent recreating callback reference on re-renders
+  const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem("mari_locale", newLocale);
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
@@ -88,50 +89,60 @@ export function LanguageProvider({
     setDir(targetDir);
     document.documentElement.setAttribute("dir", targetDir);
     document.documentElement.setAttribute("lang", newLocale);
-  };
+  }, []);
 
-  const t = (keyPath: string): string => {
-    // 1. Check MongoDB Overrides for active locale
-    if (dbOverrides[locale] && dbOverrides[locale][keyPath]) {
-      return dbOverrides[locale][keyPath];
-    }
-
-    // 2. Check Static JSON Dictionary for active locale
-    const parts = keyPath.split(".");
-    let current = staticDictionaries[locale] || staticDictionaries.en;
-    let foundInLocale = true;
-    for (const part of parts) {
-      if (current && typeof current === "object" && part in current) {
-        current = current[part];
-      } else {
-        foundInLocale = false;
-        break;
+  // Memoize translation lookup function to preserve reference stability
+  const t = useCallback(
+    (keyPath: string): string => {
+      // 1. Check MongoDB Overrides for active locale
+      if (dbOverrides[locale] && dbOverrides[locale][keyPath]) {
+        return dbOverrides[locale][keyPath];
       }
-    }
-    if (foundInLocale && typeof current === "string") {
-      return current;
-    }
 
-    // 3. Fallback to MongoDB Overrides for English
-    if (dbOverrides.en && dbOverrides.en[keyPath]) {
-      return dbOverrides.en[keyPath];
-    }
-
-    // 4. Fallback to Static JSON Dictionary for English
-    let fallback = staticDictionaries.en;
-    for (const p of parts) {
-      if (fallback && typeof fallback === "object" && p in fallback) {
-        fallback = fallback[p];
-      } else {
-        return keyPath;
+      // 2. Check Static JSON Dictionary for active locale
+      const parts = keyPath.split(".");
+      let current = staticDictionaries[locale] || staticDictionaries.en;
+      let foundInLocale = true;
+      for (const part of parts) {
+        if (current && typeof current === "object" && part in current) {
+          current = current[part];
+        } else {
+          foundInLocale = false;
+          break;
+        }
       }
-    }
+      if (foundInLocale && typeof current === "string") {
+        return current;
+      }
 
-    return typeof fallback === "string" ? fallback : keyPath;
-  };
+      // 3. Fallback to MongoDB Overrides for English
+      if (dbOverrides.en && dbOverrides.en[keyPath]) {
+        return dbOverrides.en[keyPath];
+      }
+
+      // 4. Fallback to Static JSON Dictionary for English
+      let fallback = staticDictionaries.en;
+      for (const p of parts) {
+        if (fallback && typeof fallback === "object" && p in fallback) {
+          fallback = fallback[p];
+        } else {
+          return keyPath;
+        }
+      }
+
+      return typeof fallback === "string" ? fallback : keyPath;
+    },
+    [locale, dbOverrides]
+  );
+
+  // Memoize context value object to prevent unnecessary cascading re-renders across all consumer components
+  const contextValue = useMemo(
+    () => ({ locale, setLocale, t, dir }),
+    [locale, setLocale, t, dir]
+  );
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, t, dir }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
