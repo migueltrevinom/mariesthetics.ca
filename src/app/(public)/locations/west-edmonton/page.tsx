@@ -50,9 +50,12 @@ type PreviewService = {
 async function getServices(): Promise<PreviewService[]> {
   try {
     await connectDb();
+    // Bolt Optimization: Projection via select() reduces memory allocation and payload size
+    // when fetching preview services on the West Edmonton location landing page.
     const services = await Service.find({ active: true })
       .sort({ sortOrder: 1 })
       .limit(6)
+      .select("name description durationMin priceCents")
       .lean();
     return services.map((s) => ({
       _id: String(s._id),
