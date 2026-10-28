@@ -2,47 +2,67 @@ import { format } from "date-fns";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Client, Service } from "@/lib/db/models";
-import { formatCad } from "@/lib/money";
 import { BookingActions } from "@/components/admin/BookingActions";
 import { BookingCalendar } from "@/components/admin/BookingCalendar";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminBookingsPage() {
-  let formattedServices: any[] = [];
-  let formattedClients: any[] = [];
-  let pendingConfirmations: any[] = [];
+  let formattedServices: Array<{
+    id: string;
+    name: string;
+    durationMin: number;
+    priceCents: number;
+    depositCents: number;
+  }> = [];
+  let formattedClients: Array<{
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+  }> = [];
+  let pendingConfirmations: unknown[] = [];
 
   try {
     await connectDb();
     
-    // 1. Fetch active services for selection dropdown
-    const dbServices = await Service.find({ active: true }).sort({ sortOrder: 1 });
+    // Performance optimization: Run read-only database queries in parallel using Promise.all,
+    // and use `.select()` projections with `.lean()` to avoid Mongoose document hydration overhead.
+    const [dbServices, dbClients, heldBookings] = await Promise.all([
+      Service.find({ active: true })
+        .select("name durationMin priceCents depositCents")
+        .sort({ sortOrder: 1 })
+        .lean(),
+      Client.find()
+        .select("name email phone")
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean(),
+      Booking.find({
+        status: "held",
+        depositMethod: "etransfer",
+      })
+        .sort({ createdAt: -1 })
+        .populate("serviceId")
+        .lean(),
+    ]);
+
     formattedServices = dbServices.map((s) => ({
       id: String(s._id),
-      name: s.name,
-      durationMin: s.durationMin,
-      priceCents: s.priceCents,
-      depositCents: s.depositCents,
+      name: String(s.name ?? ""),
+      durationMin: Number(s.durationMin ?? 0),
+      priceCents: Number(s.priceCents ?? 0),
+      depositCents: Number(s.depositCents ?? 0),
     }));
 
-    // 2. Fetch last 20 clients for initial selection
-    const dbClients = await Client.find().sort({ createdAt: -1 }).limit(20);
     formattedClients = dbClients.map((c) => ({
       id: String(c._id),
-      name: c.name,
-      email: c.email,
-      phone: c.phone || "",
+      name: String(c.name ?? ""),
+      email: String(c.email ?? ""),
+      phone: String(c.phone || ""),
     }));
 
-    // 3. Fetch held bookings that need manual verification (e.g. e-transfers awaiting confirmations)
-    pendingConfirmations = (await Booking.find({ 
-      status: "held", 
-      depositMethod: "etransfer" 
-    })
-      .sort({ createdAt: -1 })
-      .populate("serviceId")
-      .lean()) as any[];
+    pendingConfirmations = heldBookings as unknown[];
 
   } catch (err) {
     console.error("Database connection failed on Bookings page", err);
@@ -86,7 +106,8 @@ export default async function AdminBookingsPage() {
             </div>
 
             <div className="space-y-4 max-h-[500px] overflow-y-auto pr-1 scrollbar-thin text-left">
-              {pendingConfirmations.map((b) => {
+              {pendingConfirmations.map((item) => {
+                const b = item as Record<string, unknown>;
                 const service = b.serviceId as { name?: string } | null;
                 const guest = b.guest as { name?: string; email?: string } | null;
                 const summary = b.paymentSummary as {
