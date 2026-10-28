@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - Target Database Query Filtering in Service Landing Pages
+
+**Learning:** `loadServicesForLanding` fetched all active services and all public service images across the entire database into Node memory before doing JavaScript filtering for specific landing pages. On dynamic SSR pages like `/services/[slug]`, this created redundant DB network traffic and unneeded memory allocations.
+
+**Action:** Push filter conditions (`category` or `slug: { $in: ... }`) into MongoDB queries, and query auxiliary collections (`ServiceImage`) only for matching document IDs missing the necessary fields.
