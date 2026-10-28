@@ -11,10 +11,26 @@ import {
 const SLOT_STEP_MIN = 30;
 const BUFFER_MIN = 30; // Minimum recovery break between appointments
 
-export async function getAvailableSlots(serviceId: string, dayIso: string) {
+type ServiceInput = string | { _id: unknown; active?: boolean; durationMin: number };
+
+/**
+ * Calculates available booking slots for a given service and date ISO string.
+ *
+ * Performance optimization (Bolt): Accepts either a `serviceId` string or a pre-fetched `service` object.
+ * Passing a pre-fetched lean service object avoids redundant `Service.findById` database queries
+ * during multi-day availability scans or when the service is already retrieved by the caller.
+ */
+export async function getAvailableSlots(serviceOrId: ServiceInput, dayIso: string) {
   await connectDb();
-  const service = await Service.findById(serviceId).lean();
-  if (!service || !service.active) {
+  let service: { _id: unknown; active?: boolean; durationMin: number } | null = null;
+
+  if (typeof serviceOrId === "string") {
+    service = await Service.findById(serviceOrId).lean();
+  } else {
+    service = serviceOrId;
+  }
+
+  if (!service || service.active === false) {
     throw new Error("Service not found");
   }
 
