@@ -45,6 +45,8 @@ export async function loadServicesForLanding(
     return [];
   }
 
+  // Bypassing Mongoose document hydration overhead via .lean() on read-only queries
+  // reduces memory allocation and CPU overhead on public service landing SSR requests.
   const all = await Service.find({ active: true }).sort({ sortOrder: 1 }).lean();
 
   const imageMap = new Map<string, string[]>();
