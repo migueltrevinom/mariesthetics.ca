@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - Deduplicate SSR Service Landing Queries with React cache()
+
+**Learning:** In Next.js App Router, public pages using `generateMetadata` and Page components share queries (such as `loadServicesForLanding`). Without React `cache()`, duplicate MongoDB queries execute sequentially on every incoming request.
+
+**Action:** Wrap data fetching helpers shared between `generateMetadata` and Page components in `react`'s `cache()` function and project only required fields (`.select("serviceId url")`).
