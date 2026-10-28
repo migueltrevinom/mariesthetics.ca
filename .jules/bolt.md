@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-15 - Deduplicate and Database-Filter Service Landing Page Queries
+
+**Learning:** Marketing landing pages under `/services/[slug]` call `loadServicesForLanding` both in `generateMetadata` and the `Page` component during a single render pass. Unfiltered `Service.find` and `ServiceImage.find` reads fetched all database records into Node memory twice per page request.
+
+**Action:** Wrap shared server component data-loaders in React `cache()` and push category/slug matching down to the Mongoose query level with `.select()` field projections.
