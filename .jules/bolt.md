@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-09-03 - Targeted Translation Lookups on Blog Detail Pages
+
+**Learning:** Fetching all published blog posts (`BlogPost.find({ status: "published" })`) on individual blog post detail pages (`getPublishedBlogPostBySlug`) to construct a global in-memory translation map creates unnecessary database read traffic and unbounded memory allocations on every page view.
+
+**Action:** Always query by `translationGroupId` using its index when fetching language variants for a specific document rather than building an in-memory map of all documents.
