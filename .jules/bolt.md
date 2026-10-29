@@ -17,3 +17,9 @@
 **Learning:** `getEffectiveDaySchedule` is called on every availability lookup and only reads weekly hours / date overrides. Hydrating the singleton `CalendarSchedule` document on that path is wasted work.
 
 **Action:** Use `getSchedule({ lean: true })` for read-only schedule lookups. Keep the hydrated document on write paths that call `markModified` / `save`.
+
+## 2026-10-15 - Target Translation Group Lookups and Cache Server Component Data Fetching
+
+**Learning:** When fetching individual blog posts on Next.js App Router pages, loading a global translation map via `BlogPost.find({ status: "published" })` triggers full table scans across all published posts in the database. Furthermore, calling the data-fetching function in both `generateMetadata` and the Page component executes duplicate DB calls per request if not cached.
+
+**Action:** Query translation references by `translationGroupId` using the indexed `{ translationGroupId: 1, language: 1 }` field, and wrap shared data-fetching functions in React `cache()`.
