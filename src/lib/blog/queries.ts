@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost } from "@/lib/db/models";
 import type { Locale } from "@/components/i18n/LanguageContext";
@@ -23,34 +24,23 @@ const PUBLISHED_SORT = { publishedAt: -1 as const, createdAt: -1 as const };
 const LIST_SELECT =
   "title slug excerpt coverImage language category publishedAt translationGroupId";
 
-async function loadPublishedTranslationMap(): Promise<Map<string, BlogTranslationRef[]>> {
+/** Loads published translations only for a specific translation group instead of scanning the full collection. */
+async function loadPublishedTranslationsForGroup(
+  translationGroupId: string
+): Promise<BlogTranslationRef[]> {
   await connectDb();
-  const rows = await BlogPost.find({ status: "published" })
-    .select("translationGroupId language slug title")
+  const rows = await BlogPost.find({
+    status: "published",
+    $or: [{ translationGroupId }, { _id: translationGroupId }],
+  })
+    .select("language slug title")
     .lean();
 
-  const map = new Map<string, BlogTranslationRef[]>();
-  for (const row of rows) {
-    const gid = String(row.translationGroupId || row._id);
-    const entry: BlogTranslationRef = {
-      language: (row.language as BlogTranslationRef["language"]) || "en",
-      slug: String(row.slug),
-      title: String(row.title ?? ""),
-    };
-    if (!map.has(gid)) map.set(gid, []);
-    map.get(gid)!.push(entry);
-  }
-  return map;
-}
-
-function attachTranslations(
-  post: PublicBlogPost,
-  map: Map<string, BlogTranslationRef[]>
-): PublicBlogPost {
-  const translations = map.get(post.translationGroupId) || [
-    { language: post.language, slug: post.slug, title: post.title },
-  ];
-  return { ...post, translations };
+  return rows.map((row) => ({
+    language: (row.language as BlogTranslationRef["language"]) || "en",
+    slug: String(row.slug),
+    title: String(row.title ?? ""),
+  }));
 }
 
 export async function getPublishedBlogPosts(
@@ -116,53 +106,62 @@ export async function getPublishedBlogSlugs(): Promise<string[]> {
   }
 }
 
-export async function getPublishedBlogPostBySlug(slug: string): Promise<PublicBlogPost | null> {
-  const normalized = normalizeBlogSlugForLookup(slug);
-  if (!normalized) return null;
+/**
+ * Fetches a published blog post by slug.
+ * Wrapped in React cache() to deduplicate DB queries between generateMetadata and Page components.
+ */
+export const getPublishedBlogPostBySlug = cache(
+  async (slug: string): Promise<PublicBlogPost | null> => {
+    const normalized = normalizeBlogSlugForLookup(slug);
+    if (!normalized) return null;
 
-  if (BLOG_DEV_PREVIEW_ENABLED) {
-    const post = getPreviewPostBySlug(normalized);
-    if (!post) return null;
-    const resolvedPromo = resolveBlogPromoPreview({
-      promoConfig: post.promoConfig,
-      serviceIds: post.serviceIds,
-      language: post.language,
-      mockCoupon: post.slug.includes("aftercare") ? PREVIEW_MOCK_COUPON : null,
-    });
-    return {
-      ...post,
-      translations: getPreviewTranslationsForPost(post.translationGroupId),
-      resolvedPromo,
-    };
+    if (BLOG_DEV_PREVIEW_ENABLED) {
+      const post = getPreviewPostBySlug(normalized);
+      if (!post) return null;
+      const resolvedPromo = resolveBlogPromoPreview({
+        promoConfig: post.promoConfig,
+        serviceIds: post.serviceIds,
+        language: post.language,
+        mockCoupon: post.slug.includes("aftercare") ? PREVIEW_MOCK_COUPON : null,
+      });
+      return {
+        ...post,
+        translations: getPreviewTranslationsForPost(post.translationGroupId),
+        resolvedPromo,
+      };
+    }
+
+    try {
+      await connectDb();
+
+      const populate = { path: "serviceIds", select: "name slug priceCents category" };
+
+      const doc = await BlogPost.findOne({
+        slug: normalized,
+        status: "published",
+      })
+        .populate(populate)
+        .lean();
+
+      if (!doc) return null;
+
+      const post = serializeBlogPost(doc as Record<string, unknown>);
+      const groupTranslations = await loadPublishedTranslationsForGroup(post.translationGroupId);
+      const translations = groupTranslations.length
+        ? groupTranslations
+        : [{ language: post.language, slug: post.slug, title: post.title }];
+      const withTranslations = { ...post, translations };
+      const resolvedPromo = await resolveBlogPromo({
+        promoConfig: withTranslations.promoConfig,
+        serviceIds: withTranslations.serviceIds,
+        language: withTranslations.language,
+      });
+      return { ...withTranslations, resolvedPromo };
+    } catch {
+      return null;
+    }
   }
-
-  try {
-    await connectDb();
-
-    const populate = { path: "serviceIds", select: "name slug priceCents category" };
-
-    const doc = await BlogPost.findOne({
-      slug: normalized,
-      status: "published",
-    })
-      .populate(populate)
-      .lean();
-
-    if (!doc) return null;
-
-    const map = await loadPublishedTranslationMap();
-    const post = serializeBlogPost(doc as Record<string, unknown>);
-    const withTranslations = attachTranslations(post, map);
-    const resolvedPromo = await resolveBlogPromo({
-      promoConfig: withTranslations.promoConfig,
-      serviceIds: withTranslations.serviceIds,
-      language: withTranslations.language,
-    });
-    return { ...withTranslations, resolvedPromo };
-  } catch {
-    return null;
-  }
-}
+);
 
 export type PublishedBlogDiscoveryRow = {
   slug: string;
