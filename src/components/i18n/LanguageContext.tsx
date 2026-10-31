@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 import en from "@/messages/en.json";
 import tl from "@/messages/tl.json";
 import pa from "@/messages/pa.json";
@@ -24,7 +24,7 @@ export const LANGUAGES: LanguageOption[] = [
   { code: "es", label: "Español", flag: "🇲🇽", dir: "ltr" },
 ];
 
-const staticDictionaries: Record<Locale, any> = { en, tl, pa, ar, es };
+const staticDictionaries: Record<Locale, unknown> = { en, tl, pa, ar, es };
 
 interface LanguageContextType {
   locale: Locale;
@@ -80,7 +80,9 @@ export function LanguageProvider({
     void loadDbTranslations();
   }, []);
 
-  const setLocale = (newLocale: Locale) => {
+  // ⚡ Bolt Optimization:
+  // Memoize `setLocale` callback so its reference remains stable across renders.
+  const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem("mari_locale", newLocale);
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
@@ -88,9 +90,12 @@ export function LanguageProvider({
     setDir(targetDir);
     document.documentElement.setAttribute("dir", targetDir);
     document.documentElement.setAttribute("lang", newLocale);
-  };
+  }, []);
 
-  const t = (keyPath: string): string => {
+  // ⚡ Bolt Optimization:
+  // Memoize translation function `t` to maintain reference equality between renders
+  // unless the active locale or dynamic overrides from MongoDB change.
+  const t = useCallback((keyPath: string): string => {
     // 1. Check MongoDB Overrides for active locale
     if (dbOverrides[locale] && dbOverrides[locale][keyPath]) {
       return dbOverrides[locale][keyPath];
@@ -128,10 +133,18 @@ export function LanguageProvider({
     }
 
     return typeof fallback === "string" ? fallback : keyPath;
-  };
+  }, [locale, dbOverrides]);
+
+  // ⚡ Bolt Optimization:
+  // Memoize context value object to prevent unnecessary cascading re-renders across
+  // all 40+ consuming components whenever LanguageProvider re-renders.
+  const value = useMemo(
+    () => ({ locale, setLocale, t, dir }),
+    [locale, setLocale, t, dir]
+  );
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, t, dir }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );
