@@ -1,36 +1,40 @@
 import "@/lib/timezone";
+import { isProductionRuntime, resolveAppEnv } from "@/lib/runtimeEnv";
 
-export function getAppUrl(req?: Request): string {
-  const isDevelopment =
-    process.env.ENV === "development" ||
-    process.env.NODE_ENV === "development" ||
-    process.env.NODE_ENV !== "production";
+function readRequestHost(req?: Request): string | null {
+  if (!req) return null;
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const host = req.headers.get("host");
+  const targetHost = (forwardedHost || host || "").split(",")[0]?.trim() ?? "";
+  return targetHost || null;
+}
 
-  if (isDevelopment) {
-    if (req) {
-      const forwardedHost = req.headers.get("x-forwarded-host");
-      const host = req.headers.get("host");
-      const targetHost = forwardedHost || host;
-      if (targetHost) {
-        const proto = req.headers.get("x-forwarded-proto") || "http";
-        return `${proto}://${targetHost}`.replace(/\/$/, "");
-      }
-    }
-
-    const devUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (devUrl && (devUrl.includes("localhost") || devUrl.includes("127.0.0.1"))) {
-      return devUrl.replace(/\/$/, "");
-    }
-    return "http://localhost:3000";
-  }
-
-  // Production environment: route to production URL
+function canonicalProductionUrl(): string {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL;
-  if (siteUrl && !siteUrl.includes("localhost")) {
+  if (siteUrl && !siteUrl.includes("localhost") && !siteUrl.includes("127.0.0.1")) {
     return siteUrl.replace(/\/$/, "");
   }
-
   return "https://mariesthetics.ca";
+}
+
+export function getAppUrl(req?: Request): string {
+  const requestHost = readRequestHost(req);
+
+  // Live site links stay on the real origin even if ENV=development.
+  if (isProductionRuntime(requestHost)) {
+    return canonicalProductionUrl();
+  }
+
+  if (requestHost) {
+    const proto = (req?.headers.get("x-forwarded-proto") || "http").split(",")[0]?.trim() || "http";
+    return `${proto}://${requestHost}`.replace(/\/$/, "");
+  }
+
+  const devUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (devUrl && (devUrl.includes("localhost") || devUrl.includes("127.0.0.1"))) {
+    return devUrl.replace(/\/$/, "");
+  }
+  return "http://localhost:3000";
 }
 
 export const config = {
@@ -46,7 +50,9 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET ?? "dev-insecure-secret-change-me",
   otpExpiryMinutes: Number(process.env.OTP_EXPIRY_MINUTES ?? 10),
   holdExpiryHours: Number(process.env.HOLD_EXPIRY_HOURS ?? 2),
-  resendApiKey: process.env.RESEND_API_KEY ?? "",
+  get resendApiKey(): string {
+    return process.env.RESEND_API_KEY ?? "";
+  },
   resendFrom:
     process.env.RESEND_FROM_EMAIL ??
     "Mari Esthetics <bookings@mariesthetics.ca>",
@@ -59,11 +65,17 @@ export const config = {
   twilioFromNumber: process.env.TWILIO_TESTING_NUMBER ?? process.env.TWILIO_FROM_NUMBER ?? "",
   // No fallback: cron endpoints fail closed when CRON_SECRET is missing.
   cronSecret: process.env.CRON_SECRET ?? "",
-  mailgunApiKey: process.env.MAILGUN_API_KEY ?? "",
+  get mailgunApiKey(): string {
+    return process.env.MAILGUN_API_KEY ?? "";
+  },
   mailgunDomain: process.env.MAILGUN_DOMAIN ?? "mg.mariesthetics.ca",
   mailgunFromEmail: process.env.MAILGUN_FROM_EMAIL ?? "Mari Esthetics <bookings@mariesthetics.ca>",
-  mailgunDevEmail: process.env.MAILGUN_DEV_EMAIL ?? "",
-  env: process.env.ENV ?? process.env.NODE_ENV ?? "development",
+  get mailgunDevEmail(): string {
+    return process.env.MAILGUN_DEV_EMAIL ?? "";
+  },
+  get env(): string {
+    return resolveAppEnv();
+  },
   otpDefaultChannel: (process.env.OTP_DEFAULT_CHANNEL ?? "email") as
     | "email"
     | "sms",
