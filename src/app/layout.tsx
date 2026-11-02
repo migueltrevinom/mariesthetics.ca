@@ -14,6 +14,8 @@ import {
 
 import { LanguageProvider } from "@/components/i18n/LanguageContext";
 import { LocaleRouteSync } from "@/components/i18n/LocaleRouteSync";
+import { AttributionCapture } from "@/components/attribution/AttributionCapture";
+import { SiteAnalytics } from "@/components/attribution/SiteAnalytics";
 
 const display = Fraunces({
   variable: "--font-display",
@@ -139,6 +141,8 @@ export default async function RootLayout({
           </a>
           {children}
           <JsonLd data={localBusinessJsonLd({ openingHours: await getOpeningHoursSpec() })} />
+          <AttributionCapture />
+          <SiteAnalytics />
         </LanguageProvider>
       </body>
     </html>

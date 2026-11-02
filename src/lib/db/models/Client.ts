@@ -1,4 +1,5 @@
 import { Schema, models, model, type InferSchemaType, type Types } from "mongoose";
+import { BookingSourceSchema } from "@/lib/attribution/sourceSchema";
 
 const ClientSchema = new Schema(
   {
@@ -24,6 +25,8 @@ const ClientSchema = new Schema(
       expiresAt: { type: Date, default: null },
       attempts: { type: Number, default: 0 },
     },
+    /** First-booking attribution. Left unset when the client already has one. */
+    source: { type: BookingSourceSchema },
   },
   { timestamps: true },
 );
@@ -40,8 +43,11 @@ export type ClientDoc = InferSchemaType<typeof ClientSchema> & {
   };
 };
 
-if (models.Client && !models.Client.schema.paths["otp.codeHash"]) {
-  delete (models as any).Client;
+if (
+  models.Client &&
+  (!models.Client.schema.paths["otp.codeHash"] || !models.Client.schema.paths.source)
+) {
+  delete (models as { Client?: unknown }).Client;
 }
 
 export const Client = models.Client || model("Client", ClientSchema);

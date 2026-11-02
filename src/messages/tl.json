@@ -133,7 +133,19 @@
     "phoneLabel": "Numero ng Telepono",
     "couponLabel": "Promo o Gift Card Code",
     "apply": "I-apply",
-    "selectSlot": "Pumili ng Oras →"
+    "selectSlot": "Pumili ng Oras →",
+    "heardAboutLabel": "Paano mo kami nalaman?",
+    "optional": "opsyonal",
+    "heardAboutPlaceholder": "Pumili kung gusto",
+    "heardAboutDetailPlaceholder": "May iba pa? (opsyonal)",
+    "heardGoogleSearch": "Google search",
+    "heardGoogleMaps": "Google Maps",
+    "heardInstagram": "Instagram",
+    "heardFacebook": "Facebook",
+    "heardTikTok": "TikTok",
+    "heardFriend": "Kaibigan o pamilya",
+    "heardPickleball": "Pickleball / nagkakilala nang personal",
+    "heardWalkedBy": "Nadaanan / iba pa"
   },
   "giftCardsPage": {
     "eyebrow": "Digital Certificates at Vouchers",

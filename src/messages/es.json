@@ -133,7 +133,19 @@
     "phoneLabel": "Número de Teléfono Móvil",
     "couponLabel": "Código de Promoción o Tarjeta de Regalo",
     "apply": "Aplicar",
-    "selectSlot": "Seleccionar Horario →"
+    "selectSlot": "Seleccionar Horario →",
+    "heardAboutLabel": "¿Cómo nos conociste?",
+    "optional": "opcional",
+    "heardAboutPlaceholder": "Elige si quieres",
+    "heardAboutDetailPlaceholder": "¿Algo más? (opcional)",
+    "heardGoogleSearch": "Búsqueda en Google",
+    "heardGoogleMaps": "Google Maps",
+    "heardInstagram": "Instagram",
+    "heardFacebook": "Facebook",
+    "heardTikTok": "TikTok",
+    "heardFriend": "Amigo o familiar",
+    "heardPickleball": "Pickleball / nos conocimos en persona",
+    "heardWalkedBy": "Pasé por aquí / otro"
   },
   "giftCardsPage": {
     "eyebrow": "Certificados y Vales Digitales",
