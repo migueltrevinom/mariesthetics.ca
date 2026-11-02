@@ -53,12 +53,22 @@ describe("deriveChannel", () => {
 
   it("reads AI assistants, including Gemini rather than Google search", () => {
     assert.equal(deriveChannel({ referrerHost: "chatgpt.com" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerHost: "www.chatgpt.com" }), "AI assistant");
     assert.equal(deriveChannel({ referrerHost: "chat.openai.com" }), "AI assistant");
     assert.equal(deriveChannel({ referrerHost: "www.perplexity.ai" }), "AI assistant");
     assert.equal(deriveChannel({ referrerUrl: "https://gemini.google.com/app" }), "AI assistant");
     assert.equal(deriveChannel({ referrerHost: "copilot.microsoft.com" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerHost: "grok.com" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerHost: "www.grok.com" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerUrl: "https://x.com/i/grok" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerUrl: "https://x.com/i/grok/" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerHost: "claude.ai" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerHost: "www.meta.ai" }), "AI assistant");
     assert.equal(deriveChannel({ referrerUrl: "https://www.bing.com/chat?q=facial" }), "AI assistant");
     assert.equal(deriveChannel({ utmSource: "copilot" }), "AI assistant");
+    assert.equal(deriveChannel({ utmSource: "chatgpt.com" }), "AI assistant");
+    assert.equal(deriveChannel({ utmSource: "ChatGPT.com" }), "AI assistant");
+    assert.equal(deriveChannel({ referrerUrl: "https://x.com/mariesthetics" }), "Referral");
   });
 
   it("reads paid ads from click ids or a paid medium", () => {
@@ -234,6 +244,37 @@ describe("resolveBookingSource", () => {
     assert.equal(source?.channel, "");
     assert.equal(source?.heardAbout, "pickleball");
     assert.equal(source?.heardAboutDetail, "Tuesday league");
+  });
+
+  it("counts a self-reported AI answer as the same channel as an AI referrer", () => {
+    const fromAnswer = resolveBookingSource({ heardAbout: "ai_assistant" });
+    assert.equal(fromAnswer?.channel, "AI assistant");
+    assert.equal(fromAnswer?.heardAbout, "ai_assistant");
+    assert.equal(heardAboutLabel(fromAnswer?.heardAbout), "AI assistant (ChatGPT, Gemini, Grok, etc.)");
+
+    const fromReferrer = resolveBookingSource({
+      firstTouch: {
+        referrerHost: "chatgpt.com",
+        referrerUrl: "https://chatgpt.com/",
+        landingPath: "/",
+      },
+    });
+    assert.equal(fromReferrer?.channel, fromAnswer?.channel);
+    assert.equal(fromReferrer?.heardAbout, "");
+
+    const both = resolveBookingSource({
+      heardAbout: "ai_assistant",
+      heardAboutDetail: "Asked Grok",
+      firstTouch: {
+        referrerHost: "www.google.com",
+        referrerUrl: "https://www.google.com/search?q=mari+esthetics",
+        landingPath: "/book",
+      },
+    });
+    assert.equal(both?.channel, "AI assistant");
+    assert.equal(both?.heardAbout, "ai_assistant");
+    assert.equal(both?.heardAboutDetail, "Asked Grok");
+    assert.equal(both?.referrerHost, "www.google.com");
   });
 
   it("drops junk instead of failing the booking", () => {

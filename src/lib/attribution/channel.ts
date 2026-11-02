@@ -23,6 +23,7 @@ export type AttributionChannel = (typeof ATTRIBUTION_CHANNELS)[number];
 export const HEARD_ABOUT_OPTIONS = [
   "google_search",
   "google_maps",
+  "ai_assistant",
   "instagram",
   "facebook",
   "tiktok",
@@ -37,6 +38,7 @@ export type HeardAboutOption = (typeof HEARD_ABOUT_OPTIONS)[number];
 export const HEARD_ABOUT_LABELS: Record<HeardAboutOption, string> = {
   google_search: "Google search",
   google_maps: "Google Maps",
+  ai_assistant: "AI assistant (ChatGPT, Gemini, Grok, etc.)",
   instagram: "Instagram",
   facebook: "Facebook",
   tiktok: "TikTok",
@@ -164,11 +166,38 @@ function isEmail(source: string, medium: string): boolean {
   return EMAIL_MEDIUMS.has(medium) || EMAIL_SOURCES.has(source);
 }
 
+const AI_SOURCES = new Set([
+  "chatgpt",
+  "chatgpt.com",
+  "openai",
+  "chat.openai.com",
+  "perplexity",
+  "perplexity.ai",
+  "gemini",
+  "gemini.google.com",
+  "copilot",
+  "copilot.microsoft.com",
+  "grok",
+  "grok.com",
+  "claude",
+  "claude.ai",
+  "meta.ai",
+]);
+
+function isGrokOnX(host: string, path: string): boolean {
+  const onX = host === "x.com" || host.endsWith(".x.com");
+  if (!onX) return false;
+  const normalized = path.toLowerCase().replace(/\/+$/, "") || "/";
+  return normalized === "/i/grok" || normalized.startsWith("/i/grok/");
+}
+
 function isAi(host: string, path: string, source: string): boolean {
-  if (["chatgpt", "openai", "perplexity", "gemini", "copilot"].includes(source)) return true;
+  if (AI_SOURCES.has(source)) return true;
   if (hostIs(host, "chatgpt.com") || hostIs(host, "chat.openai.com")) return true;
   if (hostIs(host, "perplexity.ai")) return true;
+  if (hostIs(host, "grok.com") || hostIs(host, "claude.ai") || hostIs(host, "meta.ai")) return true;
   if (host === "gemini.google.com" || host.endsWith(".gemini.google.com")) return true;
+  if (isGrokOnX(host, path)) return true;
   if (
     host === "copilot.microsoft.com" ||
     host.endsWith(".copilot.microsoft.com") ||
@@ -179,6 +208,16 @@ function isAi(host: string, path: string, source: string): boolean {
   }
   if (hostIs(host, "bing.com") && (path === "/chat" || path.startsWith("/chat/"))) return true;
   return false;
+}
+
+/**
+ * Channel stored on the booking and used for the admin counts.
+ * A self-reported AI answer uses the same "AI assistant" name as an AI referrer,
+ * so those bookings add up in one row. The answer itself stays on heardAbout.
+ */
+export function channelForBooking(derivedChannel: string, heardAbout: string): string {
+  if (heardAbout === "ai_assistant") return "AI assistant";
+  return derivedChannel;
 }
 
 function isInstagram(host: string, source: string): boolean {

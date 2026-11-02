@@ -1,6 +1,7 @@
 import {
   HEARD_ABOUT_OPTIONS,
   adClickNetwork,
+  channelForBooking,
   clip,
   heardAboutLabel,
   type HeardAboutOption,
@@ -71,9 +72,10 @@ export function resolveBookingSource(
 
     const primary = (first && touchHasSignal(first) ? first : null) || last;
     const adClick = adClickNetwork(primary || {});
+    const derivedChannel = primary?.channel || "";
 
     return {
-      channel: primary?.channel || "",
+      channel: channelForBooking(derivedChannel, heardAbout),
       heardAbout,
       heardAboutDetail,
       landingPath: primary?.landingPath || "",
