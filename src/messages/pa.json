@@ -133,7 +133,19 @@
     "phoneLabel": "ਮੋਬਾਈਲ ਫੋਨ ਨੰਬਰ",
     "couponLabel": "ਪ੍ਰੋਮੋ ਜਾਂ ਗਿਫਟ ਕਾਰਡ ਕੋਡ",
     "apply": "ਲਾਗੂ ਕਰੋ",
-    "selectSlot": "ਸਮਾਂ ਚੁਣੋ →"
+    "selectSlot": "ਸਮਾਂ ਚੁਣੋ →",
+    "heardAboutLabel": "ਤੁਸੀਂ ਸਾਡੇ ਬਾਰੇ ਕਿਵੇਂ ਸੁਣਿਆ?",
+    "optional": "ਵਿਕਲਪਿਕ",
+    "heardAboutPlaceholder": "ਚਾਹੋ ਤਾਂ ਚੁਣੋ",
+    "heardAboutDetailPlaceholder": "ਹੋਰ ਕੁਝ? (ਵਿਕਲਪਿਕ)",
+    "heardGoogleSearch": "ਗੂਗਲ ਖੋਜ",
+    "heardGoogleMaps": "ਗੂਗਲ ਮੈਪਸ",
+    "heardInstagram": "ਇੰਸਟਾਗ੍ਰਾਮ",
+    "heardFacebook": "ਫੇਸਬੁੱਕ",
+    "heardTikTok": "ਟਿਕਟੌਕ",
+    "heardFriend": "ਦੋਸਤ ਜਾਂ ਪਰਿਵਾਰ",
+    "heardPickleball": "ਪਿਕਲਬਾਲ / ਮਿਲੇ ਹੋਏ",
+    "heardWalkedBy": "ਲੰਘਦਿਆਂ / ਹੋਰ"
   },
   "giftCardsPage": {
     "eyebrow": "ਡਿਜੀਟਲ ਗਿਫਟ ਕਾਰਡ",

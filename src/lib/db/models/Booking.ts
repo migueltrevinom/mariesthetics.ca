@@ -1,4 +1,5 @@
 import { Schema, models, model, type InferSchemaType, type Types } from "mongoose";
+import { BookingSourceSchema } from "@/lib/attribution/sourceSchema";
 
 const GuestSnapshotSchema = new Schema(
   {
@@ -56,6 +57,8 @@ const BookingSchema = new Schema(
     reminder2hSent: { type: Boolean, default: false, index: true },
     confirmationEmailSentAt: { type: Date, default: null },
     allowLateReschedule: { type: Boolean, default: false },
+    /** How this booking was acquired. Absent on bookings created before attribution shipped. */
+    source: { type: BookingSourceSchema },
   },
   { timestamps: true },
 );
@@ -65,5 +68,9 @@ BookingSchema.index({ start: 1, end: 1, status: 1 });
 export type BookingDoc = InferSchemaType<typeof BookingSchema> & {
   _id: Types.ObjectId;
 };
+
+if (models.Booking && !models.Booking.schema.paths.source) {
+  delete (models as { Booking?: unknown }).Booking;
+}
 
 export const Booking = models.Booking || model("Booking", BookingSchema);

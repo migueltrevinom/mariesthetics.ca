@@ -133,7 +133,19 @@
     "phoneLabel": "رقم الهاتف المحمول",
     "couponLabel": "رمز التخفيض أو بطاقة الهدية",
     "apply": "تطبيق",
-    "selectSlot": "اختيار الوقت ←"
+    "selectSlot": "اختيار الوقت ←",
+    "heardAboutLabel": "كيف سمعتِ عنا؟",
+    "optional": "اختياري",
+    "heardAboutPlaceholder": "اختاري إن أحببت",
+    "heardAboutDetailPlaceholder": "هل هناك شيء آخر؟ (اختياري)",
+    "heardGoogleSearch": "بحث Google",
+    "heardGoogleMaps": "خرائط Google",
+    "heardInstagram": "إنستغرام",
+    "heardFacebook": "فيسبوك",
+    "heardTikTok": "تيك توك",
+    "heardFriend": "صديق أو عائلة",
+    "heardPickleball": "بيكلبول / التقينا شخصيًا",
+    "heardWalkedBy": "مررت من هنا / أخرى"
   },
   "giftCardsPage": {
     "eyebrow": "بطاقات الهدايا والقسائم الرقمية",

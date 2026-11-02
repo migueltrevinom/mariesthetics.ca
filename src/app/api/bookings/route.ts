@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { addHours, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { z } from "zod";
+import { resolveBookingSource, sourceHasSignal, type StoredSource } from "@/lib/attribution/normalize";
+import { FIRST_TOUCH_COOKIE, LAST_TOUCH_COOKIE } from "@/lib/attribution/touch";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Client, Coupon, Payment, Service } from "@/lib/db/models";
 import { assertSlotFree } from "@/lib/booking/availability";
@@ -76,10 +79,55 @@ export async function GET(req: Request) {
 	}
 }
 
+async function readBookingSource(raw: unknown): Promise<StoredSource | null> {
+	try {
+		if (!raw || typeof raw !== "object" || !("source" in raw) || !raw.source) return null;
+		let cookieFirst: string | null = null;
+		let cookieLast: string | null = null;
+		try {
+			const jar = await cookies();
+			cookieFirst = jar.get(FIRST_TOUCH_COOKIE)?.value ?? null;
+			cookieLast = jar.get(LAST_TOUCH_COOKIE)?.value ?? null;
+		} catch {
+			// The visit cookies are optional. A booking still goes through.
+		}
+		const source = resolveBookingSource(raw.source, cookieFirst, cookieLast);
+		return sourceHasSignal(source) ? source : null;
+	} catch (err) {
+		console.error("Attribution skipped", err);
+		return null;
+	}
+}
+
+async function saveClientSourceIfEmpty(clientId: string | null, source: StoredSource | null) {
+	if (!clientId || !source) return;
+	try {
+		await Client.updateOne(
+			{
+				_id: clientId,
+				$or: [
+					{ source: { $exists: false } },
+					{ source: null },
+					{
+						"source.channel": { $in: [null, ""] },
+						"source.heardAbout": { $in: [null, ""] },
+						"source.landingPath": { $in: [null, ""] },
+					},
+				],
+			},
+			{ $set: { source } },
+		);
+	} catch (err) {
+		console.error("Client source skipped", err);
+	}
+}
+
 export async function POST(req: Request) {
 	try {
 		await expireStaleHolds();
-		const body = createSchema.parse(await req.json());
+		const raw = await req.json();
+		const body = createSchema.parse(raw);
+		const source = await readBookingSource(raw);
 		await connectDb();
 
 		const service = await Service.findById(body.serviceId);
@@ -291,7 +339,10 @@ export async function POST(req: Request) {
 				discountCents,
 				balanceDueCents,
 			},
+			...(source ? { source } : {}),
 		});
+
+		await saveClientSourceIfEmpty(clientId, source);
 
 		if (isConfirmed && depositCents > 0) {
 			await Payment.create({
