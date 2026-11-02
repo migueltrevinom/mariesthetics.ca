@@ -40,6 +40,7 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
 const HEARD_ABOUT_LABEL_KEYS: Record<HeardAboutOption, string> = {
   google_search: "bookingWizard.heardGoogleSearch",
   google_maps: "bookingWizard.heardGoogleMaps",
+  ai_assistant: "bookingWizard.heardAi",
   instagram: "bookingWizard.heardInstagram",
   facebook: "bookingWizard.heardFacebook",
   tiktok: "bookingWizard.heardTikTok",
