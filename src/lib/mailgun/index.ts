@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import ejs from "ejs";
 import { config } from "@/lib/config";
+import { resolveOutboundEmail } from "@/lib/email/devRedirect";
 
 export interface AttachmentOption {
   filename: string;
@@ -16,6 +17,8 @@ export interface SendEmailOptions {
   html?: string;
   data?: Record<string, any>;
   attachment?: AttachmentOption;
+  /** Request Host / x-forwarded-host. The real site host never uses the dev redirect. */
+  host?: string | null;
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
@@ -28,15 +31,10 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
       return { success: true, messageId: "dev-stub-id" };
     }
 
-    // 2. Dev environment email redirection if MAILGUN_DEV_EMAIL is configured
-    const isDev = process.env.ENV === "development" || process.env.NODE_ENV === "development" || config.env === "development";
-    const devEmail = isDev && config.mailgunDevEmail ? config.mailgunDevEmail.trim() : null;
-    const recipient = devEmail || to;
-    const finalSubject = devEmail ? `[DEV: originally to ${to}] ${subject}` : subject;
-
-    if (devEmail) {
-      console.info(`[Mailgun DEV Mode] Redirecting email originally destined for "${to}" to "${devEmail}"`);
-    }
+    // Dev inbox redirect is refused when NODE_ENV, Vercel production, or the site host says this is production.
+    const routed = await resolveOutboundEmail(to, subject, options.host);
+    const recipient = routed.to;
+    const finalSubject = routed.subject;
 
     let html = rawHtml || "";
     if (!html && templateName) {
