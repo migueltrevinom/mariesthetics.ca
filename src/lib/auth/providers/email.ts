@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { config } from "@/lib/config";
+import { resolveOutboundEmail } from "@/lib/email/devRedirect";
 import { sendEmail } from "@/lib/mailgun";
 import type { OtpDeliveryProvider, SendOtpInput } from "./types";
 
@@ -14,7 +15,7 @@ export const emailOtpProvider: OtpDeliveryProvider = {
         ? "Mari Esthetics management code"
         : "Your Mari Esthetics login code";
 
-    // 1. If Mailgun is configured, send via Mailgun (which respects MAILGUN_DEV_EMAIL redirect)
+    // 1. Mailgun. sendEmail applies the dev-mailbox redirect only outside production.
     if (config.mailgunApiKey) {
       const emailResult = await sendEmail({
         to: target,
@@ -43,18 +44,15 @@ export const emailOtpProvider: OtpDeliveryProvider = {
       </div>
     `;
 
-    // 2. Fallback to Resend if configured
+    // 2. Fallback to Resend if configured. Same production guard as Mailgun.
     if (config.resendApiKey) {
-      const isDev = process.env.ENV === "development" || process.env.NODE_ENV === "development" || config.env === "development";
-      const devEmail = isDev && config.mailgunDevEmail ? config.mailgunDevEmail.trim() : null;
-      const recipient = devEmail || target;
-      const finalSubject = devEmail ? `[DEV: originally to ${target}] ${subject}` : subject;
+      const routed = await resolveOutboundEmail(target, subject);
 
       const resend = new Resend(config.resendApiKey);
       const { error } = await resend.emails.send({
         from: config.resendFrom,
-        to: recipient,
-        subject: finalSubject,
+        to: routed.to,
+        subject: routed.subject,
         html,
       });
 
@@ -65,8 +63,9 @@ export const emailOtpProvider: OtpDeliveryProvider = {
     }
 
     // 3. Fallback: log to console in development
-    const isDev = process.env.ENV === "development" || process.env.NODE_ENV === "development" || config.env === "development";
-    const devEmail = isDev && config.mailgunDevEmail ? config.mailgunDevEmail.trim() : null;
-    console.info(`[OTP:email] Target: ${target} (Dev redirect: ${devEmail || "none"}) → code: ${code} (${purpose})`);
+    const routed = await resolveOutboundEmail(target, subject);
+    console.info(
+      `[OTP:email] Target: ${target} (Dev redirect: ${routed.redirected ? routed.to : "none"}) → code: ${code} (${purpose})`,
+    );
   },
 };
