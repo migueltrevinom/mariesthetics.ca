@@ -136,6 +136,18 @@
     "phoneLabel": "Mobile Phone Number",
     "couponLabel": "Promo Code or Gift Card",
     "apply": "Apply",
-    "selectSlot": "Select Time Slot →"
+    "selectSlot": "Select Time Slot →",
+    "heardAboutLabel": "How did you hear about us?",
+    "optional": "optional",
+    "heardAboutPlaceholder": "Select if you'd like",
+    "heardAboutDetailPlaceholder": "Anything else? (optional)",
+    "heardGoogleSearch": "Google search",
+    "heardGoogleMaps": "Google Maps",
+    "heardInstagram": "Instagram",
+    "heardFacebook": "Facebook",
+    "heardTikTok": "TikTok",
+    "heardFriend": "Friend or family",
+    "heardPickleball": "Pickleball / met in person",
+    "heardWalkedBy": "Walked by / other"
   }
 }

@@ -1,10 +1,11 @@
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { connectDb } from "@/lib/db/connect";
 import { Booking, Client, Service } from "@/lib/db/models";
 import { formatCad } from "@/lib/money";
 import { BookingActions } from "@/components/admin/BookingActions";
 import { BookingCalendar } from "@/components/admin/BookingCalendar";
+import { BookingSourceSummary, type ChannelCount } from "@/components/admin/BookingSourceSummary";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,7 @@ export default async function AdminBookingsPage() {
   let formattedServices: any[] = [];
   let formattedClients: any[] = [];
   let pendingConfirmations: any[] = [];
+  let sourceRows: ChannelCount[] = [];
 
   try {
     await connectDb();
@@ -44,6 +46,34 @@ export default async function AdminBookingsPage() {
       .populate("serviceId")
       .lean()) as any[];
 
+    try {
+      const since90 = subDays(new Date(), 90);
+      const since30 = subDays(new Date(), 30);
+      const grouped = await Booking.aggregate<{ _id: string; days90: number; days30: number }>([
+        { $match: { createdAt: { $gte: since90 }, status: { $ne: "expired" } } },
+        {
+          $group: {
+            _id: { $ifNull: ["$source.channel", ""] },
+            days90: { $sum: 1 },
+            days30: { $sum: { $cond: [{ $gte: ["$createdAt", since30] }, 1, 0] } },
+          },
+        },
+      ]);
+      sourceRows = grouped
+        .map((row) => ({
+          channel: row._id?.trim() ? row._id : "Not recorded",
+          days30: row.days30,
+          days90: row.days90,
+        }))
+        .sort((a, b) => {
+          if (a.channel === "Not recorded") return 1;
+          if (b.channel === "Not recorded") return -1;
+          return b.days90 - a.days90 || a.channel.localeCompare(b.channel);
+        });
+    } catch (summaryErr) {
+      console.error("Booking source summary skipped", summaryErr);
+    }
+
   } catch (err) {
     console.error("Database connection failed on Bookings page", err);
   }
@@ -60,6 +90,8 @@ export default async function AdminBookingsPage() {
             Manage booking calendars, manual scheduling, and e-Transfer deposits.
           </p>
         </div>
+
+        <BookingSourceSummary rows={sourceRows} />
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
@@ -112,6 +144,11 @@ export default async function AdminBookingsPage() {
                       <p className="text-[10px] text-[var(--ink-soft)] truncate">
                         {guest?.email}
                       </p>
+                      {b.source?.channel ? (
+                        <p className="text-[10px] text-[#c8a86b] mt-1.5">
+                          From {String(b.source.channel)}
+                        </p>
+                      ) : null}
                       {Boolean(b.etransferNote) && (
                         <div className="mt-2 text-[10px] border border-[#9dceb8]/20 bg-[#9dceb8]/5 px-2.5 py-1.5 rounded-lg text-[#9dceb8] font-mono leading-normal break-all">
                           Proof note: {String(b.etransferNote)}

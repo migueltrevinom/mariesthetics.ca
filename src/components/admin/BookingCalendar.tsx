@@ -25,6 +25,7 @@ import { formatCad } from "@/lib/money";
 import { ManualBookingModal, ServiceOption, ClientOption } from "./ManualBookingModal";
 import { BookingActions } from "./BookingActions";
 import { ScheduleManager } from "./ScheduleManager";
+import { BookingSourceDetails, type BookingSourceView } from "./BookingSourceDetails";
 
 interface BlackoutBlockItem {
   _id: string;
@@ -61,6 +62,7 @@ interface BookingItem {
     discountCents?: number;
     balanceDueCents: number;
   };
+  source?: BookingSourceView | null;
 }
 
 interface BookingCalendarProps {
@@ -822,6 +824,8 @@ function BookingCalendarContent({ services, clients }: BookingCalendarProps) {
                   </p>
                 </div>
               </div>
+
+              <BookingSourceDetails source={selectedBooking.source} />
 
               {/* Appointment Notes */}
               <div className="border border-[var(--border-color)] bg-black/5 dark:bg-black/20 p-5 rounded-2xl space-y-1.5">

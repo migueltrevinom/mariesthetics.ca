@@ -9,6 +9,8 @@ import { COUNTRY_CODES } from "@/lib/constants/countryCodes";
 import { getFastIpfsUrl } from "@/lib/ipfs";
 import { useLanguage } from "@/components/i18n/LanguageContext";
 import { getLocalizedService } from "@/lib/i18n/serviceTranslations";
+import { readAttributionForBooking } from "@/lib/attribution/browser";
+import { HEARD_ABOUT_OPTIONS, type HeardAboutOption } from "@/lib/attribution/channel";
 
 type Service = {
   _id: string;
@@ -33,6 +35,17 @@ const CATEGORY_FALLBACK_IMAGES: Record<string, string> = {
   permanentMakeUp: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
   brows: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=800",
   general: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=800",
+};
+
+const HEARD_ABOUT_LABEL_KEYS: Record<HeardAboutOption, string> = {
+  google_search: "bookingWizard.heardGoogleSearch",
+  google_maps: "bookingWizard.heardGoogleMaps",
+  instagram: "bookingWizard.heardInstagram",
+  facebook: "bookingWizard.heardFacebook",
+  tiktok: "bookingWizard.heardTikTok",
+  friend_family: "bookingWizard.heardFriend",
+  pickleball: "bookingWizard.heardPickleball",
+  walked_by: "bookingWizard.heardWalkedBy",
 };
 
 const DEFAULT_CATEGORY_LABELS: Record<string, string> = {
@@ -95,6 +108,8 @@ export function BookingWizard({
   const [email, setEmail] = useState("");
   const [countryCode, setCountryCode] = useState("+1");
   const [phone, setPhone] = useState("");
+  const [heardAbout, setHeardAbout] = useState("");
+  const [heardAboutDetail, setHeardAboutDetail] = useState("");
   const [couponCode, setCouponCode] = useState(initialCouponCode?.toUpperCase().trim() ?? "");
   const [couponMessage, setCouponMessage] = useState("");
   const [validatedCoupon, setValidatedCoupon] = useState<{
@@ -339,6 +354,19 @@ export function BookingWizard({
   async function createBooking() {
     setError("");
     setLoading(true);
+    let source: ReturnType<typeof readAttributionForBooking> | undefined;
+    try {
+      source = readAttributionForBooking({ heardAbout, heardAboutDetail });
+    } catch {
+      if (heardAbout || heardAboutDetail) {
+        source = {
+          heardAbout,
+          heardAboutDetail,
+          firstTouch: null,
+          lastTouch: null,
+        };
+      }
+    }
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
@@ -349,6 +377,7 @@ export function BookingWizard({
           depositMethod: isFullyCovered ? "other" : depositMethod,
           guest: { name, email, countryCode, phone },
           couponCode: couponCode || undefined,
+          ...(source ? { source } : {}),
         }),
       });
       const data = await res.json();
@@ -920,6 +949,37 @@ export function BookingWizard({
                   onChange={(e) => setPhone(e.target.value)}
                 />
               </div>
+            </div>
+            <div>
+              <label htmlFor="booking-heard-about" className="block text-xs font-medium text-[var(--ink-soft)] mb-1">
+                {t("bookingWizard.heardAboutLabel")}{" "}
+                <span className="font-normal opacity-70">({t("bookingWizard.optional")})</span>
+              </label>
+              <select
+                id="booking-heard-about"
+                value={heardAbout}
+                onChange={(e) => setHeardAbout(e.target.value)}
+                className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-3 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+              >
+                <option value="">{t("bookingWizard.heardAboutPlaceholder")}</option>
+                {HEARD_ABOUT_OPTIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {t(HEARD_ABOUT_LABEL_KEYS[value])}
+                  </option>
+                ))}
+              </select>
+              <label htmlFor="booking-heard-about-detail" className="sr-only">
+                {t("bookingWizard.heardAboutDetailPlaceholder")}
+              </label>
+              <input
+                id="booking-heard-about-detail"
+                type="text"
+                maxLength={300}
+                placeholder={t("bookingWizard.heardAboutDetailPlaceholder")}
+                className="mt-2 w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-2.5 rounded-xl text-sm text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                value={heardAboutDetail}
+                onChange={(e) => setHeardAboutDetail(e.target.value)}
+              />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
