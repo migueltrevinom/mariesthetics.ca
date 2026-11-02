@@ -41,14 +41,14 @@ export const metadata: Metadata = {
   applicationName: business.name,
   authors: [{ name: business.name }],
   creator: business.name,
-  alternates: { canonical: siteUrl },
+  // Canonical and og:url belong on each page (see buildMetadata). A root
+  // fallback would mark any page that omits metadata as a copy of the homepage.
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
     siteName: business.name,
     title: `${business.name} · Edmonton Esthetics Studio`,
     description: business.description,
-    url: siteUrl,
     locale: "en_CA",
   },
   twitter: {

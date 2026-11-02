@@ -1,0 +1,533 @@
+"use client";
+
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+
+import { useLanguage } from "@/components/i18n/LanguageContext";
+
+const DEFAULT_PRESETS = [
+  { label: "$50 CAD", amount: 50 },
+  { label: "$100 CAD", amount: 100 },
+  { label: "$150 CAD", amount: 150 },
+  { label: "$200 CAD", amount: 200 },
+];
+
+function GiftCardsContent() {
+  const { t } = useLanguage();
+  const searchParams = useSearchParams();
+  const success = searchParams.get("success") === "true";
+  const code = searchParams.get("code") || "";
+
+  const [selectedAmount, setSelectedAmount] = useState<number>(100);
+  const [customAmount, setCustomAmount] = useState<string>("");
+  const [isCustom, setIsCustom] = useState<boolean>(false);
+  const [services, setServices] = useState<any[]>([]);
+
+  const [recipientName, setRecipientName] = useState<string>("");
+  const [recipientEmail, setRecipientEmail] = useState<string>("");
+  const [senderName, setSenderName] = useState<string>("");
+  const [senderEmail, setSenderEmail] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [previewMode, setPreviewMode] = useState<"box" | "card">("box");
+
+  useEffect(() => {
+    fetch("/api/services")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.services) {
+          setServices(data.services);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const effectiveAmount = isCustom
+    ? parseFloat(customAmount) || 0
+    : selectedAmount;
+
+  async function handleCheckout(e: React.FormEvent) {
+    e.preventDefault();
+    if (effectiveAmount <= 0) {
+      setError("Please select or enter a valid gift card amount");
+      return;
+    }
+    if (!recipientEmail) {
+      setError("Recipient email is required");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/public/gift-cards/checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amountCad: effectiveAmount,
+          recipientName,
+          recipientEmail,
+          senderName,
+          senderEmail,
+          message,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Failed to initialize gift card checkout");
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred");
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="aurora grain relative min-h-screen overflow-hidden pt-36 pb-24 md:pt-44 text-left">
+      <div className="relative mx-auto max-w-5xl px-6 md:px-10 space-y-12">
+        {/* Header */}
+        <div className="text-center sm:text-left space-y-3">
+          <p className="eyebrow font-bold tracking-[0.28em] text-[#856526] dark:text-[#c8a86b]">
+            {t("giftCardsPage.eyebrow") !== "giftCardsPage.eyebrow"
+              ? t("giftCardsPage.eyebrow")
+              : "Digital Certificates & Vouchers"}
+          </p>
+          <h1 className="display text-4xl sm:text-5xl md:text-7xl text-[var(--ink)] tracking-tight">
+            {t("giftCardsPage.title") !== "giftCardsPage.title"
+              ? t("giftCardsPage.title")
+              : "Give the Gift of Self-Care."}
+          </h1>
+          <p className="max-w-2xl text-sm sm:text-base text-[var(--ink-soft)] leading-relaxed">
+            {t("giftCardsPage.subtitle") !== "giftCardsPage.subtitle"
+              ? t("giftCardsPage.subtitle")
+              : "Purchase a digital gift certificate for loved ones. Delivered instantly via email with custom notes, redeemable online or in-studio."}
+          </p>
+        </div>
+
+        {/* Success Alert Banner */}
+        {success && (
+          <div className="p-6 rounded-3xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-500 space-y-2 animate-in fade-in zoom-in duration-300">
+            <span className="text-lg font-bold block">Gift Certificate Issued Successfully</span>
+            <p className="text-xs font-medium text-[var(--ink)]">
+              Thank you for your purchase! A digital voucher with redemption instructions has been dispatched to the recipient's email.
+            </p>
+            {code && (
+              <div className="pt-2 flex flex-wrap items-center gap-3">
+                <p className="text-xs font-mono font-bold text-[#c8a86b]">
+                  Voucher Code: {code}
+                </p>
+                <Link
+                  href={`/gift-cards/reveal/${code}`}
+                  className="h-10 px-5 rounded-full bg-[#c8a86b] hover:bg-[#d8b87b] text-[#0b140f] text-xs font-semibold tracking-wider uppercase transition-all duration-150 inline-flex items-center gap-2"
+                >
+                  <span>View Certificate</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          {/* Purchase Form */}
+          <form onSubmit={handleCheckout} className="lg:col-span-7 border border-[var(--border-color)] bg-[var(--card-bg)] p-6 sm:p-8 rounded-3xl shadow-xl space-y-6">
+            <h2 className="text-xl font-bold font-[family-name:var(--font-display)] text-[var(--ink)] border-b border-[var(--border-color)] pb-3">
+              1. Select Gift Amount
+            </h2>
+
+            {error && (
+              <div className="p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-500 text-xs font-semibold">
+                {error}
+              </div>
+            )}
+
+            {/* Treatment Service Shortcuts */}
+            {services.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block">
+                  Quick Treatment Value Shortcuts:
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {services.map((s) => {
+                    const priceCad = s.priceCents / 100;
+                    return (
+                      <button
+                        key={s._id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedAmount(priceCad);
+                          setIsCustom(false);
+                        }}
+                        className={`py-1.5 px-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          !isCustom && selectedAmount === priceCad
+                            ? "border-[#c8a86b] bg-[#c8a86b]/20 text-[#c8a86b] shadow-sm"
+                            : "border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink-soft)] hover:text-[var(--ink)]"
+                        }`}
+                      >
+                        {s.name} (${priceCad} CAD)
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Standard Amount Selectors */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {DEFAULT_PRESETS.map((preset) => (
+                <button
+                  key={preset.amount}
+                  type="button"
+                  onClick={() => {
+                    setSelectedAmount(preset.amount);
+                    setIsCustom(false);
+                  }}
+                  className={`py-3 px-4 rounded-2xl border text-sm font-extrabold transition-all cursor-pointer ${
+                    !isCustom && selectedAmount === preset.amount
+                      ? "border-[#c8a86b] bg-[#c8a86b]/15 text-[#c8a86b] shadow-md scale-105"
+                      : "border-[var(--border-color)] bg-black/5 dark:bg-white/5 text-[var(--ink)] hover:border-[#c8a86b]/50"
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom Amount Toggle */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsCustom(!isCustom)}
+                className="text-xs font-bold text-[#c8a86b] hover:underline cursor-pointer"
+              >
+                {isCustom ? "← Choose Preset Amount" : "+ Enter Custom Amount"}
+              </button>
+
+              {isCustom && (
+                <div className="mt-3">
+                  <label className="text-[10px] uppercase font-extrabold text-[var(--ink-soft)] block mb-1">
+                    Custom Amount (CAD $)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="any"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    placeholder="e.g. 250"
+                    className="w-full border border-[var(--border-color)] bg-[var(--background)] px-4 py-2.5 rounded-xl text-sm font-mono text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                  />
+                </div>
+              )}
+            </div>
+
+            <h2 className="text-xl font-bold font-[family-name:var(--font-display)] text-[var(--ink)] border-b border-[var(--border-color)] pt-2 pb-3">
+              2. Recipient & Personal Note
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block mb-1">
+                  Recipient Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sarah Johns"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block mb-1">
+                  Recipient Email *
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="sarah@example.com"
+                  value={recipientEmail}
+                  onChange={(e) => setRecipientEmail(e.target.value)}
+                  className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs font-mono text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block mb-1">
+                  Your Name (Sender)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Miguel Treviño"
+                  value={senderName}
+                  onChange={(e) => setSenderName(e.target.value)}
+                  className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block mb-1">
+                  Your Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="miguel@example.com"
+                  value={senderEmail}
+                  onChange={(e) => setSenderEmail(e.target.value)}
+                  className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs font-mono text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] uppercase font-extrabold tracking-wider text-[var(--ink-soft)] block mb-1">
+                Personalized Message / Wish
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Happy Birthday! Enjoy your pampering treatment session at Mari Esthetics..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="w-full border border-[var(--border-color)] bg-[var(--background)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--ink)] focus:outline-none focus:border-[#c8a86b]"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full py-3.5 text-xs font-bold shadow-xl cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              <span>{loading ? "Preparing Card Checkout..." : `Pay $${effectiveAmount.toFixed(2)} CAD via Card →`}</span>
+            </button>
+          </form>
+
+          {/* Live Voucher Digital Card Preview */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-semibold tracking-[0.28em] text-[#ffb829] flex items-center gap-1.5">
+                <span>✦</span>
+                <span>Live Gift Preview</span>
+              </span>
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-full p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode("box")}
+                  className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                    previewMode === "box"
+                      ? "bg-[#8052ff] text-white shadow-xs"
+                      : "text-[#9a9a9a] hover:text-white"
+                  }`}
+                >
+                  Present Box
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewMode("card")}
+                  className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider transition-all cursor-pointer ${
+                    previewMode === "card"
+                      ? "bg-[#8052ff] text-white shadow-xs"
+                      : "text-[#9a9a9a] hover:text-white"
+                  }`}
+                >
+                  Certificate
+                </button>
+              </div>
+            </div>
+
+            {/* PREVIEW MODE 1: LUXURY PRESENT BOX */}
+            {previewMode === "box" && (
+              <div
+                onClick={() => setPreviewMode("card")}
+                className="cursor-pointer group border border-[#c8a86b]/40 bg-gradient-to-b from-[#0b140f] to-[#040605] p-6 sm:p-8 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_35px_rgba(200,168,107,0.15)] space-y-4 text-center relative overflow-hidden text-[#f3efe6] transition-all duration-300 hover:scale-[1.01]"
+              >
+                {/* SVG Isometric Box */}
+                <div className="relative w-56 h-52 sm:w-64 sm:h-60 mx-auto">
+                  <svg viewBox="0 0 340 320" className="w-full h-full drop-shadow-xl overflow-visible">
+                    <defs>
+                      <linearGradient id="prevLeftGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#13281c" />
+                        <stop offset="100%" stopColor="#060c09" />
+                      </linearGradient>
+                      <linearGradient id="prevRightGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#224732" />
+                        <stop offset="100%" stopColor="#0d1c14" />
+                      </linearGradient>
+                      <linearGradient id="prevRibbon" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#8a6b2b" />
+                        <stop offset="50%" stopColor="#fce7b8" />
+                        <stop offset="100%" stopColor="#7a5d24" />
+                      </linearGradient>
+                      <linearGradient id="prevBow" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#fff6db" />
+                        <stop offset="50%" stopColor="#e5c580" />
+                        <stop offset="100%" stopColor="#7a5d24" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Left Face */}
+                    <polygon points="170,270 70,220 70,95 170,145" fill="url(#prevLeftGrad)" stroke="#c8a86b" strokeWidth="1" strokeOpacity="0.4" />
+                    <polygon points="110,115 130,125 130,250 110,240" fill="url(#prevRibbon)" />
+                    <polygon points="70,150 170,200 170,220 70,170" fill="url(#prevRibbon)" />
+
+                    {/* Right Face */}
+                    <polygon points="170,270 270,220 270,95 170,145" fill="url(#prevRightGrad)" stroke="#c8a86b" strokeWidth="1" strokeOpacity="0.5" />
+                    <polygon points="210,125 230,115 230,240 210,250" fill="url(#prevRibbon)" />
+                    <polygon points="170,200 270,150 270,170 170,220" fill="url(#prevRibbon)" />
+
+                    {/* Center Medallion */}
+                    <circle cx="170" cy="210" r="13" fill="#08100c" stroke="#c8a86b" strokeWidth="1.5" />
+                    <text x="170" y="214" textAnchor="middle" fill="#fae7b9" fontSize="10" fontWeight="bold" fontFamily="serif">M</text>
+
+                    {/* Gift Tag */}
+                    <g transform="translate(205, 175) rotate(-6)">
+                      <rect x="-6" y="0" width="75" height="46" rx="6" fill="#faf7ee" stroke="#c8a86b" strokeWidth="1.5" />
+                      <text x="31" y="14" textAnchor="middle" fill="#8a6b2b" fontSize="7" fontWeight="bold" letterSpacing="1">FOR YOU</text>
+                      <text x="31" y="27" textAnchor="middle" fill="#12241c" fontSize="10" fontWeight="bold">
+                        {recipientName.split(" ")[0] || "Recipient"}
+                      </text>
+                      <text x="31" y="39" textAnchor="middle" fill="#8a6b2b" fontSize="8" fontWeight="bold" fontFamily="monospace">
+                        ${effectiveAmount.toFixed(2)} CAD
+                      </text>
+                    </g>
+
+                    {/* Lid */}
+                    <g className="group-hover:-translate-y-2 transition-transform duration-300">
+                      <polygon points="170,165 60,110 60,85 170,140" fill="#0f2218" stroke="#c8a86b" strokeWidth="1" strokeOpacity="0.5" />
+                      <polygon points="170,165 280,110 280,85 170,140" fill="#183625" stroke="#c8a86b" strokeWidth="1" strokeOpacity="0.6" />
+                      <polygon points="170,140 60,85 170,30 280,85" fill="#224732" stroke="#c8a86b" strokeWidth="1.5" />
+
+                      {/* Lid Ribbons */}
+                      <polygon points="103,51 127,63 237,118 213,106" fill="url(#prevRibbon)" />
+                      <polygon points="213,51 237,63 127,118 103,106" fill="url(#prevRibbon)" />
+
+                      {/* Silk Ribbon Bow on Lid */}
+                      <g transform="translate(170, 75)">
+                        <path d="M 0,0 C -35,-25 -65,-20 -55,0 C -45,15 -15,10 0,0 Z" fill="url(#prevBow)" stroke="#8a6b2b" strokeWidth="1" />
+                        <path d="M 0,0 C 35,-25 65,-20 55,0 C 45,15 15,10 0,0 Z" fill="url(#prevBow)" stroke="#8a6b2b" strokeWidth="1" />
+                        <path d="M -6,5 C -25,25 -35,50 -45,65 C -35,55 -25,35 0,10 Z" fill="url(#prevBow)" opacity="0.9" />
+                        <path d="M 6,5 C 25,25 35,50 45,65 C 35,55 25,35 0,10 Z" fill="url(#prevBow)" opacity="0.9" />
+                        <ellipse cx="0" cy="0" rx="11" ry="8" fill="url(#prevBow)" stroke="#8a6b2b" strokeWidth="1" />
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-[#f3efe6] font-medium">
+                    Gift for <strong className="text-[#e2c78c]">{recipientName || "Recipient"}</strong> from <strong className="text-[#e2c78c]">{senderName || "You"}</strong>
+                  </p>
+                  <p className="text-[11px] text-[#e2c78c] font-bold uppercase tracking-wider">
+                    Tap box to preview certificate
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* PREVIEW MODE 2: EMERGED CERTIFICATE */}
+            {previewMode === "card" && (
+              <div className="border border-white/10 bg-[#060606] p-7 sm:p-8 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(128,82,255,0.12)] space-y-6 text-left relative overflow-hidden text-white backdrop-blur-xl animate-in zoom-in-95 fade-in duration-300">
+                {/* Internal Specular Diagonal Sheen */}
+                <div className="pointer-events-none absolute -inset-full bg-gradient-to-tr from-transparent via-white/[0.03] to-transparent rotate-45 transform translate-x-12 translate-y-12" />
+
+                {/* Studio Header & Status */}
+                <div className="flex items-start justify-between border-b border-white/10 pb-4">
+                  <div>
+                    <h4 className="text-base sm:text-lg font-normal tracking-[0.2em] text-white uppercase font-sans">
+                      Mari Esthetics
+                    </h4>
+                    <p className="text-[9px] uppercase tracking-[0.25em] text-[#9a9a9a] font-light mt-0.5">
+                      Edmonton, Alberta
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono uppercase tracking-wider bg-[#15846e]/20 text-emerald-400 border border-[#15846e]/40">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    Active
+                  </span>
+                </div>
+
+                {/* Live Scaled Value Display */}
+                <div>
+                  <span className="text-[10px] uppercase font-semibold tracking-[0.25em] text-[#ffb829] block mb-1">
+                    Gift Certificate Value
+                  </span>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl sm:text-5xl font-normal text-white tracking-[-0.04em] leading-none">
+                      ${effectiveAmount.toFixed(2)}
+                    </span>
+                    <span className="text-sm font-light text-[#9a9a9a] tracking-widest font-sans">
+                      CAD
+                    </span>
+                  </div>
+                </div>
+
+                {/* Live Recipient & Sender */}
+                <div className="grid grid-cols-2 gap-4 py-3 border-t border-white/10 text-xs">
+                  <div>
+                    <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
+                      Recipient
+                    </span>
+                    <p className="font-normal text-white text-sm mt-0.5 truncate">
+                      {recipientName || "Recipient Name"}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="block text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a]">
+                      From
+                    </span>
+                    <p className="font-normal text-white text-sm mt-0.5 truncate">
+                      {senderName || "Sender Name"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Live Message Dedication */}
+                {message && (
+                  <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10">
+                    <span className="text-[9px] uppercase font-semibold tracking-[0.25em] text-[#9a9a9a] block mb-1">
+                      Dedication Note
+                    </span>
+                    <p className="text-xs text-white/90 font-extralight italic leading-relaxed line-clamp-3">
+                      “{message}”
+                    </p>
+                  </div>
+                )}
+
+                {/* Voucher Code Preview Bar */}
+                <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-[#9a9a9a]">
+                  <span className="font-mono tracking-widest text-white/80">MARI-GIFT-••••••</span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewMode("box")}
+                    className="text-[9px] uppercase tracking-wider text-[#ffb829] hover:underline cursor-pointer font-semibold"
+                  >
+                    ← Close &amp; View Box
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GiftCardsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen py-24 text-center">Loading...</div>}>
+      <GiftCardsContent />
+    </Suspense>
+  );
+}
