@@ -42,6 +42,14 @@ export function previewServicesForLanding(definition: LandingDefinition): Landin
         base({ _id: "p1", name: "Classic Set", slug: "classic-set", priceCents: 7000, category: "lashes" }),
         base({ _id: "p2", name: "Hybrid Set", slug: "hybrid-set", priceCents: 9000, category: "lashes" }),
       ];
+    case "lash-extensions-west":
+      // Mirrors scripts/seed.ts. Used only when MongoDB is unavailable.
+      return [
+        base({ _id: "6a6fd62761dda32cf4b924ee", name: "Hybrid Set", slug: "hybrid-set", priceCents: 9000, durationMin: 135, category: "lashes" }),
+        base({ _id: "6a6fdccb61dda32cf4b924f1", name: "Volume Set (2D-5D)", slug: "volume-set", priceCents: 10000, durationMin: 150, category: "lashes" }),
+        base({ _id: "6a6fe23c61dda32cf4b924f2", name: "Hybrid Fill", slug: "fill-service", priceCents: 4500, durationMin: 60, category: "lashes" }),
+        base({ _id: "6a6fe50561dda32cf4b924f6", name: "Volume Fill", slug: "fill-service", priceCents: 5500, durationMin: 90, category: "lashes" }),
+      ];
     case "powder-brows":
       return [base({ _id: "p3", name: "Soft Powder Brows", slug: "soft-powder-brows", priceCents: 25000, category: "permanentMakeUp" })];
     case "lip-blush":

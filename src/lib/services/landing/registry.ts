@@ -26,6 +26,18 @@ export const SERVICE_LANDING_PAGES: LandingDefinition[] = [
     },
   },
   {
+    key: "lash-extensions-west",
+    match: { type: "hybridOrVolumeLashes" },
+    heroServiceSlug: "volume-set",
+    slugs: {
+      en: "lash-extensions-west-edmonton",
+      es: "extensiones-pestanas-west-edmonton",
+      tl: "lashes-west-edmonton-tl",
+      pa: "lashes-west-edmonton-pa",
+      ar: "رموش-غرب-ادمونتون",
+    },
+  },
+  {
     key: "powder-brows",
     match: { type: "serviceSlugs", slugs: ["soft-powder-brows"] },
     heroServiceSlug: "soft-powder-brows",
@@ -112,10 +124,7 @@ export const SERVICE_LANDING_PAGES: LandingDefinition[] = [
 ];
 
 /**
- * Old service URLs that now live elsewhere. "lash-extensions-west-edmonton" used to be
- * the Tagalog page, but it reads as English and people search for it in English,
- * so it now redirects (308) to the English lash page.
+ * Retired service URLs that 308 to a current slug.
+ * "lash-extensions-west-edmonton" is a real English page again (lash-extensions-west).
  */
-export const LEGACY_SERVICE_LANDING_REDIRECTS: Record<string, string> = {
-  "lash-extensions-west-edmonton": "lash-extensions-edmonton",
-};
+export const LEGACY_SERVICE_LANDING_REDIRECTS: Record<string, string> = {};

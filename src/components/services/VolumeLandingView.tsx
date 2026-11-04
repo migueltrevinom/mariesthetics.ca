@@ -27,6 +27,7 @@ type Props = {
   heroImage: string;
   choices: Choice[];
   lashGuideHref: string;
+  westGuide?: { href: string; label: string } | null;
   parkaHref?: string;
   compare: Compare | null;
   posts: PostLink[];
@@ -85,6 +86,7 @@ export function VolumeLandingView({
   heroImage,
   choices,
   lashGuideHref,
+  westGuide,
   parkaHref,
   compare,
   posts,
@@ -125,6 +127,11 @@ export function VolumeLandingView({
               <Link href={lashGuideHref} className="btn-ghost text-xs">
                 {c.lashGuideLabel}
               </Link>
+              {westGuide ? (
+                <Link href={westGuide.href} className="btn-ghost text-xs">
+                  {westGuide.label}
+                </Link>
+              ) : null}
               <Link href="/services" className="btn-ghost text-xs">
                 {c.allServicesLabel}
               </Link>
@@ -193,6 +200,11 @@ export function VolumeLandingView({
             <Link href={lashGuideHref} className="font-semibold text-gold hover:text-gold-bright">
               {c.lashGuideLabel}
             </Link>
+            {westGuide ? (
+              <Link href={westGuide.href} className="font-semibold text-gold hover:text-gold-bright">
+                {westGuide.label}
+              </Link>
+            ) : null}
           </div>
         </section>
 

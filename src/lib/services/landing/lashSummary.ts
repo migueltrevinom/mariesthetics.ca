@@ -152,10 +152,15 @@ export const PRICE_TITLE_MAX = 65;
  * `withBrand` is true only when "<title> · <brand>" still fits in PRICE_TITLE_MAX;
  * otherwise the caller should render the title without the brand suffix. Null when no priced sets.
  */
-export function lashPriceTitle(s: LashSummary | null, locale: Locale, brand: string): { title: string; withBrand: boolean } | null {
+export function lashPriceTitle(
+  s: LashSummary | null,
+  locale: Locale,
+  brand: string,
+  lead?: string,
+): { title: string; withBrand: boolean } | null {
   if (!s || !s.lines.length) return null;
   const c = LASH_COPY[locale] || LASH_COPY.en;
   const prices = s.lines.map((l) => `${c.type[l.type]} ${titlePrice(l.set!.priceCents)}`).join(" · ");
-  const base = `${PRICE_TITLE_LEAD[locale] || PRICE_TITLE_LEAD.en} | ${prices}`;
+  const base = `${lead || PRICE_TITLE_LEAD[locale] || PRICE_TITLE_LEAD.en} | ${prices}`;
   return { title: base, withBrand: `${base} · ${brand}`.length <= PRICE_TITLE_MAX };
 }

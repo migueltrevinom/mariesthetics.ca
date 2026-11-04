@@ -1,41 +1,29 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/seo";
 
-export default function robots(): MetadataRoute.Robots {
-  const sharedDisallow = ["/admin", "/api", "/portal", "/book/success"];
+const SHARED_DISALLOW = ["/admin", "/api", "/portal", "/book/success"];
+const PUBLIC_ALLOW = ["/", "/llms.txt", "/llms-full.txt"];
 
+/** Search and AI crawlers that may read public pages. Admin and API stay blocked. */
+export const PUBLIC_CRAWLERS = [
+  "Googlebot",
+  "Google-Extended",
+  "Bingbot",
+  "GPTBot",
+  "OAI-SearchBot",
+  "ChatGPT-User",
+  "PerplexityBot",
+  "ClaudeBot",
+  "Applebot",
+  "anthropic-ai",
+] as const;
+
+export default function robots(): MetadataRoute.Robots {
+  const open = { allow: PUBLIC_ALLOW, disallow: SHARED_DISALLOW };
   return {
     rules: [
-      {
-        userAgent: "*",
-        allow: ["/", "/llms.txt", "/llms-full.txt"],
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: "GPTBot",
-        allow: ["/", "/blog", "/llms.txt", "/llms-full.txt"],
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: "ChatGPT-User",
-        allow: ["/", "/blog", "/llms.txt", "/llms-full.txt"],
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: "Google-Extended",
-        allow: "/",
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: "anthropic-ai",
-        allow: ["/", "/blog", "/llms.txt", "/llms-full.txt"],
-        disallow: sharedDisallow,
-      },
-      {
-        userAgent: "ClaudeBot",
-        allow: ["/", "/blog", "/llms.txt", "/llms-full.txt"],
-        disallow: sharedDisallow,
-      },
+      { userAgent: "*", ...open },
+      ...PUBLIC_CRAWLERS.map((userAgent) => ({ userAgent, ...open })),
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl,

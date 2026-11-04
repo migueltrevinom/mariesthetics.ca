@@ -25,6 +25,8 @@ import { localeToHreflang } from "@/lib/blog/locales";
 import { buildLashFaq, buildLashSummary, LASH_COPY, lashPriceTitle } from "@/lib/services/landing/lashSummary";
 import { buildVolumeFaqs, buildVolumeHead, volumeCompareLine, volumeServiceJsonLd } from "@/lib/services/landing/volumePage";
 import { LASH_PAGE_VOLUME_LINK, VOLUME_COPY } from "@/lib/services/landing/volumeCopy";
+import { ALL_LASH_GUIDE_LABEL, WEST_LASH_PRICE_LEAD } from "@/lib/services/landing/westLashCopy";
+import { WEST_LASH_LINK_LABEL } from "@/lib/services/landing/quickLabels";
 import { pickVolumePair } from "@/lib/services/landing/volumeMatch";
 import { VOLUME_COST_POST, VOLUME_FEATURED_POSTS, VOLUME_PARKA_POST, resolvePublishedVolumePosts, volumePostPath } from "@/lib/services/landing/volumePosts";
 import { AUTHORS, DEFAULT_BLOG_AUTHOR, personJsonLd } from "@/lib/blog/authors";
@@ -66,8 +68,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description = head.description;
       absoluteTitle = !head.withBrand;
     }
-  } else if (resolved.definition.key === "lash-extensions") {
-    const head = lashPriceTitle(buildLashSummary(services), resolved.locale, business.name);
+  } else if (resolved.definition.key === "lash-extensions" || resolved.definition.key === "lash-extensions-west") {
+    const head = lashPriceTitle(
+      buildLashSummary(services),
+      resolved.locale,
+      business.name,
+      resolved.definition.key === "lash-extensions-west" ? WEST_LASH_PRICE_LEAD[resolved.locale] : undefined,
+    );
     if (head) {
       title = head.title;
       absoluteTitle = !head.withBrand;
@@ -79,6 +86,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     absoluteTitle,
     description,
     path,
+    keywords:
+      resolved.definition.key === "lash-extensions-west"
+        ? [
+            "lash extensions West Edmonton",
+            "lashes West Edmonton",
+            "volume lashes West Edmonton",
+            "hybrid lashes West Edmonton",
+            "lash extensions Lewis Estates",
+            "lash extensions Callingwood",
+            "private lash studio West Edmonton",
+          ]
+        : undefined,
     hreflangAlternates: hreflangAlternatesForLanding(resolved.definition),
     ogLocale: localeToHreflang(resolved.locale).replace("-", "_"),
     ogImage: heroImage,
@@ -104,13 +123,37 @@ export default async function ServiceLandingPage({ params }: PageProps) {
   const pagePath = serviceLandingPath(resolved.pathSlug);
   const pageUrl = `${siteUrl}${pagePath}`;
   const inLanguage = localeToHreflang(locale);
-  const lashSummary = definition.key === "lash-extensions" ? buildLashSummary(services) : null;
+  const isLashMenu = definition.key === "lash-extensions" || definition.key === "lash-extensions-west";
+  const lashSummary = isLashMenu ? buildLashSummary(services) : null;
   const lashFaqs = lashSummary ? buildLashFaq(lashSummary, locale) : [];
   const volumeDef = SERVICE_LANDING_PAGES.find((d) => d.key === "volume-lashes");
-  const volumeGuide =
-    definition.key === "lash-extensions" && volumeDef
-      ? { href: serviceLandingPath(landingSlugForLocale(volumeDef, locale)), label: LASH_PAGE_VOLUME_LINK[locale] || LASH_PAGE_VOLUME_LINK.en }
-      : null;
+  const westDef = SERVICE_LANDING_PAGES.find((d) => d.key === "lash-extensions-west");
+  const lashDef = SERVICE_LANDING_PAGES.find((d) => d.key === "lash-extensions");
+  const guides: { href: string; label: string }[] = [];
+  if (isLashMenu && volumeDef) {
+    guides.push({
+      href: serviceLandingPath(landingSlugForLocale(volumeDef, locale)),
+      label: LASH_PAGE_VOLUME_LINK[locale] || LASH_PAGE_VOLUME_LINK.en,
+    });
+  }
+  if (definition.key === "lash-extensions" && westDef) {
+    guides.push({
+      href: serviceLandingPath(landingSlugForLocale(westDef, locale)),
+      label: WEST_LASH_LINK_LABEL[locale] || WEST_LASH_LINK_LABEL.en,
+    });
+  }
+  if (definition.key === "lash-extensions-west" && lashDef) {
+    guides.push({
+      href: serviceLandingPath(landingSlugForLocale(lashDef, locale)),
+      label: ALL_LASH_GUIDE_LABEL[locale] || ALL_LASH_GUIDE_LABEL.en,
+    });
+  }
+  const westGuide = westDef
+    ? {
+        href: serviceLandingPath(landingSlugForLocale(westDef, locale)),
+        label: WEST_LASH_LINK_LABEL[locale] || WEST_LASH_LINK_LABEL.en,
+      }
+    : null;
 
   if (definition.key === "volume-lashes") {
     const pair = pickVolumePair(services);
@@ -149,6 +192,7 @@ export default async function ServiceLandingPage({ params }: PageProps) {
           heroImage={volumeHero}
           choices={choices}
           lashGuideHref={serviceLandingPath(landingSlugForLocale(lashDef, locale))}
+          westGuide={westGuide}
           parkaHref={parkaPath}
           compare={compare}
           posts={posts}
@@ -192,7 +236,7 @@ export default async function ServiceLandingPage({ params }: PageProps) {
         relatedPosts={relatedPosts}
         lashSummary={lashSummary}
         extraFaqs={lashFaqs}
-        volumeGuide={volumeGuide}
+        guides={guides}
       />
       <JsonLd
         data={[

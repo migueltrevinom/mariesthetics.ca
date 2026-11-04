@@ -61,7 +61,9 @@ test("volume services point at the volume guide, other lashes stay on the combin
 
 test("title, meta and FAQ read live set and fill prices", () => {
   const head = buildVolumeHead([set, fill], "en", "Mari Esthetics")!;
-  assert.equal(head.title, "Volume Lashes Edmonton | Volume Set $100 · Fill $70");
+  assert.equal(head.title, "Volume Lash Extensions in West Edmonton | Volume Set $100 · Fill $70");
+  assert.match(head.title, /volume lash extensions/i);
+  assert.match(head.title, /west edmonton/i);
   assert.match(head.description, /2D–5D volume lash extensions in West Edmonton/);
   assert.match(head.description, /Full set \$100, fill \$70, \$25 deposit/);
   assert.equal(head.withBrand, false);
@@ -137,6 +139,39 @@ test("each language links the price comparison to its own volume cost post", () 
   assert.match(volumePostPath(VOLUME_COST_POST.ar), /\/blog\/%D9%83%D9%85-%D8%B3%D8%B9%D8%B1-/);
   assert.equal(VOLUME_COST_POST.pa === VOLUME_COST_POST.en, false);
   assert.equal(VOLUME_COST_POST.ar === VOLUME_COST_POST.en, false);
+});
+
+test("title, H1 and H2s name volume lash extensions in West Edmonton in every language", () => {
+  const phrase = {
+    en: /volume lash extensions/i,
+    es: /extensiones de pestañas de volumen/i,
+    tl: /volume lash extensions/i,
+    pa: /ਵਾਲਿਊਮ ਲੈਸ਼ ਐਕਸਟੈਂਸ਼ਨ/,
+    ar: /وصلات رموش الفوليوم/,
+  } as const;
+  const west = {
+    en: /west edmonton/i,
+    es: /oeste de edmonton/i,
+    tl: /west edmonton/i,
+    pa: /ਵੈਸਟ ਐਡਮਿੰਟਨ/,
+    ar: /غرب إدمونتون/,
+  } as const;
+  for (const loc of ["en", "es", "tl", "pa", "ar"] as const) {
+    const c = VOLUME_COPY[loc];
+    const head = buildVolumeHead([set, fill], loc, "Mari Esthetics");
+    assert.ok(head);
+    assert.match(head.title, phrase[loc], `${loc} title`);
+    assert.match(head.title, west[loc], `${loc} title area`);
+    assert.match(c.h1, phrase[loc], `${loc} h1`);
+    assert.match(c.h1, west[loc], `${loc} h1 area`);
+    for (const field of ["pricingHeading", "suitsHeading", "compareHeading", "postsHeading", "faqHeading"] as const) {
+      assert.match(c[field], phrase[loc], `${loc} ${field}`);
+    }
+    assert.match(c.pricingHeading, west[loc], `${loc} pricing area`);
+    assert.match(c.compareHeading, west[loc], `${loc} compare area`);
+    const blob = [c.h1, c.metaTitle, c.titleLead, c.pricingHeading, c.suitsHeading, c.compareHeading, c.postsHeading, c.faqHeading, c.lowestLine].join("\n");
+    assert.equal(/cheapest|más barat|pinaka-mura|الأرخص/i.test(blob), false, loc);
+  }
 });
 
 test("shared pages advertise hreflang for every language plus x-default", () => {
