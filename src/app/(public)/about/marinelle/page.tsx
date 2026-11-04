@@ -40,7 +40,7 @@ export default async function AuthorPage() {
         <h1 className="display mt-4 text-4xl text-[var(--ink)] md:text-5xl">{author.name}</h1>
         <p className="mt-6 text-lg leading-relaxed text-[var(--ink-soft)]">{author.bio[locale]}</p>
         <p className="mt-4 text-sm">
-          {author.sameAs.map((u) => (
+          {author.sameAs.filter((u) => u.includes("instagram")).map((u) => (
             <a key={u} href={u} target="_blank" rel="noopener noreferrer me" className="underline underline-offset-4 hover:text-gold">{c.insta}</a>
           ))}
         </p>
