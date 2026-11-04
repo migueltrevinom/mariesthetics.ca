@@ -13,17 +13,23 @@ export const siteUrl = (
 ).replace(/\/$/, "");
 
 /**
+ * Google Business Profile. CID from the Maps share link
+ * https://maps.app.goo.gl/9anQoA32GHZz8Pug8 — schema only, not a page embed.
+ */
+export const googleBusinessProfileUrl =
+  "https://www.google.com/maps?cid=16147278531862056657";
+
+/**
  * Public profile URLs for schema.org sameAs and the visible social links.
  * This is the only list — add a real URL here and it flows everywhere.
  * Do not invent profiles. Leave these commented until the real URL exists:
- * - Google Business Profile
  * - Fresha
  * - Bing Places
  * - Apple Business Connect
  */
 export const businessProfiles = [
   "https://www.instagram.com/mariestheticsyeg",
-  // Google Business Profile: https://www.google.com/maps/place/...
+  googleBusinessProfileUrl,
   // Fresha: https://www.fresha.com/...
   // Bing Places: https://www.bing.com/maps?...
   // Apple Business Connect: https://maps.apple.com/place?...
@@ -286,6 +292,7 @@ export function localBusinessJsonLd(options?: {
     },
     ...(options?.openingHours?.length ? { openingHoursSpecification: options.openingHours } : {}),
     sameAs: business.sameAs,
+    hasMap: googleBusinessProfileUrl,
     founder: studioFounderJsonLd(),
     employee: studioFounderJsonLd(),
   };

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { business, businessProfiles, localBusinessJsonLd } from "./seo";
+import { business, businessProfiles, googleBusinessProfileUrl, localBusinessJsonLd } from "./seo";
 
 test("beauty salon schema names the studio, west edmonton, and Marinelle once", () => {
   const ld = localBusinessJsonLd() as {
@@ -10,6 +10,7 @@ test("beauty salon schema names the studio, west edmonton, and Marinelle once", 
     geo: { latitude: number; longitude: number };
     areaServed: Array<{ name: string }>;
     sameAs: readonly string[];
+    hasMap: string;
     founder: { name: string; url: string; "@id": string };
     employee: { "@id": string };
   };
@@ -24,7 +25,12 @@ test("beauty salon schema names the studio, west edmonton, and Marinelle once", 
     assert.ok(areas.includes(name), name);
   }
   assert.deepEqual([...(ld.sameAs as readonly string[])], [...businessProfiles]);
-  assert.deepEqual([...businessProfiles], ["https://www.instagram.com/mariestheticsyeg"]);
+  assert.deepEqual([...businessProfiles], [
+    "https://www.instagram.com/mariestheticsyeg",
+    "https://www.google.com/maps?cid=16147278531862056657",
+  ]);
+  assert.equal(ld.hasMap, googleBusinessProfileUrl);
+  assert.equal(ld.hasMap, "https://www.google.com/maps?cid=16147278531862056657");
   const founder = ld.founder as { name: string; url: string; ["@id"]: string };
   assert.equal(founder.name, "Marinelle Trevino");
   assert.match(founder.url, /\/about\/marinelle$/);
