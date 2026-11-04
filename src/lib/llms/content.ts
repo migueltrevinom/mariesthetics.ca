@@ -11,6 +11,8 @@ import { formatCad } from "@/lib/money";
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost, Service } from "@/lib/db/models";
 import { isVolumeLash } from "@/lib/services/landing/volumeMatch";
+import { isWestLashService } from "@/lib/services/landing/westLashMatch";
+import { VOLUME_COST_POST, VOLUME_FEATURED_POSTS } from "@/lib/services/landing/volumePosts";
 
 export type LlmsServiceRow = { _id: string; name: string; slug: string; category: string; priceCents: number; depositCents: number; durationMin: number };
 
@@ -50,7 +52,74 @@ function siteOverview(): string {
 function matches(def: LandingDefinition, s: LlmsServiceRow) {
   if (def.match.type === "category") return s.category === def.match.category;
   if (def.match.type === "volumeLashes") return isVolumeLash(s);
+  if (def.match.type === "hybridOrVolumeLashes") return isWestLashService(s);
   return def.match.slugs.includes(s.slug);
+}
+
+const BLOG_HUB_SLUGS = [VOLUME_COST_POST.en, ...VOLUME_FEATURED_POSTS.en.map((post) => post.slug)];
+
+/** Short llms.txt: who/what/where, live prices, and key pages. Not the full article dump. */
+export function formatLlmsSummary(services: LlmsServiceRow[], rows: LlmsBlogRow[] = []): string {
+  const west = SERVICE_LANDING_PAGES.find((d) => d.key === "lash-extensions-west");
+  const volume = SERVICE_LANDING_PAGES.find((d) => d.key === "volume-lashes");
+  const westUrl = west ? `${siteUrl}${serviceLandingPath(west.slugs.en)}` : `${siteUrl}/services`;
+  const volumeUrl = volume ? `${siteUrl}${serviceLandingPath(volume.slugs.en)}` : `${siteUrl}/services`;
+
+  const priced = services.filter((s) => s.name && s.priceCents > 0);
+  let servicesBlock = "\n## Services\n\nPrices are read live from the booking menu.\n";
+  if (!priced.length) {
+    servicesBlock += `\nLive menu prices are on ${siteUrl}/services.\n`;
+  } else {
+    for (const s of priced) {
+      const book = s._id ? `${siteUrl}/book?serviceId=${encodeURIComponent(s._id)}` : `${siteUrl}/book`;
+      const bits = [formatCad(s.priceCents)];
+      if (s.durationMin > 0) bits.push(`${s.durationMin} min`);
+      if (s.depositCents > 0) bits.push(`${formatCad(s.depositCents)} deposit`);
+      servicesBlock += `- [${oneLine(s.name)}](${book}): ${bits.join(", ")}\n`;
+    }
+  }
+
+  let pages = "\n## Key pages\n\n";
+  pages += `- [Book an appointment](${siteUrl}/book)\n`;
+  pages += `- [Services and pricing](${siteUrl}/services)\n`;
+  pages += `- [West Edmonton studio](${siteUrl}/locations/west-edmonton): Private studio. Address shared at booking.\n`;
+  pages += `- [Marinelle Trevino](${siteUrl}/about/marinelle): Esthetician at Mari Esthetics, West Edmonton.\n`;
+  pages += `- [Blog](${siteUrl}/blog)\n`;
+  for (const def of SERVICE_LANDING_PAGES) {
+    const en = getLandingContent(def.key, "en");
+    pages += `- [${oneLine(en.h1)}](${siteUrl}${serviceLandingPath(def.slugs.en)}): ${oneLine(en.metaDescription)}\n`;
+    for (const locale of LANGS) {
+      if (locale === "en") continue;
+      const segment = def.slugs[locale];
+      if (!segment) continue;
+      pages += `  - ${locale}: ${siteUrl}${serviceLandingPath(segment)}\n`;
+    }
+  }
+
+  const bySlug = new Map(rows.map((row) => [row.slug, row]));
+  let hubs = "\n## Blog hubs\n\n";
+  hubs += `- [Blog](${siteUrl}/blog): Lash, brow, facial, and studio guides in English, Spanish, Tagalog, Punjabi, and Arabic.\n`;
+  for (const slug of BLOG_HUB_SLUGS) {
+    const row = bySlug.get(slug);
+    if (!row) continue;
+    const summary = oneLine(row.shortAnswer || row.excerpt || row.title).slice(0, 180);
+    hubs += `- [${oneLine(row.title)}](${blogPostUrl(row.slug)}): ${summary}\n`;
+  }
+  hubs += `- Full article index: ${siteUrl}/llms-full.txt\n`;
+
+  return `# ${business.name}
+
+> Private one-on-one lash, brow, and facial studio in West Edmonton, Alberta, Canada. Esthetician Marinelle Trevino sees every client herself. The street address is shared at booking.
+
+- Website: ${siteUrl}
+- Booking: ${siteUrl}/book
+- Phone: ${business.phoneDisplay}
+- Areas: ${business.areasServed.join(", ")}
+- Volume lash extensions: ${volumeUrl}
+- Lash extensions West Edmonton: ${westUrl}
+- About: ${siteUrl}/about/marinelle
+- Full article index: ${siteUrl}/llms-full.txt
+${servicesBlock}${pages}${hubs}`;
 }
 
 /** Service guides with live prices from the DB (exported for tests). */
@@ -160,10 +229,11 @@ export async function buildLlmsTxt(full = false): Promise<string> {
     serviceIds: r.serviceIds,
     translationGroupId: r.translationGroupId,
   }));
-  const footer = full
-    ? `\n## Business\n\n${business.description}\n\nAreas served: ${business.areasServed.join(", ")}.\n`
-    : "";
-  const body = `${siteOverview()}${formatLlmsServiceLandingsSection(services)}${formatLlmsBlogSection(rows, full, services)}${footer}`.trim() + "\n";
+  const footer = `\n## Business\n\n${business.description}\n\nAreas served: ${business.areasServed.join(", ")}.\n`;
+  const body = (full
+    ? `${siteOverview()}${formatLlmsServiceLandingsSection(services)}${formatLlmsBlogSection(rows, true, services)}${footer}`
+    : formatLlmsSummary(services, rows)
+  ).trim() + "\n";
   cache.set(full, { fp, at: Date.now(), body });
   return body;
 }

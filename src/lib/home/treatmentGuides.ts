@@ -2,6 +2,7 @@ import type { Locale } from "@/components/i18n/LanguageContext";
 import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
 import { isFullSet } from "@/lib/services/landing/lashSummary";
 import { isVolumeSet } from "@/lib/services/landing/volumeMatch";
+import { isWestLashService } from "@/lib/services/landing/westLashMatch";
 import type { LandingDefinition, LandingKey } from "@/lib/services/landing/types";
 import { formatCad } from "@/lib/money";
 
@@ -34,6 +35,7 @@ export const GUIDE_GROUPS: GuideGroup[] = ["lashes", "browsLips", "facials"];
 const GROUP_OF: Record<LandingKey, GuideGroup> = {
   "volume-lashes": "lashes",
   "lash-extensions": "lashes",
+  "lash-extensions-west": "lashes",
   "powder-brows": "browsLips",
   "lip-blush": "browsLips",
   "lip-neutralization": "browsLips",
@@ -48,10 +50,14 @@ const text = (r: GuideServiceRow) => `${r.name} ${r.slug.replace(/-/g, " ")}`;
 
 /** Services a guide's "from" price may come from: full lash sets only (no fills), no facial add-ons. */
 function candidatesFor(def: LandingDefinition, rows: GuideServiceRow[]): GuideServiceRow[] {
+  if (def.match.type === "hybridOrVolumeLashes") {
+    return rows.filter((r) => r.priceCents > 0 && isWestLashService(r) && isFullSet(r));
+  }
+  const match = def.match;
   const matched = rows.filter((r) => {
-    if (def.match.type === "category") return r.category === def.match.category;
-    if (def.match.type === "volumeLashes") return r.category === "lashes";
-    return def.match.slugs.includes(r.slug);
+    if (match.type === "category") return r.category === match.category;
+    if (match.type === "volumeLashes") return r.category === "lashes";
+    return match.slugs.includes(r.slug);
   });
   const priced = matched.filter((r) => r.priceCents > 0);
   if (def.key === "volume-lashes") return priced.filter(isVolumeSet);
@@ -114,6 +120,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     benefit: {
       "volume-lashes": "Fuller volume lashes, one-on-one in West Edmonton",
       "lash-extensions": "Soft, wearable fullness mapped to your eye shape",
+      "lash-extensions-west": "One of the lowest-priced volume and hybrid lashes, one-on-one",
       "powder-brows": "Natural-looking brows for busy routines",
       "lip-blush": "Subtle lip colour, shade chosen with Mari",
       "lip-neutralization": "Corrects cool or uneven lip tones",
@@ -134,6 +141,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     benefit: {
       "volume-lashes": "Pestañas de volumen más llenas, atención individual en el oeste de Edmonton",
       "lash-extensions": "Volumen suave y natural, diseñado para la forma de tus ojos",
+      "lash-extensions-west": "Volumen e híbridas, atención individual, una de las opciones de menor precio",
       "powder-brows": "Cejas de aspecto natural para rutinas ocupadas",
       "lip-blush": "Color sutil en los labios, tono elegido con Mari",
       "lip-neutralization": "Corrige tonos de labios fríos o disparejos",
@@ -154,6 +162,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     benefit: {
       "volume-lashes": "Mas punong volume lashes, one-on-one sa West Edmonton",
       "lash-extensions": "Malambot at natural na kapal, ayon sa hugis ng mata mo",
+      "lash-extensions-west": "Volume at hybrid, one-on-one, isa sa mga pinakamababang presyo",
       "powder-brows": "Natural na brows para sa abalang araw-araw",
       "lip-blush": "Banayad na kulay ng labi, pinili kasama si Mari",
       "lip-neutralization": "Inaayos ang malamig o hindi pantay na kulay ng labi",
@@ -174,6 +183,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     benefit: {
       "volume-lashes": "ਵਧੇਰੇ ਭਰੀਆਂ ਵਾਲਿਊਮ ਲੈਸ਼, ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਇੱਕ-ਤੋਂ-ਇੱਕ",
       "lash-extensions": "ਤੁਹਾਡੀਆਂ ਅੱਖਾਂ ਦੀ ਸ਼ਕਲ ਮੁਤਾਬਕ ਨਰਮ, ਕੁਦਰਤੀ ਭਰਪੂਰਤਾ",
+      "lash-extensions-west": "ਵਾਲਿਊਮ ਅਤੇ ਹਾਈਬ੍ਰਿਡ, ਇੱਕ-ਤੋਂ-ਇੱਕ, ਘੱਟ ਕੀਮਤਾਂ ਵਿੱਚੋਂ ਇੱਕ",
       "powder-brows": "ਰੁੱਝੀ ਰੁਟੀਨ ਲਈ ਕੁਦਰਤੀ ਦਿੱਖ ਵਾਲੇ ਬ੍ਰੋਜ਼",
       "lip-blush": "ਬੁੱਲ੍ਹਾਂ ਲਈ ਹਲਕਾ ਰੰਗ, ਸ਼ੇਡ Mari ਨਾਲ ਮਿਲ ਕੇ ਚੁਣਿਆ",
       "lip-neutralization": "ਠੰਢੇ ਜਾਂ ਅਸਮਾਨ ਬੁੱਲ੍ਹਾਂ ਦੇ ਰੰਗ ਨੂੰ ਠੀਕ ਕਰਦਾ ਹੈ",
@@ -194,6 +204,7 @@ export const GUIDE_COPY: Record<Locale, GuideCopy> = {
     benefit: {
       "volume-lashes": "رموش فوليوم أكثف، جلسة فردية في غرب إدمونتون",
       "lash-extensions": "كثافة ناعمة وطبيعية مصممة لشكل عينيك",
+      "lash-extensions-west": "فوليوم وهايبرد، جلسة فردية، من بين الأقل سعراً",
       "powder-brows": "حواجب بمظهر طبيعي تناسب روتينك المزدحم",
       "lip-blush": "لون شفاه ناعم، تختارين درجته مع ماري",
       "lip-neutralization": "يصحّح درجات الشفاه الباردة أو غير المتساوية",

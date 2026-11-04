@@ -12,6 +12,8 @@ import { ServiceLandingQuickLinks } from "@/components/services/ServiceLandingQu
 import { landingDefinitionForService } from "@/lib/services/landing/resolve";
 import { landingSlugForLocale } from "@/lib/services/landing/resolve";
 import { serviceLandingPath } from "@/lib/services/landing/paths";
+import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
+import { WEST_LASH_LINK_LABEL } from "@/lib/services/landing/quickLabels";
 import { lashMenuRank } from "@/lib/services/landing/volumeMatch";
 
 export type ServiceItem = {
@@ -110,6 +112,18 @@ interface ServicesContentProps {
   plans: PlanItem[];
   dbCategories: CategoryItem[];
   offline: boolean;
+}
+
+function WestLashLink({ locale }: { locale: ReturnType<typeof useLanguage>["locale"] }) {
+  const def = SERVICE_LANDING_PAGES.find((d) => d.key === "lash-extensions-west");
+  if (!def) return null;
+  return (
+    <p className="mt-2 text-xs">
+      <Link href={serviceLandingPath(landingSlugForLocale(def, locale))} className="font-semibold text-gold hover:text-gold-bright">
+        {WEST_LASH_LINK_LABEL[locale] || WEST_LASH_LINK_LABEL.en} →
+      </Link>
+    </p>
+  );
 }
 
 export function ServicesContent({
@@ -219,6 +233,7 @@ export function ServicesContent({
                       {categoryDesc}
                     </p>
                   )}
+                  {category === "lashes" ? <WestLashLink locale={locale} /> : null}
                 </div>
                 <p className="text-xs text-[var(--ink-soft)] font-medium">
                   {categoryServices.length}{" "}

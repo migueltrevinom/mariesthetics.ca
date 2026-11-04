@@ -13,6 +13,14 @@ describe("service landing resolve", () => {
     assert.equal(resolveLandingBySlugParam(encodeURIComponent("رموش-فوليوم-ادمونتون"))!.locale, "ar");
   });
 
+  it("resolves the West Edmonton lash page instead of redirecting it", () => {
+    const r = resolveLandingBySlugParam("lash-extensions-west-edmonton");
+    assert.ok(r);
+    assert.equal(r!.definition.key, "lash-extensions-west");
+    assert.equal(r!.locale, "en");
+    assert.equal(r!.pathSlug, "lash-extensions-west-edmonton");
+  });
+
   it("resolves English lash extensions slug", () => {
     const r = resolveLandingBySlugParam("lash-extensions-edmonton");
     assert.ok(r);

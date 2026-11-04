@@ -88,7 +88,7 @@ const localFaqs = [
 export default async function WestEdmontonLocationPage() {
   const services = await getServices();
   const locale = await getServerLocale();
-  const guideHref = (key: "volume-lashes" | "lash-extensions") => {
+  const guideHref = (key: "volume-lashes" | "lash-extensions" | "lash-extensions-west") => {
     const def = SERVICE_LANDING_PAGES.find((d) => d.key === key)!;
     return serviceLandingPath(landingSlugForLocale(def, locale));
   };
@@ -102,7 +102,9 @@ export default async function WestEdmontonLocationPage() {
       "Private esthetics studio serving West Edmonton, Glastonbury, and The Hamptons. Custom facials, lash extensions, and permanent makeup.",
     url: `${siteUrl}/locations/west-edmonton`,
     telephone: business.phone,
+    alternateName: ["Mari Esthetics Edmonton", "Mari Esthetics West Edmonton"],
     priceRange: business.priceRange,
+    sameAs: [...business.sameAs],
     currenciesAccepted: "CAD",
     image: `${siteUrl}/opengraph-image`,
     address: {
@@ -123,8 +125,21 @@ export default async function WestEdmontonLocationPage() {
       { "@type": "City", name: "The Hamptons" },
       { "@type": "City", name: "Granville" },
       { "@type": "City", name: "Lewis Estates" },
+      { "@type": "City", name: "Callingwood" },
       { "@type": "City", name: "Secord" },
     ],
+    founder: {
+      "@type": "Person",
+      "@id": `${siteUrl}/about/marinelle#person`,
+      name: "Marinelle Trevino",
+      url: `${siteUrl}/about/marinelle`,
+    },
+    employee: {
+      "@type": "Person",
+      "@id": `${siteUrl}/about/marinelle#person`,
+      name: "Marinelle Trevino",
+      url: `${siteUrl}/about/marinelle`,
+    },
   };
 
   return (
@@ -167,6 +182,9 @@ export default async function WestEdmontonLocationPage() {
               </Link>
               <Link href={guideHref("lash-extensions")} className="btn-ghost">
                 Lash extensions
+              </Link>
+              <Link href={guideHref("lash-extensions-west")} className="btn-ghost">
+                Lash extensions West Edmonton
               </Link>
             </div>
           </Reveal>

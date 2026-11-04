@@ -40,6 +40,12 @@ test("volume guide from-price is the set, not the empty-slug fill", () => {
   assert.equal(volume.group, "lashes");
 });
 
+test("west edmonton lash card prices hybrid and volume sets, not classic or fills", () => {
+  const west = buildTreatmentGuideCards(ROWS).find((c) => c.key === "lash-extensions-west")!;
+  assert.equal(west.fromCents, 10000);
+  assert.equal(west.group, "lashes");
+});
+
 test("lash 'from' price ignores fills and uses full sets only", () => {
   const lash = buildTreatmentGuideCards(ROWS).find((c) => c.key === "lash-extensions")!;
   assert.equal(lash.fromCents, 7000);

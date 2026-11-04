@@ -5,7 +5,7 @@ import { AUTHORS, DEFAULT_BLOG_AUTHOR, personJsonLd } from "@/lib/blog/authors";
 import { getPostsByAuthor } from "@/lib/blog/queries";
 import { blogPostPath } from "@/lib/blog/slug";
 import { getServerLocale } from "@/lib/i18n/locale";
-import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, buildMetadata, hreflangForSinglePath } from "@/lib/seo";
 import { localeToHreflang } from "@/lib/blog/locales";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `${author.name} – ${author.jobTitle[locale]}`,
     description: author.bio[locale],
     path: "/about/marinelle",
+    hreflangAlternates: hreflangForSinglePath("/about/marinelle"),
   });
 }
 

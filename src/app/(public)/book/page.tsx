@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import { BookingWizard } from "@/components/book/BookingWizard";
 import { BookPageHeader } from "@/components/book/BookPageHeader";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, hreflangForSinglePath } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
   title: "Book an Appointment",
   description:
     "Book your esthetics appointment in Edmonton, AB. Pick a treatment and time slot, then secure your slot with a debit/credit card or Interac e-Transfer deposit.",
   path: "/book",
+  hreflangAlternates: hreflangForSinglePath("/book"),
 });
 
 export default async function BookPage({

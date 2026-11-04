@@ -12,7 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes: MetadataRoute.Sitemap = [
     { url: `${siteUrl}`, changeFrequency: "weekly", priority: 1.0, alternates: { languages: hreflangForSinglePath("/") } },
     { url: `${siteUrl}/services`, changeFrequency: "daily", priority: 0.9, alternates: { languages: hreflangForSinglePath("/services") } },
-    { url: `${siteUrl}/book`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${siteUrl}/book`, changeFrequency: "daily", priority: 0.9, alternates: { languages: hreflangForSinglePath("/book") } },
     { url: `${siteUrl}/contact`, changeFrequency: "monthly", priority: 0.7, alternates: { languages: hreflangForSinglePath("/contact") } },
     { url: `${siteUrl}/gift-cards`, changeFrequency: "monthly", priority: 0.7, alternates: { languages: hreflangForSinglePath("/gift-cards") } },
     { url: `${siteUrl}/locations/west-edmonton`, changeFrequency: "weekly", priority: 0.9, alternates: { languages: hreflangForSinglePath("/locations/west-edmonton") } },
@@ -85,7 +85,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .sort((a, b) => b - a)[0];
   const blogIndex = routes.find((r) => r.url === `${siteUrl}/blog`);
   if (blogIndex && newest) blogIndex.lastModified = new Date(newest);
-  routes.push({ url: `${siteUrl}/about/marinelle`, changeFrequency: "monthly", priority: 0.5 });
+  routes.push({
+    url: `${siteUrl}/about/marinelle`,
+    changeFrequency: "monthly",
+    priority: 0.5,
+    alternates: { languages: hreflangForSinglePath("/about/marinelle") },
+  });
 
   return routes;
 }
