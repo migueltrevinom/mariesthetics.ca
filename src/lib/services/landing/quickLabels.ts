@@ -1,6 +1,15 @@
 import type { Locale } from "@/components/i18n/LanguageContext";
 import type { LandingKey } from "./types";
 
+/** Anchor text for links into the West Edmonton lash page. */
+export const WEST_LASH_LINK_LABEL: Record<Locale, string> = {
+  en: "Lash extensions in West Edmonton",
+  es: "Extensiones de pestañas en el oeste de Edmonton",
+  tl: "Lash extensions sa West Edmonton",
+  pa: "ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਲੈਸ਼ ਐਕਸਟੈਂਸ਼ਨ",
+  ar: "وصلات الرموش في غرب إدمونتون",
+};
+
 /** Short nav labels only — keep out of client bundles that import full landing copy. */
 export const LANDING_CHIP_LABELS: Record<LandingKey, Record<Locale, string>> = {
   "volume-lashes": {
@@ -16,6 +25,13 @@ export const LANDING_CHIP_LABELS: Record<LandingKey, Record<Locale, string>> = {
     tl: "Lash extensions",
     pa: "ਲੇਸ਼ ਐਕਸਟੈਂਸ਼ਨ",
     ar: "وصلات الرموش",
+  },
+  "lash-extensions-west": {
+    en: "Lashes West Edmonton",
+    es: "Pestañas oeste de Edmonton",
+    tl: "Lashes sa West Edmonton",
+    pa: "ਵੈਸਟ ਐਡਮੰਟਨ ਲੈਸ਼",
+    ar: "رموش غرب إدمونتون",
   },
   "powder-brows": {
     en: "Powder brows",

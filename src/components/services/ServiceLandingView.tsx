@@ -7,7 +7,6 @@ import type { Locale } from "@/components/i18n/LanguageContext";
 import type { LandingContent } from "@/lib/services/landing/types";
 import type { LandingServiceRow, RelatedBlogPost } from "@/lib/services/landing/queries";
 import { relatedBlogPath } from "@/lib/services/landing/queries";
-import { serviceLandingPath } from "@/lib/services/landing/paths";
 import { LashSummaryBox } from "@/components/services/LashSummaryBox";
 import type { LashSummary } from "@/lib/services/landing/lashSummary";
 type Props = {
@@ -19,7 +18,7 @@ type Props = {
   relatedPosts: RelatedBlogPost[];
   lashSummary?: LashSummary | null;
   extraFaqs?: Array<{ q: string; a: string }>;
-  volumeGuide?: { href: string; label: string } | null;
+  guides?: { href: string; label: string }[] | null;
 };
 
 export function ServiceLandingView({
@@ -31,7 +30,7 @@ export function ServiceLandingView({
   relatedPosts,
   lashSummary,
   extraFaqs = [],
-  volumeGuide,
+  guides,
 }: Props) {
   const faqs = [...extraFaqs, ...content.faqs];
   const dir = locale === "ar" ? "rtl" : "ltr";
@@ -110,12 +109,16 @@ export function ServiceLandingView({
         <section className="mt-16">
           <Reveal>
             <h2 className="display text-2xl text-[var(--ink)] md:text-3xl">{content.pricingHeading}</h2>
-            {volumeGuide ? (
-              <p className="mt-3 text-sm">
-                <Link href={volumeGuide.href} className="font-semibold text-gold hover:text-gold-bright">
-                  {volumeGuide.label}
-                </Link>
-              </p>
+            {guides && guides.length > 0 ? (
+              <ul className="mt-3 space-y-2 text-sm">
+                {guides.map((guide) => (
+                  <li key={guide.href}>
+                    <Link href={guide.href} className="font-semibold text-gold hover:text-gold-bright">
+                      {guide.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             ) : null}
             <p className="mt-2 text-xs text-[var(--ink-soft)]">
               Prices and deposits are loaded from the live studio menu and update automatically.

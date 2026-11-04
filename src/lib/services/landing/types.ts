@@ -3,6 +3,7 @@ import type { Locale } from "@/components/i18n/LanguageContext";
 export type LandingKey =
   | "volume-lashes"
   | "lash-extensions"
+  | "lash-extensions-west"
   | "powder-brows"
   | "lip-blush"
   | "lip-neutralization"
@@ -15,7 +16,9 @@ export type LandingMatch =
   | { type: "category"; category: string }
   | { type: "serviceSlugs"; slugs: string[] }
   /** Volume Set + Volume Fill. Matched by name or id because Volume Fill's slug may be empty. */
-  | { type: "volumeLashes" };
+  | { type: "volumeLashes" }
+  /** Hybrid and volume lash sets and fills only. Lifts, tints, and classic sets are excluded. */
+  | { type: "hybridOrVolumeLashes" };
 
 export type LandingDefinition = {
   key: LandingKey;

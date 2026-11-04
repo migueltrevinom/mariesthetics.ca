@@ -12,6 +12,33 @@ export const siteUrl = (
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://mariesthetics.ca"
 ).replace(/\/$/, "");
 
+/**
+ * Public profile URLs for schema.org sameAs and the visible social links.
+ * This is the only list — add a real URL here and it flows everywhere.
+ * Do not invent profiles. Leave these commented until the real URL exists:
+ * - Google Business Profile
+ * - Fresha
+ * - Bing Places
+ * - Apple Business Connect
+ */
+export const businessProfiles = [
+  "https://www.instagram.com/mariestheticsyeg",
+  // Google Business Profile: https://www.google.com/maps/place/...
+  // Fresha: https://www.fresha.com/...
+  // Bing Places: https://www.bing.com/maps?...
+  // Apple Business Connect: https://maps.apple.com/place?...
+] as const;
+
+/** Person node for Marinelle Trevino. Same @id as the /about/marinelle profile. */
+export function studioFounderJsonLd() {
+  return {
+    "@type": "Person" as const,
+    "@id": `${siteUrl}/about/marinelle#person`,
+    name: "Marinelle Trevino",
+    url: `${siteUrl}/about/marinelle`,
+  };
+}
+
 export const business = {
   name: "Mari Esthetics",
   legalName: "Mari Esthetics",
@@ -44,9 +71,7 @@ export const business = {
   phoneDisplay: "+1 (825) 785-3081",
   priceRange: "$$",
   currency: "CAD",
-  sameAs: [
-    "https://www.instagram.com/mariestheticsyeg",
-  ],
+  sameAs: businessProfiles,
 } as const;
 
 export const seoKeywords = [
@@ -234,7 +259,7 @@ export function localBusinessJsonLd(options?: {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
     "@id": `${siteUrl}/#business`,
-    alternateName: "Mari Esthetics West Edmonton",
+    alternateName: ["Mari Esthetics Edmonton", "Mari Esthetics West Edmonton"],
     name: business.name,
     description: business.description,
     url: siteUrl,
@@ -261,6 +286,8 @@ export function localBusinessJsonLd(options?: {
     },
     ...(options?.openingHours?.length ? { openingHoursSpecification: options.openingHours } : {}),
     sameAs: business.sameAs,
+    founder: studioFounderJsonLd(),
+    employee: studioFounderJsonLd(),
   };
 
   if (options?.ratingValue && options?.reviewCount && options.reviewCount > 0) {
