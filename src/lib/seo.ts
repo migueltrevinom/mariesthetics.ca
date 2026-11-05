@@ -84,7 +84,7 @@ export const seoKeywords = [
   "esthetician West Edmonton",
   "facials Glastonbury Edmonton",
   "lash extensions The Hamptons Edmonton",
-  "hydra facial West Edmonton",
+  "Hydro Facial West Edmonton",
   "home studio esthetician Edmonton T5T",
   "powder brows West Edmonton",
   "esthetics studio Glastonbury",
@@ -329,6 +329,11 @@ export function localBusinessJsonLd(options?: {
   return baseData;
 }
 
+function schemaText(value: string | undefined): string | undefined {
+  if (!value) return value;
+  return value.replace(/HydraFacial/g, "Hydro Facial").replace(/\bhydra facial\b/gi, "Hydro Facial");
+}
+
 export function individualServiceJsonLd(services: Array<{
   name: string;
   description?: string;
@@ -339,8 +344,8 @@ export function individualServiceJsonLd(services: Array<{
   return services.map((s) => ({
     "@context": "https://schema.org",
     "@type": "Service",
-    name: s.name,
-    description: s.description || business.description,
+    name: schemaText(s.name),
+    description: schemaText(s.description) || business.description,
     provider: { "@id": `${siteUrl}/#business` },
     areaServed: business.areasServed.map((name) => ({
       "@type": "City",
@@ -375,8 +380,8 @@ export function serviceCatalogJsonLd(
       price: (s.priceCents / 100).toFixed(2),
       itemOffered: {
         "@type": "Service",
-        name: s.name,
-        description: s.description,
+        name: schemaText(s.name),
+        description: schemaText(s.description),
         provider: { "@id": `${siteUrl}/#business` },
         areaServed: business.locality,
       },

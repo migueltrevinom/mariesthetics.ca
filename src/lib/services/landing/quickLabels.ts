@@ -62,11 +62,11 @@ export const LANDING_CHIP_LABELS: Record<LandingKey, Record<Locale, string>> = {
     ar: "فيشيال الوجه",
   },
   "hydra-facial": {
-    en: "Hydra facial",
-    es: "Hydra facial",
-    tl: "Hydra facial",
-    pa: "ਹਾਈਡ੍ਰਾ ਫੇਸ਼ੀਅਲ",
-    ar: "هيدرا فيشيال",
+    en: "Hydro Facial",
+    es: "Hydro Facial",
+    tl: "Hydro Facial",
+    pa: "Hydro Facial",
+    ar: "Hydro Facial",
   },
   "anti-aging-facial": {
     en: "Anti-aging facial",

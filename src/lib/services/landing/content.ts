@@ -1241,13 +1241,13 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
   },
   "hydra-facial": {
     en: {
-      metaTitle: "Hydra Facial in West Edmonton | Mari Esthetics",
+      metaTitle: "Hydro Facial in West Edmonton | Mari Esthetics",
       metaDescription:
-        "Hydra facial treatments in West Edmonton at a private T5T home studio. Deep cleanse and hydration for west-end skin through dry winter months.",
-      eyebrow: "Hydra facial · West Edmonton",
-      h1: "Hydra facial for Edmonton dryness",
+        "Hydro Facial treatments in West Edmonton at a private T5T home studio. Deep cleanse and hydration for west-end skin through dry winter months.",
+      eyebrow: "Hydro Facial · West Edmonton",
+      h1: "Hydro Facial for Edmonton dryness",
       intro: [
-        "When the furnace runs non-stop and you step from -30 air into overheated rooms, pores clog and makeup sits differently by afternoon. A hydra facial uses water-based exfoliation and infusion steps to clear buildup and replenish moisture—popular before events or after a long stretch of indoor heating.",
+        "When the furnace runs non-stop and you step from -30 air into overheated rooms, pores clog and makeup sits differently by afternoon. A Hydro Facial uses water-based exfoliation and infusion steps to clear buildup and replenish moisture—popular before events or after a long stretch of indoor heating.",
         "Clients from Callingwood, Lewis Estates, and The Hamptons often book between ski weekends, mall runs to West Edmonton Mall, or before photos on Whyte Ave. The treatment is efficient with visible glow, without harsh downtime.",
         "Marinelle Trevino does every facial herself in this private one-on-one West Edmonton studio. The address is shared at booking. Clients also drive in from St. Albert and Spruce Grove.",
       ],
@@ -1267,12 +1267,12 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       ],
       faqs: [
         {
-          q: "Is hydra facial available in west Edmonton T5T?",
-          a: "Yes. Hydra facial is offered at the Mari Esthetics home studio with individual appointments.",
+          q: "Is Hydro Facial available in west Edmonton T5T?",
+          a: "Yes. Hydro Facial is offered at the Mari Esthetics home studio with individual appointments.",
         },
         {
           q: "How is it different from a basic facial?",
-          a: "Hydra facial uses a device-assisted vortex step for exfoliation and serum infusion. We can recommend the right option at booking.",
+          a: "Hydro Facial uses a device-assisted vortex step for exfoliation and serum infusion. We can recommend the right option at booking.",
         },
         {
           q: "Can I book before a special event?",
@@ -1283,24 +1283,24 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
           a: "Yes. Clients drive from surrounding communities. The address is shared at booking.",
         },
         {
-          q: "Who does the hydra facial?",
+          q: "Who does the Hydro Facial?",
           a: "Marinelle Trevino, the esthetician behind Mari Esthetics, does every facial appointment herself. The address is shared at booking.",
         },
       ],
       pricingHeading: "Pricing & booking",
       relatedBlogHeading: "From the blog",
       locationLinkLabel: "Private studio in West Edmonton — address shared at booking",
-      bookCta: "Book hydra facial",
+      bookCta: "Book Hydro Facial",
       allServicesLabel: "Browse all services",
     },
     es: {
-      metaTitle: "Hydra facial en el oeste de Edmonton | Mari Esthetics",
+      metaTitle: "Hydro Facial en el oeste de Edmonton | Mari Esthetics",
       metaDescription:
-        "Hydra facial en estudio T5T. Limpieza profunda e hidratación para el invierno seco del oeste de Edmonton.",
-      eyebrow: "Hydra facial · Oeste de Edmonton",
-      h1: "Hydra facial contra la sequedad",
+        "Hydro Facial en estudio T5T. Limpieza profunda e hidratación para el invierno seco del oeste de Edmonton.",
+      eyebrow: "Hydro Facial · Oeste de Edmonton",
+      h1: "Hydro Facial contra la sequedad",
       intro: [
-        "Con el calefactor a tope y el choque de -30 a casa caliente, los poros se saturan. El hydra facial exfolia con agua e infunde sérum para limpiar e hidratar—ideal antes de un evento o tras semanas de calor seco.",
+        "Con el calefactor a tope y el choque de -30 a casa caliente, los poros se saturan. El Hydro Facial exfolia con agua e infunde sérum para limpiar e hidratar—ideal antes de un evento o tras semanas de calor seco.",
         "Clientas de Callingwood, Lewis Estates y The Hamptons reservan entre esquí, West Edmonton Mall o fotos en Whyte Ave. Brillo visible sin recuperación dura.",
         "Marinelle Trevino realiza cada facial ella misma en este estudio privado de atención individual en el oeste de Edmonton. La dirección se comparte al reservar. También vienen clientas desde St. Albert y Spruce Grove.",
       ],
@@ -1320,7 +1320,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       ],
       faqs: [
         {
-          q: "¿Hydra facial en T5T?",
+          q: "¿Hydro Facial en T5T?",
           a: "Sí, en estudio en casa con citas individuales.",
         },
         {
@@ -1336,24 +1336,24 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
           a: "Sí. La dirección se comparte al reservar.",
         },
         {
-          q: "¿Quién hace el hydra facial?",
+          q: "¿Quién hace el Hydro Facial?",
           a: "Marinelle Trevino, la esteticista de Mari Esthetics, hace cada facial ella misma. La dirección se comparte al reservar.",
         },
       ],
       pricingHeading: "Precios y reserva",
       relatedBlogHeading: "En el blog",
       locationLinkLabel: "Estudio privado en el oeste de Edmonton — la dirección se comparte al reservar",
-      bookCta: "Reservar hydra facial",
+      bookCta: "Reservar Hydro Facial",
       allServicesLabel: "Ver todos los servicios",
     },
     tl: {
-      metaTitle: "Hydra facial sa West Edmonton | Mari Esthetics",
+      metaTitle: "Hydro Facial sa West Edmonton | Mari Esthetics",
       metaDescription:
-        "Hydra facial sa T5T home studio. Deep cleanse at hydration sa dry winter ng west end.",
-      eyebrow: "Hydra facial · West Edmonton",
-      h1: "Hydra facial para sa Edmonton dryness",
+        "Hydro Facial sa T5T home studio. Deep cleanse at hydration sa dry winter ng west end.",
+      eyebrow: "Hydro Facial · West Edmonton",
+      h1: "Hydro Facial para sa Edmonton dryness",
       intro: [
-        "Furnace full blast, -30 papasok sa mainit na bahay—clogged pores. Hydra facial: water exfoliation at serum infusion, popular bago event o after matagal sa dry heat.",
+        "Furnace full blast, -30 papasok sa mainit na bahay—clogged pores. Hydro Facial: water exfoliation at serum infusion, popular bago event o after matagal sa dry heat.",
         "Callingwood, Lewis Estates, The Hamptons—book sa pagitan ng ski, WEM, Whyte Ave photos. Glow na walang mahirap na downtime.",
         "Si Marinelle Trevino ang gumagawa ng bawat facial appointment sa pribadong one-on-one studio na ito sa West Edmonton. Ibinibigay ang address pag nag-book. May mga kliyente rin mula St. Albert at Spruce Grove.",
       ],
@@ -1373,7 +1373,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       ],
       faqs: [
         {
-          q: "Hydra facial sa west T5T?",
+          q: "Hydro Facial sa west T5T?",
           a: "Oo, home studio, individual appointment.",
         },
         {
@@ -1389,24 +1389,24 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
           a: "Oo. Ibinibigay ang address pag nag-book.",
         },
         {
-          q: "Sino ang gumagawa ng hydra facial?",
+          q: "Sino ang gumagawa ng Hydro Facial?",
           a: "Si Marinelle Trevino, ang esthetician ng Mari Esthetics, ang gumagawa ng bawat facial appointment. Ibinibigay ang address pag nag-book.",
         },
       ],
       pricingHeading: "Presyo at booking",
       relatedBlogHeading: "Mula sa blog",
       locationLinkLabel: "Pribadong studio sa West Edmonton — ibinibigay ang address pag nag-book",
-      bookCta: "Mag-book ng hydra facial",
+      bookCta: "Mag-book ng Hydro Facial",
       allServicesLabel: "Lahat ng serbisyo",
     },
     pa: {
-      metaTitle: "ਹਾਈਡਰਾ ਫੇਸ਼ੀਅਲ ਵੈਸਟ ਐਡਮੰਟਨ | Mari Esthetics",
+      metaTitle: "Hydro Facial ਵੈਸਟ ਐਡਮੰਟਨ | Mari Esthetics",
       metaDescription:
-        "ਹਾਈਡਰਾ ਫੇਸ਼ੀਅਲ T5T ਵਿੱਚ। ਡੂੰਘੀ ਸਫਾਈ ਅਤੇ ਹਾਈਡ੍ਰੇਸ਼ਨ ਸੁੱਕੀ ਸਰਦੀ ਲਈ।",
-      eyebrow: "ਹਾਈਡਰਾ ਫੇਸ਼ੀਅਲ · ਵੈਸਟ ਐਡਮੰਟਨ",
-      h1: "ਐਡਮੰਟਨ ਦੀ ਸੁੱਕੀ ਹਵਾ ਲਈ ਹਾਈਡਰਾ",
+        "Hydro Facial T5T ਵਿੱਚ। ਡੂੰਘੀ ਸਫਾਈ ਅਤੇ ਹਾਈਡ੍ਰੇਸ਼ਨ ਸੁੱਕੀ ਸਰਦੀ ਲਈ।",
+      eyebrow: "Hydro Facial · ਵੈਸਟ ਐਡਮੰਟਨ",
+      h1: "ਐਡਮੰਟਨ ਦੀ ਸੁੱਕੀ ਹਵਾ ਲਈ Hydro Facial",
       intro: [
-        "ਫਰਨੇਸ ਲਗਾਤਾਰ, -30 ਤੋਂ ਗਰਮ ਕਮਰੇ—ਪੋਰ ਬੰਦ। ਹਾਈਡਰਾ ਪਾਣੀ ਐਕਸਫੋਲੀਏਸ਼ਨ ਅਤੇ ਸੀਰਮ ਨਾਲ ਸਾਫ ਅਤੇ ਹਾਈਡ੍ਰੇਟ—ਇਵੈਂਟ ਤੋਂ ਪਹਿਲਾਂ ਲੋਕਪ੍ਰਿਯ।",
+        "ਫਰਨੇਸ ਲਗਾਤਾਰ, -30 ਤੋਂ ਗਰਮ ਕਮਰੇ—ਪੋਰ ਬੰਦ। Hydro Facial ਪਾਣੀ ਐਕਸਫੋਲੀਏਸ਼ਨ ਅਤੇ ਸੀਰਮ ਨਾਲ ਸਾਫ ਅਤੇ ਹਾਈਡ੍ਰੇਟ—ਇਵੈਂਟ ਤੋਂ ਪਹਿਲਾਂ ਲੋਕਪ੍ਰਿਯ।",
         "Callingwood, Lewis Estates, The Hamptons—ski, WEM, Whyte Ave ਫੋਟੋ ਵਿਚਕਾਰ। ਚਮਕ ਬਿਨਾਂ ਲੰਬੀ ਰਿਕਵਰੀ।",
         "Marinelle Trevino ਇਸ ਨਿੱਜੀ ਇੱਕ-ਤੋਂ-ਇੱਕ ਵੈਸਟ ਐਡਮਿੰਟਨ ਸਟੂਡੀਓ ਵਿੱਚ ਹਰ ਫੇਸ਼ੀਅਲ ਖੁਦ ਕਰਦੀ ਹੈ। ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ। St. Albert ਅਤੇ Spruce Grove ਤੋਂ ਵੀ ਕਲਾਇੰਟ ਆਉਂਦੀਆਂ ਹਨ।",
       ],
@@ -1426,7 +1426,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       ],
       faqs: [
         {
-          q: "ਹਾਈਡਰਾ T5T ਵਿੱਚ?",
+          q: "Hydro Facial T5T ਵਿੱਚ?",
           a: "ਹਾਂ, ਹੋਮ ਸਟੂਡਿਯੋ।",
         },
         {
@@ -1442,24 +1442,24 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
           a: "ਹਾਂ। ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ।",
         },
         {
-          q: "ਹਾਈਡਰਾ ਫੇਸ਼ੀਅਲ ਕੌਣ ਕਰਦੀ ਹੈ?",
+          q: "Hydro Facial ਕੌਣ ਕਰਦੀ ਹੈ?",
           a: "Mari Esthetics ਦੀ ਐਸਥੈਟੀਸ਼ੀਅਨ Marinelle Trevino ਹਰ ਫੇਸ਼ੀਅਲ ਅਪਾਇੰਟਮੈਂਟ ਖੁਦ ਕਰਦੀ ਹੈ। ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ।",
         },
       ],
       pricingHeading: "ਕੀਮਤ ਅਤੇ ਬੁਕਿੰਗ",
       relatedBlogHeading: "ਬਲੌਗ ਤੋਂ",
       locationLinkLabel: "ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਨਿੱਜੀ ਸਟੂਡੀਓ — ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ",
-      bookCta: "ਹਾਈਡਰਾ ਫੇਸ਼ੀਅਲ ਬੁਕ ਕਰੋ",
+      bookCta: "Hydro Facial ਬੁਕ ਕਰੋ",
       allServicesLabel: "ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ",
     },
     ar: {
-      metaTitle: "هيدرا فيشيال في غرب إدمونتون | Mari Esthetics",
+      metaTitle: "Hydro Facial في غرب إدمونتون | Mari Esthetics",
       metaDescription:
-        "هيدرا فيشيال في استوديو T5T. تنظيف عميق وترطيب لشتاء الغرب الجاف.",
-      eyebrow: "هيدرا فيشيال · غرب إدمونتون",
-      h1: "هيدرا فيشيال لجفاف إدمونتون",
+        "Hydro Facial في استوديو T5T. تنظيف عميق وترطيب لشتاء الغرب الجاف.",
+      eyebrow: "Hydro Facial · غرب إدمونتون",
+      h1: "Hydro Facial لجفاف إدمونتون",
       intro: [
-        "مع المدفأة دائماً والانتقال من 30 تحت الصفر إلى منزل حار، تنسد المسام. الهيدرا يقشر بالماء ويضخ السيروم للتنظيف والترطيب—قبل المناسبات أو بعد أسابيع التدفئة.",
+        "مع المدفأة دائماً والانتقال من 30 تحت الصفر إلى منزل حار، تنسد المسام. Hydro Facial يقشر بالماء ويضخ السيروم للتنظيف والترطيب—قبل المناسبات أو بعد أسابيع التدفئة.",
         "عميلات Callingwood وLewis Estates وThe Hamptons يحجزن بين التزلج وWest Edmonton Mall أو صور Whyte Ave. توهج دون تعافي طويل.",
         "تقوم مارينيل تريفينو بكل جلسة فيشيال بنفسها في هذا الاستوديو الخاص ذي المواعيد الفردية في غرب إدمونتون. يُشارك العنوان عند الحجز. وتأتي عميلات أيضاً من St. Albert وSpruce Grove.",
       ],
@@ -1479,7 +1479,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       ],
       faqs: [
         {
-          q: "هل يتوفر هيدرا في T5T؟",
+          q: "هل يتوفر Hydro Facial في T5T؟",
           a: "نعم، في الاستوديو المنزلي بمواعيد فردية.",
         },
         {
@@ -1495,14 +1495,14 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
           a: "نعم. يُشارك العنوان عند الحجز.",
         },
         {
-          q: "من تقوم بالهيدرا فيشيال؟",
+          q: "من تقوم بـ Hydro Facial؟",
           a: "مارينيل تريفينو، أخصائية التجميل في Mari Esthetics، تقوم بكل جلسة فيشيال بنفسها. يُشارك العنوان عند الحجز.",
         },
       ],
       pricingHeading: "الأسعار والحجز",
       relatedBlogHeading: "من المدونة",
       locationLinkLabel: "استوديو خاص في غرب إدمونتون — يُشارك العنوان عند الحجز",
-      bookCta: "احجزي هيدرا فيشيال",
+      bookCta: "احجزي Hydro Facial",
       allServicesLabel: "عرض كل الخدمات",
     },
   },
