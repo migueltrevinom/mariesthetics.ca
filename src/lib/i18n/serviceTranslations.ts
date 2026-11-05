@@ -206,23 +206,23 @@ const SERVICE_FALLBACK_TRANSLATIONS: Record<string, Record<Locale, TranslatedSer
   },
   "Hydra Facial": {
     en: {
-      name: "Hydra Facial",
+      name: "Hydro Facial",
       description: "Deep hydrating facial treatment combining cleansing, extraction, and serum infusion."
     },
     es: {
-      name: "Facial Hidratante (Hydra Facial)",
+      name: "Hydro Facial",
       description: "Tratamiento facial de hidratación profunda que combina limpieza, extracción e infusión de suero."
     },
     tl: {
-      name: "Hydra Facial Treatment",
+      name: "Hydro Facial",
       description: "Pangmalakasang hydration treatment para sa linis at ningning ng mukha."
     },
     pa: {
-      name: "ਹਾਈਡ੍ਰਾ ਫੇਸ਼ੀਅਲ",
+      name: "Hydro Facial",
       description: "ਡੂੰਘੀ ਹਾਈਡ੍ਰੇਟਿੰਗ ਚਮੜੀ ਦੀ ਸਫਾਈ ਅਤੇ ਸੇਰਮ ਇਨਫਿਊਜ਼ਨ।"
     },
     ar: {
-      name: "هيدرا فيشيال للوجه",
+      name: "Hydro Facial",
       description: "علاج ترطيب عميق يجمع بين التنظيف والتقشير وضخ السيروم المغذي."
     }
   },
@@ -294,6 +294,11 @@ const SERVICE_FALLBACK_TRANSLATIONS: Record<string, Record<Locale, TranslatedSer
   }
 };
 
+/** Menu name is Hydro Facial. Older copy and the stored description sometimes say Hydra Facial or HydraFacial. */
+export function displayHydroFacial(text: string): string {
+  return text.replace(/HydraFacial/g, "Hydro Facial").replace(/\bhydra facial\b/gi, "Hydro Facial");
+}
+
 export function getLocalizedService(
   service: {
     name: string;
@@ -309,20 +314,21 @@ export function getLocalizedService(
 
   if (dbName && dbName.trim().length > 0) {
     return {
-      name: dbName,
-      description: dbDesc && dbDesc.trim().length > 0 ? dbDesc : service.description,
+      name: displayHydroFacial(dbName),
+      description: displayHydroFacial(dbDesc && dbDesc.trim().length > 0 ? dbDesc : service.description),
     };
   }
 
   // 2. Check fallback dictionary
   const fallbackMatch = SERVICE_FALLBACK_TRANSLATIONS[service.name];
   if (fallbackMatch && fallbackMatch[locale]) {
-    return fallbackMatch[locale];
+    const row = fallbackMatch[locale];
+    return { name: displayHydroFacial(row.name), description: displayHydroFacial(row.description) };
   }
 
-  // 3. Default to English
+  // 3. Default to the live menu text, with the process name normalized.
   return {
-    name: service.name,
-    description: service.description,
+    name: displayHydroFacial(service.name),
+    description: displayHydroFacial(service.description),
   };
 }

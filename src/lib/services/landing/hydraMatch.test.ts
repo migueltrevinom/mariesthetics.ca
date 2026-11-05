@@ -80,6 +80,12 @@ describe("hydra facial copy", () => {
     for (const locale of ["en", "es", "tl", "pa", "ar"] as const) {
       const content = getLandingContent("hydra-facial", locale);
       const visible = JSON.stringify(content);
+      assert.match(visible, /Hydro Facial/);
+      assert.equal(/hydra facial/i.test(visible), false);
+      assert.equal(/hydrafacial/i.test(visible), false);
+      assert.equal(visible.includes("هيدرا"), false);
+      assert.equal(visible.includes("ਹਾਈਡਰਾ"), false);
+      assert.equal(visible.includes("ਹਾਈਡ੍ਰਾ"), false);
       assert.match(visible, /Marinelle Trevino|مارينيل تريفينو/);
       assert.match(visible, /booking|reservar|nag-book|ਬੁਕਿੰਗ|الحجز/i);
       assert.equal(visible.includes(business.streetAddress), false);

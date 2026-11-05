@@ -28,8 +28,8 @@ const DEFAULT_CATEGORY_LABELS: Record<string, string> = {
 };
 
 const DEFAULT_CATEGORY_BLURB: Record<string, string> = {
-  facials: "Basic, deep cleansing, anti-aging & hydra facials",
-  facial: "Basic, deep cleansing, anti-aging & hydra facials",
+  facials: "Basic, deep cleansing, anti-aging & Hydro Facial",
+  facial: "Basic, deep cleansing, anti-aging & Hydro Facial",
   lashes: "Lash extensions & fills",
   permanentMakeUp: "Powder brows & lip blush",
   brows: "Powder brow design",

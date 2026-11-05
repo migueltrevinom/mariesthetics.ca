@@ -73,7 +73,7 @@ export function previewServicesForLanding(definition: LandingDefinition): Landin
           durationMin: 150,
           category: "facials",
           description:
-            "HydraFacial is a non-invasive, multi-step facial treatment that deeply cleanses, exfoliates, extracts impurities, and infuses the skin with hydrating, nourishing serums. This treatment helps improve skin texture, unclog pores, reduce congestion, brighten dull skin, and leave your complexion smooth, refreshed, and glowing with no downtime. Suitable for all skin types and ideal for maintaining healthy, radiant skin.",
+            "Hydro Facial is a non-invasive, multi-step facial treatment that deeply cleanses, exfoliates, extracts impurities, and infuses the skin with hydrating, nourishing serums. This treatment helps improve skin texture, unclog pores, reduce congestion, brighten dull skin, and leave your complexion smooth, refreshed, and glowing with no downtime. Suitable for all skin types and ideal for maintaining healthy, radiant skin.",
           photos: ["https://cdn.verifik.co/mariesthetics/services/hydra-facial.jpg"],
         }),
       ];

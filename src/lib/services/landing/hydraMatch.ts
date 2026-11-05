@@ -1,8 +1,8 @@
 /**
  * Hydro Facial matching.
- * The live menu row is named "Hydro Facial", its slug is empty, and the description
- * calls the treatment HydraFacial. Identity is the known service id, that name,
- * or the slug "hydra-facial" — never the slug alone.
+ * The live menu row is named "Hydro Facial" and its slug is empty.
+ * Identity is the known service id, that name, or the slug "hydra-facial".
+ * Older rows spelled it Hydra Facial or HydraFacial, so those still match.
  */
 
 export const HYDRA_FACIAL_ID = "6a735938191b0594eab40f2f";

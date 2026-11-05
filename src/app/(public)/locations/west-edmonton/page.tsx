@@ -31,7 +31,7 @@ export const metadata: Metadata = buildMetadata({
     "esthetician West Edmonton",
     "facials Glastonbury Edmonton",
     "lash extensions The Hamptons Edmonton",
-    "hydra facial West Edmonton",
+    "Hydro Facial West Edmonton",
     "powder brows Glastonbury",
     "home studio esthetician T5T",
     "esthetics Lewis Estates",
