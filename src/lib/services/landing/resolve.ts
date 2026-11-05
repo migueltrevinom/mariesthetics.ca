@@ -2,6 +2,7 @@ import type { Locale } from "@/components/i18n/LanguageContext";
 import { SERVICE_LANDING_PAGES } from "./registry";
 import { normalizeServiceLandingSlugParam } from "./paths";
 import type { LandingDefinition, ResolvedLanding } from "./types";
+import { isHydraFacial } from "./hydraMatch";
 import { isVolumeLash } from "./volumeMatch";
 
 const LOCALES: Locale[] = ["en", "es", "tl", "pa", "ar"];
@@ -59,6 +60,9 @@ export function landingDefinitionForService(service: {
 }): LandingDefinition | undefined {
   if (isVolumeLash(service)) {
     return SERVICE_LANDING_PAGES.find((d) => d.key === "volume-lashes");
+  }
+  if (isHydraFacial(service)) {
+    return SERVICE_LANDING_PAGES.find((d) => d.key === "hydra-facial");
   }
   for (const def of SERVICE_LANDING_PAGES) {
     if (def.match.type === "serviceSlugs" && service.slug && def.match.slugs.includes(service.slug)) {

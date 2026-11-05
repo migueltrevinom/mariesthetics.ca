@@ -1,6 +1,7 @@
 import type { Locale } from "@/components/i18n/LanguageContext";
 import { SERVICE_LANDING_PAGES } from "@/lib/services/landing/registry";
 import { isFullSet } from "@/lib/services/landing/lashSummary";
+import { isHydraFacial } from "@/lib/services/landing/hydraMatch";
 import { isVolumeSet } from "@/lib/services/landing/volumeMatch";
 import { isWestLashService } from "@/lib/services/landing/westLashMatch";
 import type { LandingDefinition, LandingKey } from "@/lib/services/landing/types";
@@ -57,6 +58,7 @@ function candidatesFor(def: LandingDefinition, rows: GuideServiceRow[]): GuideSe
   const matched = rows.filter((r) => {
     if (match.type === "category") return r.category === match.category;
     if (match.type === "volumeLashes") return r.category === "lashes";
+    if (match.type === "hydraFacial") return isHydraFacial(r);
     return match.slugs.includes(r.slug);
   });
   const priced = matched.filter((r) => r.priceCents > 0);

@@ -1249,7 +1249,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       intro: [
         "When the furnace runs non-stop and you step from -30 air into overheated rooms, pores clog and makeup sits differently by afternoon. A hydra facial uses water-based exfoliation and infusion steps to clear buildup and replenish moisture—popular before events or after a long stretch of indoor heating.",
         "Clients from Callingwood, Lewis Estates, and The Hamptons often book between ski weekends, mall runs to West Edmonton Mall, or before photos on Whyte Ave. The treatment is efficient with visible glow, without harsh downtime.",
-        "Your session is private in a one-on-one T5T home studio, also convenient for St. Albert and Spruce Grove commutes.",
+        "Marinelle Trevino does every facial herself in this private one-on-one West Edmonton studio. The address is shared at booking. Clients also drive in from St. Albert and Spruce Grove.",
       ],
       whatToExpect: [
         "Consultation on skin goals and any sensitivity",
@@ -1280,12 +1280,16 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         },
         {
           q: "Do you serve Spruce Grove and St. Albert?",
-          a: "Yes. Clients drive from surrounding communities; you will receive studio address details after booking.",
+          a: "Yes. Clients drive from surrounding communities. The address is shared at booking.",
+        },
+        {
+          q: "Who does the hydra facial?",
+          a: "Marinelle Trevino, the esthetician behind Mari Esthetics, does every facial appointment herself. The address is shared at booking.",
         },
       ],
       pricingHeading: "Pricing & booking",
       relatedBlogHeading: "From the blog",
-      locationLinkLabel: "Home studio in West Edmonton (T5T)",
+      locationLinkLabel: "Private studio in West Edmonton — address shared at booking",
       bookCta: "Book hydra facial",
       allServicesLabel: "Browse all services",
     },
@@ -1298,7 +1302,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       intro: [
         "Con el calefactor a tope y el choque de -30 a casa caliente, los poros se saturan. El hydra facial exfolia con agua e infunde sérum para limpiar e hidratar—ideal antes de un evento o tras semanas de calor seco.",
         "Clientas de Callingwood, Lewis Estates y The Hamptons reservan entre esquí, West Edmonton Mall o fotos en Whyte Ave. Brillo visible sin recuperación dura.",
-        "Sesión privada en estudio T5T—también práctico desde St. Albert y Spruce Grove.",
+        "Marinelle Trevino realiza cada facial ella misma en este estudio privado de atención individual en el oeste de Edmonton. La dirección se comparte al reservar. También vienen clientas desde St. Albert y Spruce Grove.",
       ],
       whatToExpect: [
         "Consulta de objetivos y sensibilidad",
@@ -1329,12 +1333,16 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         },
         {
           q: "¿Spruce Grove y St. Albert?",
-          a: "Sí, dirección al reservar.",
+          a: "Sí. La dirección se comparte al reservar.",
+        },
+        {
+          q: "¿Quién hace el hydra facial?",
+          a: "Marinelle Trevino, la esteticista de Mari Esthetics, hace cada facial ella misma. La dirección se comparte al reservar.",
         },
       ],
       pricingHeading: "Precios y reserva",
       relatedBlogHeading: "En el blog",
-      locationLinkLabel: "Estudio en casa en el oeste de Edmonton (T5T)",
+      locationLinkLabel: "Estudio privado en el oeste de Edmonton — la dirección se comparte al reservar",
       bookCta: "Reservar hydra facial",
       allServicesLabel: "Ver todos los servicios",
     },
@@ -1347,7 +1355,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       intro: [
         "Furnace full blast, -30 papasok sa mainit na bahay—clogged pores. Hydra facial: water exfoliation at serum infusion, popular bago event o after matagal sa dry heat.",
         "Callingwood, Lewis Estates, The Hamptons—book sa pagitan ng ski, WEM, Whyte Ave photos. Glow na walang mahirap na downtime.",
-        "Private sa one-on-one T5T—convenient mula St. Albert at Spruce Grove.",
+        "Si Marinelle Trevino ang gumagawa ng bawat facial appointment sa pribadong one-on-one studio na ito sa West Edmonton. Ibinibigay ang address pag nag-book. May mga kliyente rin mula St. Albert at Spruce Grove.",
       ],
       whatToExpect: [
         "Goals at sensitivity check",
@@ -1378,12 +1386,16 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         },
         {
           q: "Spruce Grove/St. Albert?",
-          a: "Oo, address pag nag-book.",
+          a: "Oo. Ibinibigay ang address pag nag-book.",
+        },
+        {
+          q: "Sino ang gumagawa ng hydra facial?",
+          a: "Si Marinelle Trevino, ang esthetician ng Mari Esthetics, ang gumagawa ng bawat facial appointment. Ibinibigay ang address pag nag-book.",
         },
       ],
       pricingHeading: "Presyo at booking",
       relatedBlogHeading: "Mula sa blog",
-      locationLinkLabel: "Home studio sa West Edmonton (T5T)",
+      locationLinkLabel: "Pribadong studio sa West Edmonton — ibinibigay ang address pag nag-book",
       bookCta: "Mag-book ng hydra facial",
       allServicesLabel: "Lahat ng serbisyo",
     },
@@ -1396,7 +1408,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       intro: [
         "ਫਰਨੇਸ ਲਗਾਤਾਰ, -30 ਤੋਂ ਗਰਮ ਕਮਰੇ—ਪੋਰ ਬੰਦ। ਹਾਈਡਰਾ ਪਾਣੀ ਐਕਸਫੋਲੀਏਸ਼ਨ ਅਤੇ ਸੀਰਮ ਨਾਲ ਸਾਫ ਅਤੇ ਹਾਈਡ੍ਰੇਟ—ਇਵੈਂਟ ਤੋਂ ਪਹਿਲਾਂ ਲੋਕਪ੍ਰਿਯ।",
         "Callingwood, Lewis Estates, The Hamptons—ski, WEM, Whyte Ave ਫੋਟੋ ਵਿਚਕਾਰ। ਚਮਕ ਬਿਨਾਂ ਲੰਬੀ ਰਿਕਵਰੀ।",
-        "ਨਿੱਜੀ T5T—St. Albert, Spruce Grove ਕਮਿਊਟ ਲਈ ਸੁਵਿਧਾਜਨਕ।",
+        "Marinelle Trevino ਇਸ ਨਿੱਜੀ ਇੱਕ-ਤੋਂ-ਇੱਕ ਵੈਸਟ ਐਡਮਿੰਟਨ ਸਟੂਡੀਓ ਵਿੱਚ ਹਰ ਫੇਸ਼ੀਅਲ ਖੁਦ ਕਰਦੀ ਹੈ। ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ। St. Albert ਅਤੇ Spruce Grove ਤੋਂ ਵੀ ਕਲਾਇੰਟ ਆਉਂਦੀਆਂ ਹਨ।",
       ],
       whatToExpect: [
         "ਲਕਸ਼ ਅਤੇ ਸੰਵੇਦਨਸ਼ੀਲਤਾ",
@@ -1427,12 +1439,16 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         },
         {
           q: "Spruce Grove/St. Albert?",
-          a: "ਹਾਂ, ਬੁਕਿੰਗ ਤੇ ਪਤਾ।",
+          a: "ਹਾਂ। ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ।",
+        },
+        {
+          q: "ਹਾਈਡਰਾ ਫੇਸ਼ੀਅਲ ਕੌਣ ਕਰਦੀ ਹੈ?",
+          a: "Mari Esthetics ਦੀ ਐਸਥੈਟੀਸ਼ੀਅਨ Marinelle Trevino ਹਰ ਫੇਸ਼ੀਅਲ ਅਪਾਇੰਟਮੈਂਟ ਖੁਦ ਕਰਦੀ ਹੈ। ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ।",
         },
       ],
       pricingHeading: "ਕੀਮਤ ਅਤੇ ਬੁਕਿੰਗ",
       relatedBlogHeading: "ਬਲੌਗ ਤੋਂ",
-      locationLinkLabel: "ਵੈਸਟ ਐਡਮੰਟਨ ਹੋਮ ਸਟੂਡਿਯੋ (T5T)",
+      locationLinkLabel: "ਵੈਸਟ ਐਡਮਿੰਟਨ ਵਿੱਚ ਨਿੱਜੀ ਸਟੂਡੀਓ — ਪਤਾ ਬੁਕਿੰਗ ਤੇ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ",
       bookCta: "ਹਾਈਡਰਾ ਫੇਸ਼ੀਅਲ ਬੁਕ ਕਰੋ",
       allServicesLabel: "ਸਾਰੀਆਂ ਸੇਵਾਵਾਂ",
     },
@@ -1445,7 +1461,7 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
       intro: [
         "مع المدفأة دائماً والانتقال من 30 تحت الصفر إلى منزل حار، تنسد المسام. الهيدرا يقشر بالماء ويضخ السيروم للتنظيف والترطيب—قبل المناسبات أو بعد أسابيع التدفئة.",
         "عميلات Callingwood وLewis Estates وThe Hamptons يحجزن بين التزلج وWest Edmonton Mall أو صور Whyte Ave. توهج دون تعافي طويل.",
-        "جلسة خاصة في T5T—مناسب من St. Albert وSpruce Grove.",
+        "تقوم مارينيل تريفينو بكل جلسة فيشيال بنفسها في هذا الاستوديو الخاص ذي المواعيد الفردية في غرب إدمونتون. يُشارك العنوان عند الحجز. وتأتي عميلات أيضاً من St. Albert وSpruce Grove.",
       ],
       whatToExpect: [
         "استشارة الأهداف والحساسية",
@@ -1476,12 +1492,16 @@ const LANDING_COPY: Record<LandingKey, Record<Locale, LandingContent>> = {
         },
         {
           q: "Spruce Grove وSt. Albert؟",
-          a: "نعم، العنوان بعد الحجز.",
+          a: "نعم. يُشارك العنوان عند الحجز.",
+        },
+        {
+          q: "من تقوم بالهيدرا فيشيال؟",
+          a: "مارينيل تريفينو، أخصائية التجميل في Mari Esthetics، تقوم بكل جلسة فيشيال بنفسها. يُشارك العنوان عند الحجز.",
         },
       ],
       pricingHeading: "الأسعار والحجز",
       relatedBlogHeading: "من المدونة",
-      locationLinkLabel: "استوديو منزلي في غرب إدمونتون (T5T)",
+      locationLinkLabel: "استوديو خاص في غرب إدمونتون — يُشارك العنوان عند الحجز",
       bookCta: "احجزي هيدرا فيشيال",
       allServicesLabel: "عرض كل الخدمات",
     },

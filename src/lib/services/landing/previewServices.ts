@@ -62,7 +62,21 @@ export function previewServicesForLanding(definition: LandingDefinition): Landin
         base({ _id: "p7", name: "Deep Cleansing Facial", slug: "deep-cleansing-facial", priceCents: 8000, category: "facials" }),
       ];
     case "hydra-facial":
-      return [base({ _id: "p8", name: "Hydra Facial", slug: "hydra-facial", priceCents: 10000, category: "facials" })];
+      // Mirrors the live /api/services row (name Hydro Facial, empty slug). Nov 5, 2026.
+      return [
+        base({
+          _id: "6a735938191b0594eab40f2f",
+          name: "Hydro Facial",
+          slug: "",
+          priceCents: 10000,
+          depositCents: 2500,
+          durationMin: 150,
+          category: "facials",
+          description:
+            "HydraFacial is a non-invasive, multi-step facial treatment that deeply cleanses, exfoliates, extracts impurities, and infuses the skin with hydrating, nourishing serums. This treatment helps improve skin texture, unclog pores, reduce congestion, brighten dull skin, and leave your complexion smooth, refreshed, and glowing with no downtime. Suitable for all skin types and ideal for maintaining healthy, radiant skin.",
+          photos: ["https://cdn.verifik.co/mariesthetics/services/hydra-facial.jpg"],
+        }),
+      ];
     case "anti-aging-facial":
       return [base({ _id: "p9", name: "Anti-aging Facial", slug: "anti-aging-facial", priceCents: 10000, category: "facials" })];
     case "deep-cleansing-facial":

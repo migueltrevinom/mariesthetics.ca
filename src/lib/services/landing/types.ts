@@ -17,6 +17,8 @@ export type LandingMatch =
   | { type: "serviceSlugs"; slugs: string[] }
   /** Volume Set + Volume Fill. Matched by name or id because Volume Fill's slug may be empty. */
   | { type: "volumeLashes" }
+  /** Hydro Facial. Matched by id or name because the live slug is empty. */
+  | { type: "hydraFacial" }
   /** Hybrid and volume lash sets and fills only. Lifts, tints, and classic sets are excluded. */
   | { type: "hybridOrVolumeLashes" };
 
