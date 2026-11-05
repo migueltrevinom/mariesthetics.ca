@@ -5,7 +5,7 @@ const DEFAULT_CATEGORIES = [
   {
     name: "Facials & Skin Care",
     slug: "facials",
-    description: "Basic, deep cleansing, anti-aging & hydra facials for healthy, glowing skin.",
+    description: "Basic, deep cleansing, anti-aging and Hydro Facial for healthy, glowing skin.",
     active: true,
     sortOrder: 1,
   },
