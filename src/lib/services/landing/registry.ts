@@ -87,7 +87,7 @@ export const SERVICE_LANDING_PAGES: LandingDefinition[] = [
   },
   {
     key: "hydra-facial",
-    match: { type: "serviceSlugs", slugs: ["hydra-facial"] },
+    match: { type: "hydraFacial" },
     heroServiceSlug: "hydra-facial",
     slugs: {
       en: "hydra-facial-edmonton",

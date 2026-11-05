@@ -3,6 +3,7 @@ import { BlogPost, Service, ServiceImage } from "@/lib/db/models";
 import type { LandingDefinition, LandingMatch } from "./types";
 import { blogPostPath } from "@/lib/blog/slug";
 import { previewServicesForLanding, SERVICE_LANDING_DEV_PREVIEW } from "./previewServices";
+import { isHydraFacial } from "./hydraMatch";
 import { isVolumeLash } from "./volumeMatch";
 import { isWestLashService } from "./westLashMatch";
 
@@ -35,6 +36,9 @@ function matchesService(row: LandingServiceRow, match: LandingMatch): boolean {
   }
   if (match.type === "hybridOrVolumeLashes") {
     return isWestLashService(row);
+  }
+  if (match.type === "hydraFacial") {
+    return isHydraFacial(row);
   }
   return match.slugs.includes(row.slug);
 }
