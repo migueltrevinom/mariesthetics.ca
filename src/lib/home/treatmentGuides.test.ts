@@ -55,6 +55,26 @@ test("lash 'from' price ignores fills and uses full sets only", () => {
   assert.equal(lash.group, "lashes");
 });
 
+test("hydra guide still prices Hydro Facial when the live slug is empty", () => {
+  const cards = buildTreatmentGuideCards([
+    row({
+      _id: "6a735938191b0594eab40f2f",
+      name: "Hydro Facial",
+      slug: "",
+      category: "facials",
+      priceCents: 10000,
+      depositCents: 2500,
+      durationMin: 150,
+      photos: ["https://cdn.verifik.co/mariesthetics/services/hydra-facial.jpg"],
+    }),
+  ]);
+  const hydra = cards.find((c) => c.key === "hydra-facial")!;
+  assert.equal(hydra.fromCents, 10000);
+  assert.equal(hydra.minDur, 150);
+  assert.equal(hydra.maxDur, 150);
+  assert.equal(hydra.image, "https://cdn.verifik.co/mariesthetics/services/hydra-facial.jpg");
+});
+
 test("facials guide uses the cheapest facial; dedicated guides use their own service", () => {
   const cards = buildTreatmentGuideCards(ROWS);
   assert.equal(cards.find((c) => c.key === "facial-west")!.fromCents, 5000);
