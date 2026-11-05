@@ -10,6 +10,7 @@ import { business, siteUrl } from "@/lib/seo";
 import { formatCad } from "@/lib/money";
 import { connectDb } from "@/lib/db/connect";
 import { BlogPost, Service } from "@/lib/db/models";
+import { isHydraFacial } from "@/lib/services/landing/hydraMatch";
 import { isVolumeLash } from "@/lib/services/landing/volumeMatch";
 import { isWestLashService } from "@/lib/services/landing/westLashMatch";
 import { VOLUME_COST_POST, VOLUME_FEATURED_POSTS } from "@/lib/services/landing/volumePosts";
@@ -53,6 +54,7 @@ function matches(def: LandingDefinition, s: LlmsServiceRow) {
   if (def.match.type === "category") return s.category === def.match.category;
   if (def.match.type === "volumeLashes") return isVolumeLash(s);
   if (def.match.type === "hybridOrVolumeLashes") return isWestLashService(s);
+  if (def.match.type === "hydraFacial") return isHydraFacial(s);
   return def.match.slugs.includes(s.slug);
 }
 
