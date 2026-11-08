@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import en from "@/messages/en.json";
 import tl from "@/messages/tl.json";
 import pa from "@/messages/pa.json";
@@ -80,7 +80,9 @@ export function LanguageProvider({
     void loadDbTranslations();
   }, []);
 
-  const setLocale = (newLocale: Locale) => {
+  // ⚡ Bolt Optimization: Memoize setLocale callback to retain a stable function identity
+  // across re-renders of LanguageProvider.
+  const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
     localStorage.setItem("mari_locale", newLocale);
     document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
@@ -88,50 +90,62 @@ export function LanguageProvider({
     setDir(targetDir);
     document.documentElement.setAttribute("dir", targetDir);
     document.documentElement.setAttribute("lang", newLocale);
-  };
+  }, []);
 
-  const t = (keyPath: string): string => {
-    // 1. Check MongoDB Overrides for active locale
-    if (dbOverrides[locale] && dbOverrides[locale][keyPath]) {
-      return dbOverrides[locale][keyPath];
-    }
-
-    // 2. Check Static JSON Dictionary for active locale
-    const parts = keyPath.split(".");
-    let current = staticDictionaries[locale] || staticDictionaries.en;
-    let foundInLocale = true;
-    for (const part of parts) {
-      if (current && typeof current === "object" && part in current) {
-        current = current[part];
-      } else {
-        foundInLocale = false;
-        break;
+  // ⚡ Bolt Optimization: Memoize translation lookup callback. Only recomputes when
+  // current locale changes or dynamic DB overrides are received.
+  const t = useCallback(
+    (keyPath: string): string => {
+      // 1. Check MongoDB Overrides for active locale
+      if (dbOverrides[locale] && dbOverrides[locale][keyPath]) {
+        return dbOverrides[locale][keyPath];
       }
-    }
-    if (foundInLocale && typeof current === "string") {
-      return current;
-    }
 
-    // 3. Fallback to MongoDB Overrides for English
-    if (dbOverrides.en && dbOverrides.en[keyPath]) {
-      return dbOverrides.en[keyPath];
-    }
-
-    // 4. Fallback to Static JSON Dictionary for English
-    let fallback = staticDictionaries.en;
-    for (const p of parts) {
-      if (fallback && typeof fallback === "object" && p in fallback) {
-        fallback = fallback[p];
-      } else {
-        return keyPath;
+      // 2. Check Static JSON Dictionary for active locale
+      const parts = keyPath.split(".");
+      let current = staticDictionaries[locale] || staticDictionaries.en;
+      let foundInLocale = true;
+      for (const part of parts) {
+        if (current && typeof current === "object" && part in current) {
+          current = current[part];
+        } else {
+          foundInLocale = false;
+          break;
+        }
       }
-    }
+      if (foundInLocale && typeof current === "string") {
+        return current;
+      }
 
-    return typeof fallback === "string" ? fallback : keyPath;
-  };
+      // 3. Fallback to MongoDB Overrides for English
+      if (dbOverrides.en && dbOverrides.en[keyPath]) {
+        return dbOverrides.en[keyPath];
+      }
+
+      // 4. Fallback to Static JSON Dictionary for English
+      let fallback = staticDictionaries.en;
+      for (const p of parts) {
+        if (fallback && typeof fallback === "object" && p in fallback) {
+          fallback = fallback[p];
+        } else {
+          return keyPath;
+        }
+      }
+
+      return typeof fallback === "string" ? fallback : keyPath;
+    },
+    [locale, dbOverrides]
+  );
+
+  // ⚡ Bolt Optimization: Memoize root context value object so consumers across the
+  // application tree do not suffer cascading re-renders when parent components re-render.
+  const contextValue = useMemo(
+    () => ({ locale, setLocale, t, dir }),
+    [locale, setLocale, t, dir]
+  );
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, t, dir }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
