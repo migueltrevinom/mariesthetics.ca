@@ -16,7 +16,7 @@ async function handleGetInvoice(_req: Request, session: SessionPayload, { params
 		const targetId = id.replace(/^booking-/, "");
 
 		// 1. Check if it's a Payment ID
-		let payment = await Payment.findById(targetId).populate("bookingId").lean();
+		const payment = await Payment.findById(targetId).populate("bookingId").lean();
 
 		// 2. Check if it's a Booking ID
 		let booking = null;

@@ -10,9 +10,6 @@ const nextConfig: NextConfig = {
 	// Render all metadata (<title>, description, canonical, hreflang) in <head>
 	// for every user agent instead of streaming it into <body> after the shell.
 	htmlLimitedBots: /.*/,
-	eslint: {
-		ignoreDuringBuilds: true,
-	},
 	images: {
 		remotePatterns: [
 			{

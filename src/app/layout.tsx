@@ -71,7 +71,7 @@ export default async function RootLayout({
 }>) {
   const { lang, dir } = htmlAttrsForLocale(await getPageContentLocale());
   return (
-    <html lang={lang} dir={dir} suppressHydrationWarning>
+    <html lang={lang} dir={dir} data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

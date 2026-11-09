@@ -32,14 +32,19 @@ const localDev = isolated({
   NEXT_PUBLIC_SITE_URL: "https://mariesthetics.ca",
 });
 
+function assignEnv(key: string, value: string | undefined) {
+  // Next.js 16 types NODE_ENV as readonly. Tests still need to swap it.
+  const env = process.env as Record<string, string | undefined>;
+  if (value === undefined) delete env[key];
+  else env[key] = value;
+}
+
 async function withEnv(patch: EnvPatch, fn: (warnings: string[]) => Promise<void> | void) {
   const previous = new Map<string, string | undefined>();
   for (const key of ENV_KEYS) previous.set(key, process.env[key]);
   for (const key of ENV_KEYS) {
     if (!(key in patch)) continue;
-    const value = patch[key];
-    if (value === undefined) delete process.env[key];
-    else process.env[key] = value;
+    assignEnv(key, patch[key]);
   }
   const warnings: string[] = [];
   const originalWarn = console.warn;
@@ -50,10 +55,7 @@ async function withEnv(patch: EnvPatch, fn: (warnings: string[]) => Promise<void
     await fn(warnings);
   } finally {
     console.warn = originalWarn;
-    for (const [key, value] of previous) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
+    for (const [key, value] of previous) assignEnv(key, value);
   }
 }
 
