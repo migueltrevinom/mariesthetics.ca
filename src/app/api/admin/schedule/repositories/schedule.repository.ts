@@ -45,7 +45,7 @@ export class ScheduleRepository {
    */
   static async upsertDateOverride(override: DateOverrideSetting) {
     await connectDb();
-    let schedule = await this.getSchedule();
+    const schedule = await this.getSchedule();
     const existingIdx = schedule.dateOverrides.findIndex((o) => o.date === override.date);
     if (existingIdx >= 0) {
       schedule.dateOverrides[existingIdx] = override;
@@ -62,7 +62,7 @@ export class ScheduleRepository {
    */
   static async removeDateOverride(dateStr: string) {
     await connectDb();
-    let schedule = await this.getSchedule();
+    const schedule = await this.getSchedule();
     schedule.dateOverrides = schedule.dateOverrides.filter((o) => o.date !== dateStr);
     schedule.markModified("dateOverrides");
     await schedule.save();

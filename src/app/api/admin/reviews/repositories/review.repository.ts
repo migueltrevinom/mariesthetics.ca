@@ -15,7 +15,7 @@ export class ReviewRepository {
 			throw new Error("Booking not found");
 		}
 
-		let existing = await Review.findOne({ bookingId: booking._id });
+		const existing = await Review.findOne({ bookingId: booking._id });
 		if (existing) {
 			return existing;
 		}

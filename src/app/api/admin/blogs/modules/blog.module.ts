@@ -96,7 +96,7 @@ export async function createBlogTranslationSet(data: {
 }
 
 export async function updateBlogPost(id: string, data: any) {
-  let updateData = { ...data };
+  const updateData = { ...data };
   if (data.title && !data.slug) {
     // If title changed and slug wasn't explicitly provided, we can keep existing or re-slug
   } else if (data.slug) {
