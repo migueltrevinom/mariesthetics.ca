@@ -43,7 +43,7 @@ for (const page of [contactPageSeo, giftCardsPageSeo]) {
     assert.equal(twitter?.description, page.description);
 
     const languages = meta.alternates?.languages ?? {};
-    for (const lang of ["en-CA", "es", "tl", "pa", "ar", "x-default"]) {
+    for (const lang of ["en-CA", "es", "tl", "pa", "ar", "x-default"] as const) {
       assert.equal(languages[lang], url);
     }
   });

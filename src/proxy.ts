@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { verifyStudioChargeToken } from "@/lib/payments/studioChargeToken";
 
 // Pay screen: without a valid pay-link JWT, answer 401 with no charge data.
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   if (req.nextUrl.pathname !== "/pay") {
     // Lets the root layout set <html lang/dir> from the page's content language.
     const headers = new Headers(req.headers);
